@@ -405,15 +405,36 @@ pbio_error_t Motor::set_limits(float speed, float acceleration, uint8_t actuatio
     return PBIO_SUCCESS;
 }
 
+/**
+Return pid settings
+
+:param pid_kp: Return PID Kp
+:param pid_ki: Return PID Ki
+:param pid_kd: Return PID Kd
+:param integral_range: Return integral range: Region around the target count in which integral errors are accumulated (user units)
+:param integral_rate: Return integral rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
+ */
 void Motor::get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate) {
-    pbio_control_settings_t *settings = &_servo.control.settings;
-    *kp = (uint16_t)settings->pid_kp;
-    *ki = (uint16_t)settings->pid_ki;
-    *kd = (uint16_t)settings->pid_kd;
-    *integral_deadzone = pbio_control_counts_to_user(settings, settings->integral_range);
-    *integral_rate = pbio_control_counts_to_user(settings, settings->integral_rate);
+    int16_t _kp, _ki, _kd;
+    int32_t _control_offset;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        pbio_control_settings_get_pid(&_servo.control.settings, &_kp, &_ki, &_kd, integral_deadzone, integral_rate, &_control_offset);
+        xSemaphoreGive(_xMutex);
+    }
+    *kp = (uint16_t)_kp;
+    *ki = (uint16_t)_ki;
+    *kd = (uint16_t)_kd;
 }
 
+/**
+Set PID settings
+
+:param pid_kp: PID Kp
+:param pid_ki: PID Ki
+:param pid_kd: PID Kd
+:param integral_range: Region around the target count in which integral errors are accumulated (user units)
+:param integral_rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
+*/
 pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integral_deadzone, float integral_rate) {
     pbio_error_t err;
 
@@ -422,6 +443,7 @@ pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integra
         #ifdef SERIAL_PRINT_MOTOR_ERROR
             serial_print_error(err, "Motor::set_pid(%u, %u, %u, %f, %f) integral_deadzone out of range", kp, ki, kd, integral_deadzone, integral_rate);
         #endif
+        return err;
     }
 
     if (integral_rate <= 0) {
@@ -429,27 +451,51 @@ pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integra
         #ifdef SERIAL_PRINT_MOTOR_ERROR
             serial_print_error(err, "Motor::set_pid(%u, %u, %u, %f, %f) integral_rate out of range", kp, ki, kd, integral_deadzone, integral_rate);
         #endif
+        return err;
     }
 
+    int16_t _kp, _ki, _kd;
+    int32_t _control_offset;
+    float _integral_deadzone, _integral_rate;
+
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        pbio_control_settings_t *settings = &_servo.control.settings;
-        settings->pid_kp = (int16_t)kp;
-        settings->pid_ki = (int16_t)ki;
-        settings->pid_kd = (int16_t)kd;
-        settings->integral_range = pbio_control_user_to_counts(settings, integral_deadzone);
-        settings->integral_rate = pbio_control_user_to_counts(settings, integral_deadzone);
+        pbio_control_settings_get_pid(&_servo.control.settings, &_kp, &_ki, &_kd, &_integral_deadzone, &_integral_rate, &_control_offset);
+        _kp = (int16_t)kp;
+        _ki = (int16_t)ki;
+        _kd = (int16_t)kd;
+        err = pbio_control_settings_set_pid(&_servo.control.settings, _kp, _ki, kd, integral_deadzone, integral_rate, _control_offset);
         xSemaphoreGive(_xMutex);
+    }
+    if (err != PBIO_SUCCESS) {
+        err = PBIO_ERROR_INVALID_ARG;
+        #ifdef SERIAL_PRINT_MOTOR_ERROR
+            serial_print_error(err, "Motor::set_pid(%u, %u, %u, %f, %f) sert failed", kp, ki, kd, integral_deadzone, integral_rate);
+        #endif
+        return err;
     }
 
     return PBIO_SUCCESS;
 }
 
+/**
+Return position and speed tolerance in user units to consider the movement done
+
+:param speed: Return speed tolerance
+:param position: Return position tolerance 
+*/
 void Motor::get_target_tolerances(float *speed, float *position) {
-    pbio_control_settings_t *settings = &_servo.control.settings;
-    *speed = pbio_control_counts_to_user(settings, settings->rate_tolerance);
-    *position = pbio_control_counts_to_user(settings, settings->count_tolerance);
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        pbio_control_settings_get_target_tolerances(&_servo.control.settings, speed, position);
+        xSemaphoreGive(_xMutex);
+    }
 }
 
+/**
+Set position and speed tolerance in user units to consider the movement done
+
+:param speed: Speed tolerance in user units
+:param position: Position tolerance in user units
+ */
 pbio_error_t Motor::set_target_tolerances(float speed, float position) {
     pbio_error_t err;
 
@@ -470,12 +516,13 @@ pbio_error_t Motor::set_target_tolerances(float speed, float position) {
     }
 
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        err = pbio_control_settings_set_target_tolerances(&_servo.control, speed, position);
-        if (err != PBIO_SUCCESS) {
-            #ifdef SERIAL_PRINT_MOTOR_ERROR
-                serial_print_error(err, "Motor::set_target_tolerances(%f, %f) position out of range", speed, position);            
-            #endif
-        }
+        err = pbio_control_settings_set_target_tolerances(&_servo.control.settings, speed, position);
+        xSemaphoreGive(_xMutex);
+    }
+    if (err != PBIO_SUCCESS) {
+        #ifdef SERIAL_PRINT_MOTOR_ERROR
+            serial_print_error(err, "Motor::set_target_tolerances(%f, %f) set failed", speed, position);            
+        #endif
         return err;
     }
 
@@ -489,9 +536,12 @@ Return stall tolerances in user units
 :param time: Reutrn time tolerance (ms)
 */
 void Motor::get_stall_tolerances(float *speed, uint32_t *time_ms) {
-    pbio_control_settings_t *settings = &_servo.control.settings;
-    *speed = pbio_control_counts_to_user(settings, settings->stall_rate_limit);
-    *time_ms = settings->stall_time / US_PER_MS;
+    int32_t _time_ms;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        pbio_control_settings_get_stall_tolerances(&_servo.control.settings, speed, &_time_ms);
+        xSemaphoreGive(_xMutex);
+    }
+    *time_ms = _time_ms;
 }
 
 /**
@@ -501,7 +551,20 @@ void Motor::get_stall_tolerances(float *speed, uint32_t *time_ms) {
 :param time: Time tolerance in ms
 */
 pbio_error_t Motor::set_stall_tolerances(float speed, uint32_t time_ms) {
-    pbio_control_settings_t *settings = &_servo.control.settings;
+    pbio_error_t err;
+
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        err = pbio_control_settings_set_stall_tolerances(&_servo.control.settings, speed, (int32_t)time_ms);
+        xSemaphoreGive(_xMutex);
+    }
+    if (err != PBIO_SUCCESS) {
+        #ifdef SERIAL_PRINT_MOTOR_ERROR
+            serial_print_error(err, "Motor::set_stall_tolerances(%f, %u) set failed", speed, time_ms);            
+        #endif
+        return err;
+    }
+    
+    return PBIO_SUCCESS;
 }
 
 void Motor::update() {

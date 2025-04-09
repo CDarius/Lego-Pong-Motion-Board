@@ -19,7 +19,7 @@ void Motor::begin(
 /**
 Gets the rotation angle of the motor (deg)
 */
-float Motor::angle() {
+float Motor::angle() const {
     return _tacho.getAngle();
 }
 
@@ -41,7 +41,7 @@ void Motor::reset_angle(float angle){
 /**
 Gets the speed of the motor in deg/s
 */
-float Motor::speed(){
+float Motor::speed() const {
     return _tacho.getAngularRate();
 }
 
@@ -375,28 +375,112 @@ pbio_error_t Motor::wait_for_completion() {
     return status;
 }
 
-void Motor::get_limits(float *speed, float *acceleration, uint8_t *actuation) {
-    float _speed, _acceleration;
-    int32_t _actuation;
+/**
+Return max speed control limit in user units
 
+:return: Return max speed (user unit/s)
+*/
+float Motor::get_speed_limit() {
+    float _speed;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        pbio_control_settings_get_limits(&_servo.control.settings, &_speed, &_acceleration, &_actuation);
+        _speed = pbio_control_settings_get_speed_limit(&_servo.control.settings);
         xSemaphoreGive(_xMutex);
     }
 
-    *actuation = (uint8_t)_actuation;
+    return _speed;
 }
 
-pbio_error_t Motor::set_limits(float speed, float acceleration, uint8_t actuation) {
+/**
+Return max acceleration control limit in user units
+
+:return: Return max acceleration (user unit/s^2)
+*/
+float Motor::get_acceleration_limit() {
+    float _acceleration;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        _acceleration = pbio_control_settings_get_acceleration_limit(&_servo.control.settings);
+        xSemaphoreGive(_xMutex);
+    }
+
+    return _acceleration;
+}
+
+/**
+Return actuation control limit in user units
+
+:return: Return max actuation percentage (0-100%)
+ */
+uint8_t Motor::get_actuation_limit() {
+    int32_t _actuation;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        _actuation = pbio_control_settings_get_actuation_limit(&_servo.control.settings);
+        xSemaphoreGive(_xMutex);
+    }
+
+    return (uint8_t)_actuation;
+}
+
+/**
+Set speed limit in user units
+
+:param speed: Maximum speed (user units/s)
+*/
+pbio_error_t Motor::set_speed_limit(float speed) {
     pbio_error_t err;
 
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        err = pbio_control_settings_set_limits(&_servo.control.settings, speed, acceleration, (int32_t)actuation);
+        err = pbio_control_settings_set_speed_limit(&_servo.control.settings, speed);
         xSemaphoreGive(_xMutex);
     }
     if (err != PBIO_SUCCESS) {            
         #ifdef SERIAL_PRINT_MOTOR_ERROR
-            serial_print_error(err, "Motor::set_limits(%f, %f, %u) override limit failed", speed, acceleration, actuation);
+            serial_print_error(err, "Motor::set_speed_limits(%f) override limit failed", speed);
+        #endif
+
+        return err;
+    }
+
+    return PBIO_SUCCESS;
+}
+
+/**
+Set acceleration limit in user units
+
+:param acceleration: Maximum acceleration (user units/s^2)
+*/
+pbio_error_t Motor::set_acceleration_limit(float acceleration) {
+    pbio_error_t err;
+
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        err = pbio_control_settings_set_acceleration_limit(&_servo.control.settings, acceleration);
+        xSemaphoreGive(_xMutex);
+    }
+    if (err != PBIO_SUCCESS) {            
+        #ifdef SERIAL_PRINT_MOTOR_ERROR
+            serial_print_error(err, "Motor::set_acceleration_limit(%f) override limit failed", acceleration);
+        #endif
+
+        return err;
+    }
+
+    return PBIO_SUCCESS;
+}
+
+/**
+Set actuation limit in percentage
+
+:param actuation: Maximum actuation percentage (0 to 100%)
+*/
+pbio_error_t Motor::set_actuation_limit(uint8_t actuation) {
+    pbio_error_t err;
+
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        err = pbio_control_settings_set_actuation_limit(&_servo.control.settings, (int32_t)actuation);
+        xSemaphoreGive(_xMutex);
+    }
+    if (err != PBIO_SUCCESS) {            
+        #ifdef SERIAL_PRINT_MOTOR_ERROR
+            serial_print_error(err, "Motor::set_actuation_limit(%u) override limit failed", actuation);
         #endif
 
         return err;
@@ -414,7 +498,7 @@ Return pid settings
 :param integral_range: Return integral range: Region around the target count in which integral errors are accumulated (user units)
 :param integral_rate: Return integral rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
  */
-void Motor::get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate) {
+void Motor::get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate) const {
     int16_t _kp, _ki, _kd;
     int32_t _control_offset;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
@@ -483,7 +567,7 @@ Return position and speed tolerance in user units to consider the movement done
 :param speed: Return speed tolerance
 :param position: Return position tolerance 
 */
-void Motor::get_target_tolerances(float *speed, float *position) {
+void Motor::get_target_tolerances(float *speed, float *position) const {
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         pbio_control_settings_get_target_tolerances(&_servo.control.settings, speed, position);
         xSemaphoreGive(_xMutex);
@@ -535,7 +619,7 @@ Return stall tolerances in user units
 :param speed: Return speed tolerance (user unit)
 :param time: Reutrn time tolerance (ms)
 */
-void Motor::get_stall_tolerances(float *speed, uint32_t *time_ms) {
+void Motor::get_stall_tolerances(float *speed, uint32_t *time_ms) const {
     int32_t _time_ms;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         pbio_control_settings_get_stall_tolerances(&_servo.control.settings, speed, &_time_ms);

@@ -87,18 +87,18 @@ void IRAM_ATTR Tacho::ISR_read_encoder() {
     portEXIT_CRITICAL( &mux );
 }
 
-int32_t Tacho::getCount() {
+int32_t Tacho::getCount() const {
     portENTER_CRITICAL( &mux );
     int32_t value = _last_count + _offset;
     portEXIT_CRITICAL( &mux );    
     return _direction == PBIO_DIRECTION_CLOCKWISE ? value : -value;
 }
 
-float Tacho::getAngle() {
+float Tacho::getAngle() const {
     return getCount() / _gear_ratio;
 }
 
-int32_t Tacho::getRate() {
+int32_t Tacho::getRate() const {
     portENTER_CRITICAL( &mux );
 
     // head can be updated in interrupt, so only read it once
@@ -158,7 +158,7 @@ int32_t Tacho::getRate() {
     return _direction == PBIO_DIRECTION_CLOCKWISE ? rate : -rate;
 }
 
-float Tacho::getAngularRate() {
+float Tacho::getAngularRate() const {
     return getRate() / _gear_ratio;
 }
 

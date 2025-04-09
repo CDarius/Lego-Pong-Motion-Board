@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "servo.h": "c"
+        "servo.h": "c",
+        "*.ok": "cpp"
     }
 }

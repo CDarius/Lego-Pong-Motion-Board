@@ -71,8 +71,15 @@ void ApiRestServer::begin(Settings* settings) {
     // Configure the webserver
     _server.listen(5000);
 
+    // CORS headers
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
     DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTION");
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "rigin, X-Requested-With, Content-Type, Accept, Authorization");
+
+    // Enable OPTION method for all endpoints
+    _server.on("*", HTTP_OPTIONS, [](PsychicRequest *request) {
+        return request->reply(200);
+    });
 
     setupSettingController();
 }

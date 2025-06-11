@@ -15,25 +15,25 @@
 // *** I/O Pins
 // ****************************************************
 
-#define X_AXIS_PWM_PIN_1        4
-#define X_AXIS_PWM_PIN_2        5
-#define X_AXIS_ENC_PIN_1        6
-#define X_AXIS_ENC_PIN_2        7
+#define X_AXIS_PWM_PIN_1        13
+#define X_AXIS_PWM_PIN_2        12
+#define X_AXIS_ENC_PIN_1        10
+#define X_AXIS_ENC_PIN_2        11
 
-#define Y_AXIS_PWM_PIN_1        15
-#define Y_AXIS_PWM_PIN_2        16
-#define Y_AXIS_ENC_PIN_1        17
-#define Y_AXIS_ENC_PIN_2        18
+#define Y_AXIS_PWM_PIN_1        9
+#define Y_AXIS_PWM_PIN_2        46
+#define Y_AXIS_ENC_PIN_1        8
+#define Y_AXIS_ENC_PIN_2        3
 
-#define L_AXIS_PWM_PIN_1        8
-#define L_AXIS_PWM_PIN_2        3
-#define L_AXIS_ENC_PIN_1        46
-#define L_AXIS_ENC_PIN_2        9
+#define L_AXIS_PWM_PIN_1        18
+#define L_AXIS_PWM_PIN_2        17
+#define L_AXIS_ENC_PIN_1        15
+#define L_AXIS_ENC_PIN_2        16
 
-#define R_AXIS_PWM_PIN_1        10
-#define R_AXIS_PWM_PIN_2        11
-#define R_AXIS_ENC_PIN_1        12
-#define R_AXIS_ENC_PIN_2        13
+#define R_AXIS_PWM_PIN_1        4
+#define R_AXIS_PWM_PIN_2        5
+#define R_AXIS_ENC_PIN_1        7
+#define R_AXIS_ENC_PIN_2        6
 
 #define IO_BOARD_UART_RX        44
 #define IO_BOARD_UART_TX        43
@@ -44,13 +44,13 @@
 #define I2C_BUS_2_SDA           41
 #define I2C_BUS_2_SCL           42
 
-#define START_BUTTON_PIN        40
-#define STOP_BUTTON_PIN         39
-#define Y_AXIS_HOME_SWITH_PIN   38
-#define L_AXIS_HOME_SWITH_PIN   47
-#define R_AXIS_HOME_SWITH_PIN   21
+#define START_BUTTON_PIN        40 // Grover port 1
+#define STOP_BUTTON_PIN         39 // Grover port 1
+#define Y_AXIS_HOME_SWITH_PIN   21 // Groove port 3
+#define L_AXIS_HOME_SWITH_PIN   45 // Groove port 2
+#define R_AXIS_HOME_SWITH_PIN   47 // Groove port 2
 
-#define LED_OUTPUT              48
+#define LED_OUTPUT              38
 
 // ****************************************************
 
@@ -84,6 +84,8 @@ void motor_loop_task(void *parameter) {
             counter = 0;
             led = !led;
             digitalWrite(LED_OUTPUT, led ? HIGH : LOW);
+            Serial.print("LED = ");
+            Serial.println(led ? "ON" : "OFF");
         }
 
         // Run the task every 6ms
@@ -156,11 +158,17 @@ void setup() {
     Serial1.setTimeout(0);
 
     // Configure inputs
-    pinMode(START_BUTTON_PIN, INPUT_PULLUP);
-    pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
-    pinMode(Y_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
-    pinMode(L_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
-    pinMode(R_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
+    pinMode(START_BUTTON_PIN, OUTPUT);
+    pinMode(STOP_BUTTON_PIN, OUTPUT);
+    pinMode(Y_AXIS_HOME_SWITH_PIN, OUTPUT);
+    pinMode(L_AXIS_HOME_SWITH_PIN, OUTPUT);
+    pinMode(R_AXIS_HOME_SWITH_PIN, OUTPUT);
+
+    //pinMode(35, OUTPUT); // Can not be used
+    //pinMode(36, OUTPUT); // Can not be used
+    //pinMode(37, OUTPUT); // Can not be used
+    pinMode(45, INPUT_PULLUP);
+    pinMode(14, INPUT_PULLUP);
 
     // Configure outputs
     pinMode(LED_OUTPUT, OUTPUT);
@@ -241,5 +249,5 @@ void loop() {
 
     delay(1000);
 
-    scanI2CDevices(&Wire1);
+    //scanI2CDevices(&Wire1);
 }

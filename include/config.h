@@ -1,9 +1,17 @@
 #ifndef __PROJECT_CONFIG_H__
 #define __PROJECT_CONFIG_H__
 
+//#define USE_IO_BOARD_AP
+
 // Wifi configuration
+#ifdef USE_IO_BOARD_AP
+#define WIFI_SSID     "Lego_Pong"
+#define WIFI_PASSWORD "ContinuateASparareStronzi"
+#else
 #define WIFI_SSID     "Agenoria"
 #define WIFI_PASSWORD "carota24carati"
+#endif
+
 #define IP_ADDRESS    192, 168, 0, 205  
 #define IP_GATEWAY    192, 168, 0, 1
 #define IP_SUBNET     255, 255, 255, 0

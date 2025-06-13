@@ -2,12 +2,16 @@
 #include <Wire.h>
 #include <WiFi.h>
 #include "monotonic.h"
-#include "unit_encoder.hpp"
 #include "config.h"
 #include "api_server.hpp"
+#include "devices/unit_encoder.hpp"
+#include "devices/rgb_led.hpp"
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
+#include "motor_control/motorhoming.hpp"
 #include "game/game.hpp"
+#include "utils/i2c_utils.hpp"
+#include "utils/logger.hpp"
 
 #include "settings/settings.hpp"
 
@@ -60,11 +64,36 @@ Motor x_motor;
 Motor y_motor;
 Motor l_motor;
 Motor r_motor;
-UnitEncoder encoder;
+switch_homing_config_t y_motor_homing_config = {
+    .start_in_positive_direction = false,
+    .speed = 10.0, // Speed in motor stud/second
+    .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
+    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
+    .switch_axis_position = 0.0 // Position of the switch in stud
+};
+switch_homing_config_t l_motor_homing_config = {
+    .start_in_positive_direction = true,
+    .speed = 10.0, // Speed in motor stud/second
+    .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
+    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
+    .switch_axis_position = 0.0 // Position of the switch in stud
+};
+switch_homing_config_t r_motor_homing_config = {
+    .start_in_positive_direction = true,
+    .speed = 10.0, // Speed in motor stud/second
+    .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
+    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
+    .switch_axis_position = 0.0 // Position of the switch in stud
+};
+
+UnitEncoder l_encoder;
+UnitEncoder r_encoder;
+RGBLed rgb_led;
 
 Game game;
 
-Settings game_settings(game, x_motor, y_motor, l_motor, r_motor);
+Settings game_settings(game, x_motor, y_motor, l_motor, r_motor,
+    y_motor_homing_config, l_motor_homing_config, r_motor_homing_config);
 
 void motor_loop_task(void *parameter) {
     int32_t counter = 0;
@@ -100,55 +129,16 @@ void motor_loop_task(void *parameter) {
 
 void measure_task(void *parameter) {
     while (true) {
+        /*
         Serial.print("Counter = ");
         Serial.print(x_motor.angle());
         Serial.print(" speed = ");
         Serial.print(x_motor.speed());
         Serial.print(" count/sec speed = ");
         Serial.println(x_motor.speed() / 6);
+        */
         delay(500);    
     }
-}
-
-void scanI2CDevices(TwoWire* wire) {
-    byte error, address;
-    int nDevices;
-  
-    Serial.println("Scanning...");
-  
-    nDevices = 0;
-    for(address = 1; address < 127; address++ )
-    {
-      // The i2c_scanner uses the return value of
-      // the Write.endTransmisstion to see if
-      // a device did acknowledge to the address.
-      wire->beginTransmission(address);
-      error = wire->endTransmission();
-  
-      if (error == 0)
-      {
-        Serial.print("I2C device found at address 0x");
-        if (address<16)
-          Serial.print("0");
-        Serial.print(address,HEX);
-        Serial.println("  !");
-  
-        nDevices++;
-      }
-      else if (error==4)
-      {
-        Serial.print("Unknown error at address 0x");
-        if (address<16)
-          Serial.print("0");
-        Serial.println(address,HEX);
-      }
-    }
-    if (nDevices == 0)
-      Serial.println("No I2C devices found\n");
-    else
-      Serial.println("done\n");
-  
-    delay(1000);           // wait 5 seconds for next scan
 }
 
 void setup() {
@@ -172,21 +162,45 @@ void setup() {
 
     // Configure outputs
     pinMode(LED_OUTPUT, OUTPUT);
+    rgb_led.begin();
+    rgb_led.setColor(RGB_COLOR_WHITE);
 
     // Configure two I2C busses
     Wire.begin(I2C_BUS_1_SDA, I2C_BUS_1_SCL, 400000);
     Wire1.begin(I2C_BUS_2_SDA, I2C_BUS_2_SCL, 400000);
-    encoder.begin(&Wire);
+    l_encoder.begin(&Wire);
+    r_encoder.begin(&Wire1);
 
     // Configure motors
-    x_motor.begin(X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    y_motor.begin(Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    l_motor.begin(L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    r_motor.begin(R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
+    x_motor.begin(X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
+    y_motor.begin(Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
+    l_motor.begin(L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
+    r_motor.begin(R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
     
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
     
+    // TODO:
+    // Start communication with I/O board
+    // Send a PING command and wait for a response (implemnt a retry)
+    // If the response is not received, log the error and do the red blinking of the LED
+    // If the communication is established, send an INIT command with the start web server status
+
+    // TODO: 
+    // Add a semaphore to protect to the I/O board communication. Different tasks on different cores can access the I/O board at the same time, which can lead to data corruption.
+
+    // Test that all I2C devices are connected
+    bool all_i2c_devices_found = true;
+    if (!testI2CDeviceExist(&Wire, UNIT_ENC_ENCODER_ADDR, "Left paddle encoder")) {
+        all_i2c_devices_found = false;
+    }
+    if (!testI2CDeviceExist(&Wire1, UNIT_ENC_ENCODER_ADDR, "Right paddle encoder")) {
+        all_i2c_devices_found = false;
+    }
+    if (!all_i2c_devices_found) {
+        rgb_led.unrecoverableError();
+    }
+
     // Start motor loop task on core 0
     xTaskCreatePinnedToCore (
         motor_loop_task,    // Function to implement the task
@@ -219,22 +233,26 @@ void setup() {
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         while (WiFi.status() != WL_CONNECTED) {
             delay(1000);
-            Serial.println("Connecting to WiFi...");
+            Logger::instance().logI("Connecting to WiFi...");
         }
-        Serial.println("Connected to WiFi!");
-        Serial.print("IP Address: ");
-        Serial.println(WiFi.localIP());
+        Logger::instance().logI("Connected to WiFi!");
+        Logger::instance().logI("IP Address: " + String(WiFi.localIP()));
 
         server.begin(&game_settings);
     } 
     else {
-        Serial.println("Configuration failed!!!");
+        Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");
+        rgb_led.unrecoverableError();
     }
+
+    rgb_led.setColor(RGB_COLOR_GREEN);
 }
 
 void loop() {
     unsigned long time = micros();
 
+    // Serial test
+    /*
     Serial1.println("Serial 1!!");
     Serial.print("Try read serial 1...");
     String read1 = Serial1.readStringUntil('\n');
@@ -246,8 +264,14 @@ void loop() {
     Serial.print("Serial 1 time: ");
     Serial.print(delta_time);
     Serial.println("us");
+    */
 
-    delay(1000);
+    r_motor.dc(100);
+    delay(2000);
+    r_motor.dc(-100);
+    delay(2000);
+    r_motor.stop();
+    delay(2000);
 
     //scanI2CDevices(&Wire1);
 }

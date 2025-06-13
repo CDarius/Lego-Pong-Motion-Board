@@ -1,4 +1,4 @@
-#include "unit_encoder.hpp"
+#include "devices/unit_encoder.hpp"
 
 /*! @brief Initialize the Encoder. */
 void UnitEncoder::begin(TwoWire *wire, uint8_t addr) {

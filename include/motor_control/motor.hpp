@@ -78,14 +78,6 @@ class Motor {
         void setSwLimitPlus(float value) {
             swLimitP = value;
         }
-
-        float getHomeSwitchPos() const {
-            return homeSwitchPos;
-        }
-
-        void setHomeSwithcPos(float value) {
-            homeSwitchPos = value;
-        }
 };
 
 #endif

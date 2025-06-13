@@ -1,38 +1,38 @@
-#ifndef __SETTING_AXIS_HOME_SWITCH_POS_HPP__
-#define __SETTING_AXIS_HOME_SWITCH_POS_HPP__
+#ifndef __SETTING_AXISSWITCHHOMING_SPEED_HPP__
+#define __SETTING_AXISSWITCHHOMING_SPEED_HPP__
 
-#include "motor_control\motor.hpp"
+#include "motor_control\motorhoming.hpp"
 #include "settings\setting.hpp"
 
-class AxisHomeSwitchPosSetting : public Setting<float> {
+class AxisSwitchHomingSpeedSetting : public Setting<float> {
     private:
-        Motor& _motor;
+        switch_homing_config_t& _config;
 
     public:
-        AxisHomeSwitchPosSetting(Motor& motor) : _motor(motor) {}
+        AxisSwitchHomingSpeedSetting(switch_homing_config_t& config) : _config(config) {}
 
         float getValue() const override {
-            return _motor.getHomeSwitchPos();
+            return _config.speed;
         }
 
         void setValue(const float value) override {
-            _motor.setHomeSwithcPos(value);            
+            _config.speed = value;
         }
 
         const char* getName() const override {
-            return "home_switch_pos";
+            return "speed";
         }
 
         const char* getTitle() const override {
-            return "Home switch position";
+            return "Homing speed";
         }
 
         const char* getDescription() const override {
-            return "Axis position at the end oft the homing position";
+            return "Axis speed when moving toward the home switch";
         }
 
         const char* getUnit() const override {
-            return "stud";
+            return "stud/s";
         }
 
         SettingType getType() const {
@@ -44,7 +44,7 @@ class AxisHomeSwitchPosSetting : public Setting<float> {
         }
 
         const float getMinValue() const override {
-            return -5.0;
+            return 1.0;
         }
 
         const bool hasMaxValue() const override {
@@ -60,7 +60,7 @@ class AxisHomeSwitchPosSetting : public Setting<float> {
         }
 
         const float getChangeStep() const override {
-            return 0.1;
+            return 1.0;
         }
     };
 

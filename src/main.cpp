@@ -9,6 +9,7 @@
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
 #include "motor_control/motorhoming.hpp"
+#include "motor_control/error.hpp"
 #include "game/game.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
@@ -95,6 +96,11 @@ Game game;
 Settings game_settings(game, x_motor, y_motor, l_motor, r_motor,
     y_motor_homing_config, l_motor_homing_config, r_motor_homing_config);
 
+void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
+    String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");
+    Logger::instance().logE(Message.c_str());
+}
+
 void motor_loop_task(void *parameter) {
     int32_t counter = 0;
     bool led = false;
@@ -113,8 +119,6 @@ void motor_loop_task(void *parameter) {
             counter = 0;
             led = !led;
             digitalWrite(LED_OUTPUT, led ? HIGH : LOW);
-            Serial.print("LED = ");
-            Serial.println(led ? "ON" : "OFF");
         }
 
         // Run the task every 6ms
@@ -129,14 +133,12 @@ void motor_loop_task(void *parameter) {
 
 void measure_task(void *parameter) {
     while (true) {
-        /*
         Serial.print("Counter = ");
         Serial.print(x_motor.angle());
         Serial.print(" speed = ");
         Serial.print(x_motor.speed());
         Serial.print(" count/sec speed = ");
         Serial.println(x_motor.speed() / 6);
-        */
         delay(500);    
     }
 }
@@ -172,10 +174,10 @@ void setup() {
     r_encoder.begin(&Wire1);
 
     // Configure motors
-    x_motor.begin(X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    y_motor.begin(Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    l_motor.begin(L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
-    r_motor.begin(R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large);
+    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
+    y_motor.begin("Y", Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
+    l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
+    r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
@@ -266,10 +268,19 @@ void loop() {
     Serial.println("us");
     */
 
+    x_motor.dc(100);
+    y_motor.dc(100);
+    l_motor.dc(100);
     r_motor.dc(100);
-    delay(2000);
+    delay(4000);
+    x_motor.dc(-100);
+    y_motor.dc(-100);
+    l_motor.dc(-100);
     r_motor.dc(-100);
-    delay(2000);
+    delay(4000);
+    x_motor.stop();
+    y_motor.stop();
+    l_motor.stop();
     r_motor.stop();
     delay(2000);
 

@@ -37,18 +37,3 @@ const char *pbio_error_str(pbio_error_t err) {
 
     return NULL;
 }
-
-void serial_print_error(pbio_error_t err, const char* format, ...) {
-    if (err != PBIO_SUCCESS) {
-        va_list args;
-        va_start(args, format);
-
-        char buffer[1024];
-        vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
-
-        Serial.print(buffer);
-        Serial.print(" -> ");
-        Serial.println(pbio_error_str(err));
-    }
-}

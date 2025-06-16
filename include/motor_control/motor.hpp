@@ -9,8 +9,11 @@
 #include "motor_control/tacho.hpp"
 #include "motor_control/dcmotor.hpp"
 
+typedef void (*motor_error_output_func_t)(pbio_error_t err, const char* err_string, const char* message);
+
 class Motor {
     private:
+        const char* _name = nullptr;
         Tacho _tacho = Tacho();
         DCMotor _dcmotor = DCMotor();
         pbio_servo_t _servo;
@@ -18,18 +21,26 @@ class Motor {
 
         SemaphoreHandle_t _xMutex = xSemaphoreCreateMutex();
 
-        float swLimitM, swLimitP;
-        float homeSwitchPos;
+        float _swLimitM, _swLimitP;
+        motor_error_output_func_t _current_error_output_func = nullptr;
+
+        void output_motor_error(pbio_error_t err, const char* format, ...);
 
     public:
         void begin(
+            const char *name,
             uint8_t encoderPi1,
             uint8_t encoderPi2,
             uint8_t pwmPi1,
             uint8_t pwmPi2,
             pbio_direction_t direction, 
             float gear_ratio, 
-            pbio_control_settings_t *settings);
+            pbio_control_settings_t *settings,
+            motor_error_output_func_t error_output_func = nullptr);
+
+        const char* name() const {
+            return _name;
+        }
 
         float angle() const;
         void reset_angle(float angle);
@@ -64,19 +75,19 @@ class Motor {
         pbio_error_t set_stall_tolerances(float speed, uint32_t time_ms);
 
         float getSwLimitMinus() const {
-            return swLimitM;
+            return _swLimitM;
         }
 
         void setSwLimitMinus(float value) {
-            swLimitM = value;
+            _swLimitM = value;
         }
 
         float getSwLimitPlus() const {
-            return swLimitP;
+            return _swLimitP;
         }
 
         void setSwLimitPlus(float value) {
-            swLimitP = value;
+            _swLimitP = value;
         }
 };
 

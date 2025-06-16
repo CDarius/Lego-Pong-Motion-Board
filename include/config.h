@@ -26,6 +26,4 @@
 
 #define ENCODER_COUNTS_PER_DEGREE (2)
 
-#define SERIAL_PRINT_MOTOR_ERROR
-
 #endif

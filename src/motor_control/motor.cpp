@@ -14,6 +14,8 @@ void Motor::begin(
         _dcmotor.begin(pwmPi1, pwmPi2, direction, MOTOR_MAX_CONTROL);
 
         pbio_servo_setup(&_servo, &_dcmotor, &_tacho, counts_per_unit, settings);
+
+        update();
 }
 
 /**
@@ -43,6 +45,10 @@ Gets the speed of the motor in deg/s
 */
 float Motor::speed(){
     return _tacho.getAngularRate();
+}
+
+void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) {
+    _dcmotor.getState(state, duty_now);
 }
 
 /**

@@ -31,6 +31,7 @@ class Motor {
         float angle();
         void reset_angle(float angle);
         float speed();
+        void getState(pbio_passivity_t *state, int32_t *duty_now);
 
         void stop();
         void brake();

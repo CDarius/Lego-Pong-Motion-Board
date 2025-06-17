@@ -16,7 +16,7 @@ typedef enum {
 class DCMotor {
     public:
         void begin(uint8_t pwmPin1, uint8_t pwmPin2, pbio_direction_t direction, uint16_t userPwmMax);
-        void getState(pbio_passivity_t *state, int32_t *duty_now);
+        void getState(pbio_passivity_t *state, int32_t *duty_now) const;
         uint16_t getUserPwmMax();
         void coast();
         void brake();

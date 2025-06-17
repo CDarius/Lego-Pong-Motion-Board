@@ -50,7 +50,7 @@ float Motor::speed() const {
     return _tacho.getAngularRate();
 }
 
-void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) {
+void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) const {
     _dcmotor.getState(state, duty_now);
 }
 

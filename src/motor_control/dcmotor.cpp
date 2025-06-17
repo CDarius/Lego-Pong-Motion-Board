@@ -14,7 +14,7 @@ void DCMotor::begin(uint8_t pwmPin1, uint8_t pwmPin2, pbio_direction_t direction
     coast();
 }
 
-void DCMotor::getState(pbio_passivity_t *state, int32_t *duty_now) {
+void DCMotor::getState(pbio_passivity_t *state, int32_t *duty_now) const {
     *state = _state;
     *duty_now = _duty_now;
 }

@@ -109,7 +109,7 @@ Return true when the motor is in stall (rate integrator)
 :param rate_stall: Stall speed threshold (count/s)
 :return: Return true when the motor is in stall
  */
-bool pbio_rate_integrator_stalled(pbio_rate_integrator_t *itg, int32_t time_now, int32_t rate, int32_t time_stall, int32_t rate_stall) {
+bool pbio_rate_integrator_stalled(const pbio_rate_integrator_t *itg, int32_t time_now, int32_t rate, int32_t time_stall, int32_t rate_stall) {
     // If were running, we're not stalled
     if (itg->running) {
         return false;
@@ -137,7 +137,7 @@ Return current time when is running or the pause time when is not running
 :param time_now: Current time (us)
 :return: Integrator reference time (us)
  */
-int32_t pbio_count_integrator_get_ref_time(pbio_count_integrator_t *itg, int32_t time_now) {
+int32_t pbio_count_integrator_get_ref_time(const pbio_count_integrator_t *itg, int32_t time_now) {
     // The wall time at which we are is either the current time, or whenever we stopped last
     int32_t real_time = itg->trajectory_running ? time_now : itg->time_pause_begin;
 
@@ -281,7 +281,7 @@ Return true when the motor is in stall (count integrator)
 :param rate_stall: Stall speed threshold (count/s)
 :return: True when the motor is in stall (count integrator)
  */
-bool pbio_count_integrator_stalled(pbio_count_integrator_t *itg, int32_t time_now, int32_t rate, int32_t time_stall, int32_t rate_stall) {
+bool pbio_count_integrator_stalled(const pbio_count_integrator_t *itg, int32_t time_now, int32_t rate, int32_t time_stall, int32_t rate_stall) {
     // If we're running and the integrator is not saturated, we're not stalled
     if (itg->trajectory_running && abs(itg->count_err_integral) < itg->count_err_integral_max) {
         return false;

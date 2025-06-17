@@ -26,6 +26,5 @@ typedef enum {
 } pbio_error_t;
 
 const char *pbio_error_str(pbio_error_t err);
-void serial_print_error(pbio_error_t err, const char* format, ...);
 
 #endif // _PBIO_ERROR_H_

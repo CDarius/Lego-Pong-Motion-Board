@@ -15,12 +15,12 @@ class Tacho {
         Tacho();
         void begin(uint8_t pin1, uint8_t pin2, float gear_ration, pbio_direction_t direction);
 
-        int32_t getCount();
-        float getAngle();
+        int32_t getCount() const;
+        float getAngle() const;
         void resetAngle(int32_t angle);
 
-        int32_t getRate();
-        float getAngularRate();
+        int32_t getRate() const;
+        float getAngularRate() const;
 
         bool isSequenceError();
         void clearSequenceError();

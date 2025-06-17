@@ -52,7 +52,7 @@ void control_update(pbio_control_t *ctl, int32_t time_now, int32_t count_now, in
 
     // Total duty signal, capped by the actuation limit
     duty = duty_due_to_proportional + duty_due_to_integral + duty_due_to_derivative + duty_feedforward;
-    duty = max(-ctl->settings.max_control, min(duty, ctl->settings.max_control));
+    duty = PIO_MAX(-ctl->settings.max_control, PIO_MIN(duty, ctl->settings.max_control));
 
     // This completes the computation of the control signal.
     // The next steps take care of handling windup, or triggering a stop if we are on target.
@@ -402,7 +402,7 @@ Convert control units (counts, rate) in physical user units (deg or mm, deg/s or
 :param: Counts or rate in encoder count
 :return: Counts or rate in user units (deg or mm, deg/s or mm/s)
 */
-float pbio_control_counts_to_user(pbio_control_settings_t *s, int32_t counts) {
+float pbio_control_counts_to_user(const pbio_control_settings_t *s, int32_t counts) {
     return counts / s->counts_per_unit;
 }
 
@@ -412,7 +412,7 @@ Convert physical user units (deg or mm, deg/s or mm/s) in control units (counts,
 :param: Counts or rate in user units (deg or mm, deg/s or mm/s)
 :return: Counts or rate in encoder count
  */
-int32_t pbio_control_user_to_counts(pbio_control_settings_t *s, float user) {
+int32_t pbio_control_user_to_counts(const pbio_control_settings_t *s, float user) {
     return (int32_t)(user * s->counts_per_unit);
 }
 
@@ -423,7 +423,7 @@ Return control limits in user units (gear ratio)
 :param acceleration: Return max acceleration
 :param actuation: Return max actuation percentage (0-100)
  */
-void pbio_control_settings_get_limits(pbio_control_settings_t *s, float *speed, float *acceleration, int32_t *actuation) {
+void pbio_control_settings_get_limits(const pbio_control_settings_t *s, float *speed, float *acceleration, int32_t *actuation) {
     *speed = pbio_control_counts_to_user(s, s->max_rate);
     *acceleration = pbio_control_counts_to_user(s, s->abs_acceleration);
     *actuation = s->max_control / s->actuation_scale;
@@ -459,7 +459,7 @@ Return pid settings
 :param integral_rate: Return integral rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
 :param control_offset: Return control offset: Constant feedforward signal added in the reference direction percentage (0 to 100)
  */
-void pbio_control_settings_get_pid(pbio_control_settings_t *s, int16_t *pid_kp, int16_t *pid_ki, int16_t *pid_kd, float *integral_range, float *integral_rate, int32_t *control_offset) {
+void pbio_control_settings_get_pid(const pbio_control_settings_t *s, int16_t *pid_kp, int16_t *pid_ki, int16_t *pid_kd, float *integral_range, float *integral_rate, int32_t *control_offset) {
     *pid_kp = s->pid_kp;
     *pid_ki = s->pid_ki;
     *pid_kd = s->pid_kd;
@@ -501,7 +501,7 @@ Return position and speed tolerance in user units to consider the movement done
 :param speed: Return speed tolerance
 :param position: Return position tolerance 
  */
-void pbio_control_settings_get_target_tolerances(pbio_control_settings_t *s, float *speed, float *position) {
+void pbio_control_settings_get_target_tolerances(const pbio_control_settings_t *s, float *speed, float *position) {
     *position = pbio_control_counts_to_user(s, s->count_tolerance);
     *speed = pbio_control_counts_to_user(s, s->rate_tolerance);
 }
@@ -528,7 +528,7 @@ Return stall tolerances in user units
 :param speed: Return speed tolerance (user unit)
 :param time: Reutrn time tolerance (ms)
  */
-void pbio_control_settings_get_stall_tolerances(pbio_control_settings_t *s,  float *speed, int32_t *time) {
+void pbio_control_settings_get_stall_tolerances(const pbio_control_settings_t *s,  float *speed, int32_t *time) {
     *speed = pbio_control_counts_to_user(s, s->stall_rate_limit);
     *time = s->stall_time / US_PER_MS;
 }
@@ -554,7 +554,7 @@ Calculate the maximum integrator value for witch ki*integrator does not exceed m
 
 :return: Integrator max value
  */
-int32_t pbio_control_settings_get_max_integrator(pbio_control_settings_t *s) {
+int32_t pbio_control_settings_get_max_integrator(const pbio_control_settings_t *s) {
     // If ki is very small, then the integrator is "unlimited"
     if (s->pid_ki <= 10) {
         return 1000000000;
@@ -569,7 +569,7 @@ Return the integrator current time
 :param time_now: Current time in us
 :return: Integrator current reference time (us)
  */
-int32_t pbio_control_get_ref_time(pbio_control_t *ctl, int32_t time_now) {
+int32_t pbio_control_get_ref_time(const pbio_control_t *ctl, int32_t time_now) {
 
     if (ctl->type == PBIO_CONTROL_ANGLE) {
         return pbio_count_integrator_get_ref_time(&ctl->count_integrator, time_now);
@@ -594,4 +594,76 @@ Checks if an ongoing command or maneuver is done
 */
 bool pbio_control_is_done(pbio_control_t *ctl) {
     return ctl->type == PBIO_CONTROL_NONE || ctl->on_target;
+}
+
+/**
+Return max speed control limit in user units
+
+:return: Return max speed (user unit/s)
+*/
+float pbio_control_settings_get_speed_limit(const pbio_control_settings_t *s) {
+    return pbio_control_counts_to_user(s, s->max_rate);
+}
+
+/**
+Return max acceleration control limit in user units
+
+:return: Return max acceleration (user unit/s^2)
+*/
+float pbio_control_settings_get_acceleration_limit(const pbio_control_settings_t *s) {
+    return pbio_control_counts_to_user(s, s->abs_acceleration);
+}
+
+/**
+Return actuation control limit in user units
+
+:return: Return max actuation percentage (0-100%)
+ */
+int32_t pbio_control_settings_get_actuation_limit(const pbio_control_settings_t *s) {
+    return s->max_control / s->actuation_scale;
+}
+
+/**
+Set speed limit in user units
+
+:param speed: Maximum speed (user units/s)
+*/
+pbio_error_t pbio_control_settings_set_speed_limit(pbio_control_settings_t *s, float speed) {
+    if (speed < 1) {
+        return PBIO_ERROR_INVALID_ARG;
+    }
+
+    s->max_rate = pbio_control_user_to_counts(s, speed);
+    return PBIO_SUCCESS;
+}
+
+/**
+Set acceleration limit in user units
+
+:param acceleration: Maximum acceleration (user units/s^2)
+*/
+pbio_error_t pbio_control_settings_set_acceleration_limit(pbio_control_settings_t *s, float acceleration) {
+    if (acceleration < 1) {
+        return PBIO_ERROR_INVALID_ARG;
+    }
+
+    s->abs_acceleration = pbio_control_user_to_counts(s, acceleration);
+    return PBIO_SUCCESS;
+}
+
+/**
+Set actuation limit in percentage
+
+:param actuation: Maximum actuation percentage (0 to 100%)
+*/
+pbio_error_t pbio_control_settings_set_actuation_limit(pbio_control_settings_t *s, int32_t actuation) {
+    if (actuation < 1) {
+        return PBIO_ERROR_INVALID_ARG;
+    }
+    if (actuation * s->actuation_scale <= s->control_offset) {
+        return PBIO_ERROR_INVALID_OP;
+    }
+
+    s->max_control = actuation * s->actuation_scale;
+    return PBIO_SUCCESS;
 }

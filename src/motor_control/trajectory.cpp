@@ -160,13 +160,13 @@ pbio_error_t pbio_trajectory_make_time_based(pbio_trajectory_t *ref, int32_t t0,
     }
 
     // Limit absolute acceleration
-    a = min(a, amax);
+    a = PIO_MIN(a, amax);
 
     // Limit initial speed
     int32_t max_init = timest(a, t3mt0);
-    int32_t abs_max = min(wmax, max_init);
-    w0 = max(-abs_max, min(w0, abs_max));
-    wt = max(-abs_max, min(wt, abs_max));
+    int32_t abs_max = PIO_MIN(wmax, max_init);
+    w0 = PIO_MAX(-abs_max, PIO_MIN(w0, abs_max));
+    wt = PIO_MAX(-abs_max, PIO_MIN(wt, abs_max));
 
     // Initial speed is less than the target speed
     if (w0 < wt) {
@@ -275,14 +275,14 @@ pbio_error_t pbio_trajectory_make_angle_based(pbio_trajectory_t *ref, int32_t t0
     }
 
     // Limit absolute acceleration
-    a = min(a, amax);
+    a = PIO_MIN(a, amax);
 
     // In a forward maneuver, the target speed is always positive.
     wt = abs(wt);
-    wt = min(wt, wmax);
+    wt = PIO_MIN(wt, wmax);
 
     // Limit initial speed
-    w0 = max(-wmax, min(w0, wmax));
+    w0 = PIO_MAX(-wmax, PIO_MIN(w0, wmax));
 
     // Limit initial speed, but evaluate square root only if necessary (usually not)
     if (w0 > 0 && (w0*w0)/(2*a) > th3 - th0) {

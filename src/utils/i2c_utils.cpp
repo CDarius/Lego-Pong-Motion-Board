@@ -33,7 +33,7 @@ void scanI2CDevices(TwoWire *wire)
 bool testI2CDeviceExist(TwoWire* wire, uint8_t address, const char* device_name) {
     wire->beginTransmission(address);
     if (wire->endTransmission() != 0) {
-        String error = "I2C device \"" + String(device_name) + "\" (0x" + String(address, HEX) + ") not found!";
+        String error = "I2C device \"" + String(device_name) + "\" (0x" + String(address, HEX) + ") not found!\n";
         Logger::instance().logE(error);
         return false;
     }

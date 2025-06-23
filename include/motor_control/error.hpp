@@ -22,9 +22,18 @@ typedef enum {
     PBIO_ERROR_INVALID_OP,      /**< Operation is not permitted in the current state */
     PBIO_ERROR_TIMEDOUT,        /**< The operation has timed out */
     PBIO_ERROR_CANCELED,        /**< The operation was canceled */
-    PBIO_ERROR_TACHO_SEQUENCE   /**< Encoder sequence counting error */
+    PBIO_ERROR_TACHO_SEQUENCE,  /**< Encoder sequence counting error */
+    PBIO_ERROR_HOME_SWITCH_ERR  /**< Home switch sequence error */
 } pbio_error_t;
 
 const char *pbio_error_str(pbio_error_t err);
 
+#define PBIO_RETURN_ON_ERROR(expr)         \
+    do {                                   \
+        pbio_error_t _err = (expr);        \
+        if (_err != PBIO_SUCCESS) {        \
+            return _err;                   \
+        }                                  \
+    } while (0)
+    
 #endif // _PBIO_ERROR_H_

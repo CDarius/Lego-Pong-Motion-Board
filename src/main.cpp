@@ -6,6 +6,7 @@
 #include "api_server.hpp"
 #include "devices/unit_encoder.hpp"
 #include "devices/rgb_led.hpp"
+#include "devices/button.hpp"
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
 #include "motor_control/motorhoming.hpp"
@@ -13,6 +14,7 @@
 #include "game/game.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
+#include "utils/cancel_token.hpp"
 
 #include "settings/settings.hpp"
 
@@ -22,8 +24,8 @@
 
 #define X_AXIS_PWM_PIN_1        13
 #define X_AXIS_PWM_PIN_2        12
-#define X_AXIS_ENC_PIN_1        10
-#define X_AXIS_ENC_PIN_2        11
+#define X_AXIS_ENC_PIN_1        11
+#define X_AXIS_ENC_PIN_2        10
 
 #define Y_AXIS_PWM_PIN_1        9
 #define Y_AXIS_PWM_PIN_2        46
@@ -66,21 +68,21 @@ Motor y_motor;
 Motor l_motor;
 Motor r_motor;
 switch_homing_config_t y_motor_homing_config = {
-    .start_in_positive_direction = false,
+    .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
     .switch_axis_position = 0.0 // Position of the switch in stud
 };
 switch_homing_config_t l_motor_homing_config = {
-    .start_in_positive_direction = true,
+    .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
     .switch_axis_position = 0.0 // Position of the switch in stud
 };
 switch_homing_config_t r_motor_homing_config = {
-    .start_in_positive_direction = true,
+    .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
@@ -90,6 +92,8 @@ switch_homing_config_t r_motor_homing_config = {
 UnitEncoder l_encoder;
 UnitEncoder r_encoder;
 RGBLed rgb_led;
+Button start_button;
+Button stop_button;
 
 Game game;
 
@@ -108,12 +112,24 @@ void motor_loop_task(void *parameter) {
     uint32_t delay_ms;
     while (true) {
         uint64_t start_time = monotonic_us();
+        uint32_t millis = (uint32_t)(start_time / US_PER_MS);
 
+        // Update start and stop buttons status
+        start_button.setRawState(millis, digitalRead(START_BUTTON_PIN) == LOW);
+        stop_button.setRawState(millis, digitalRead(STOP_BUTTON_PIN) == LOW);
+
+        // Stop game and all motors if the stop button was clicked
+        if (stop_button.wasClicked()) {
+            CancelToken::cancelAll();
+        }
+
+        // Update motors motion
         x_motor.update();
         y_motor.update();
         l_motor.update();
         r_motor.update();
         
+        // Blink the watchdog LED every
         counter++;
         if (counter >= 150) {
             counter = 0;
@@ -121,7 +137,7 @@ void motor_loop_task(void *parameter) {
             digitalWrite(LED_OUTPUT, led ? HIGH : LOW);
         }
 
-        // Run the task every 6ms
+        // Run the task every 3ms
         uint64_t delta_time = monotonic_us() - start_time;
         delay_ms = (uint32_t)((PBIO_CONFIG_SERVO_PERIOD_MS*US_PER_MS - delta_time) / 1000);
         if (delay_ms == 0 || delay_ms > PBIO_CONFIG_SERVO_PERIOD_MS)
@@ -131,36 +147,35 @@ void motor_loop_task(void *parameter) {
     }
 }
 
-void measure_task(void *parameter) {
+void measure_task(void *parameter) {    
     while (true) {
         Serial.print("Counter = ");
         Serial.print(x_motor.angle());
-        Serial.print(" speed = ");
+        Serial.print(", speed = ");
         Serial.print(x_motor.speed());
-        Serial.print(" count/sec speed = ");
-        Serial.println(x_motor.speed() / 6);
+        Serial.print(" unit/sec, motor speed = ");
+        Serial.print(x_motor.motor_speed());
+        Serial.print(" deg/sec, motor RPM = ");
+        Serial.println(x_motor.motor_speed() / 6);
         delay(500);    
     }
 }
 
 void setup() {
+    // Wait for other devices to initialize
+    delay(500);
+
     // Configure USB & and IO board uarts
     Serial.begin(115200);
     Serial1.begin (115200, SERIAL_8N1, IO_BOARD_UART_RX, IO_BOARD_UART_TX, false, 0);
     Serial1.setTimeout(0);
 
     // Configure inputs
-    pinMode(START_BUTTON_PIN, OUTPUT);
-    pinMode(STOP_BUTTON_PIN, OUTPUT);
-    pinMode(Y_AXIS_HOME_SWITH_PIN, OUTPUT);
-    pinMode(L_AXIS_HOME_SWITH_PIN, OUTPUT);
-    pinMode(R_AXIS_HOME_SWITH_PIN, OUTPUT);
-
-    //pinMode(35, OUTPUT); // Can not be used
-    //pinMode(36, OUTPUT); // Can not be used
-    //pinMode(37, OUTPUT); // Can not be used
-    pinMode(45, INPUT_PULLUP);
-    pinMode(14, INPUT_PULLUP);
+    pinMode(START_BUTTON_PIN, INPUT_PULLUP);
+    pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
+    pinMode(Y_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
+    pinMode(L_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
+    pinMode(R_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
 
     // Configure outputs
     pinMode(LED_OUTPUT, OUTPUT);
@@ -174,7 +189,7 @@ void setup() {
     r_encoder.begin(&Wire1);
 
     // Configure motors
-    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
+    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 45.0, &settings_servo_ev3_large, log_motor_errors);
     y_motor.begin("Y", Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
@@ -268,6 +283,17 @@ void loop() {
     Serial.println("us");
     */
 
+    delay(4000);
+    pbio_error_t err = home_with_switch(x_motor, START_BUTTON_PIN, LOW, l_motor_homing_config);
+    if (err != PBIO_SUCCESS) {
+        Logger::instance().logE("Failed to home Y-axis motor: ");
+        rgb_led.unrecoverableError();
+    }
+    else {
+        Logger::instance().logI("Y-axis motor homed successfully");
+    }
+
+    /*
     x_motor.dc(100);
     y_motor.dc(100);
     l_motor.dc(100);
@@ -283,6 +309,7 @@ void loop() {
     l_motor.stop();
     r_motor.stop();
     delay(2000);
+     */
 
     //scanI2CDevices(&Wire1);
 }

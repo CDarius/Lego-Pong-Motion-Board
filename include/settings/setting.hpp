@@ -2,6 +2,7 @@
 #define __GAME_SETTING_HPP__
 
 #include <Arduino.h>
+#include "utils/logger.hpp"
 
 enum class SettingType {
     FloatType,

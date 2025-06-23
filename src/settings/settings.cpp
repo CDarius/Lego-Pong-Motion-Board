@@ -43,9 +43,8 @@ void storeGroupInNVS(Preferences& preferences, SettingsGroup& group) {
         }
         
         default:
-            Serial.print("Failed to save a setting of type ");
-            Serial.print((int)setting->getType());
-            Serial.println(" to NVS storage. Unknown type");
+            String errorMsg = "Failed to save a setting of type " + String((int)setting->getType()) + " to NVS storage. Unknown type";
+            Logger::instance().logW(errorMsg.c_str());
             break;
         }
     }
@@ -60,9 +59,8 @@ void Settings::storeInNVS() {
 
         // Open a writable preference for the group
         if (!preferences.begin(group->getName(), false)) {
-            Serial.print("Failed to open NVS to store ");
-            Serial.print(group->getName());
-            Serial.println(" group!!");
+            String errorMsg = "Failed to open NVS to store " + String(group->getName()) + " group!!";
+            Logger::instance().logW(errorMsg.c_str());
             continue;;
         }
 
@@ -96,9 +94,8 @@ void readGroupFromNVS(Preferences& preferences, SettingsGroup& group) {
         }
         
         default:
-            Serial.print("Failed to read a setting of type ");
-            Serial.print((int)setting->getType());
-            Serial.println(" to NVS storage. Unknown type");
+            String errorMsg = "Failed to read a setting of type " + String((int)setting->getType()) + " to NVS storage. Unknown type";
+            Logger::instance().logW(errorMsg.c_str());
             break;
         }
     }
@@ -113,10 +110,9 @@ void Settings::restoreFromNVS() {
 
         // Open a readonly preference for the group
         if (!preferences.begin(group->getName(), true)) {
-            Serial.print("Failed to open NVS to read ");
-            Serial.print(group->getName());
-            Serial.println(" group!!");
-            continue;;
+            String errorMsg = "Failed to open NVS to read " + String(group->getName()) + " group!!";
+            Logger::instance().logW(errorMsg.c_str());
+            continue;
         }
 
         readGroupFromNVS(preferences, *group);

@@ -33,6 +33,8 @@ const char *pbio_error_str(pbio_error_t err) {
         return "Canceled";
     case PBIO_ERROR_TACHO_SEQUENCE:
         return "Tacho sequence error";
+    case PBIO_ERROR_HOME_SWITCH_ERR:
+        return "Home switch sequence error";
     }
 
     return NULL;

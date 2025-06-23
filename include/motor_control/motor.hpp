@@ -45,6 +45,7 @@ class Motor {
         float angle() const;
         void reset_angle(float angle);
         float speed() const;
+        float motor_speed() const;
         void getState(pbio_passivity_t *state, int32_t *duty_now) const;
 
         void stop();

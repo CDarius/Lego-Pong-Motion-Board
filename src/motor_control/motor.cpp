@@ -50,6 +50,13 @@ float Motor::speed() const {
     return _tacho.getAngularRate();
 }
 
+/**
+ * Gets the speed of the motor in deg/s, but does not take into account the gear ratio.
+ */
+float Motor::motor_speed() const {
+    return ((float)_tacho.getRate()) / ENCODER_COUNTS_PER_DEGREE;
+}
+
 void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) const {
     _dcmotor.getState(state, duty_now);
 }

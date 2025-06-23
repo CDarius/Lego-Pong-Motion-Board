@@ -1,7 +1,11 @@
 #ifndef __MOTOR_HOMING_HPP__
 #define __MOTOR_HOMING_HPP__
 
+#include <Arduino.h>
 #include "motor.hpp"
+#include "error.hpp"
+#include "utils/logger.hpp"
+#include "utils/cancel_token.hpp"
 
 typedef struct {
     bool start_in_positive_direction; // If true, start homing in the positive direction
@@ -11,6 +15,6 @@ typedef struct {
     float switch_axis_position; // Axis position to set when hit the switch (motor units)
 } switch_homing_config_t;
 
-void home_with_switch(Motor& motor, switch_homing_config_t& config);
+pbio_error_t home_with_switch(Motor& motor, uint8_t home_switch_pin, int switch_pressed_value, switch_homing_config_t& config);
 
 #endif

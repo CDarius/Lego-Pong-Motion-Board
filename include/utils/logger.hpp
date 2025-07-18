@@ -3,6 +3,13 @@
 
 #include <Arduino.h>
 
+enum class LogLevel
+{
+    Error,
+    Warning,
+    Info
+};
+
 class Logger {
 public:
     // Get the singleton instance

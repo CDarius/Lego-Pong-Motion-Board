@@ -7,6 +7,7 @@
 #include "devices/unit_encoder.hpp"
 #include "devices/rgb_led.hpp"
 #include "devices/button.hpp"
+#include "devices/io_board.hpp"
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
 #include "motor_control/motorhoming.hpp"
@@ -42,8 +43,10 @@
 #define R_AXIS_ENC_PIN_1        7
 #define R_AXIS_ENC_PIN_2        6
 
-#define IO_BOARD_UART_RX        44
-#define IO_BOARD_UART_TX        43
+//#define IO_BOARD_UART_RX        44
+//#define IO_BOARD_UART_TX        43
+#define IO_BOARD_UART_RX        39
+#define IO_BOARD_UART_TX        40
 
 #define I2C_BUS_1_SDA           2
 #define I2C_BUS_1_SCL           1
@@ -51,8 +54,10 @@
 #define I2C_BUS_2_SDA           41
 #define I2C_BUS_2_SCL           42
 
-#define START_BUTTON_PIN        40 // Grover port 1
-#define STOP_BUTTON_PIN         39 // Grover port 1
+//#define START_BUTTON_PIN        40 // Grover port 1
+//#define STOP_BUTTON_PIN         39 // Grover port 1
+#define START_BUTTON_PIN        44 // Grover port 1
+#define STOP_BUTTON_PIN         43 // Grover port 1
 #define Y_AXIS_HOME_SWITH_PIN   21 // Groove port 3
 #define L_AXIS_HOME_SWITH_PIN   45 // Groove port 2
 #define R_AXIS_HOME_SWITH_PIN   47 // Groove port 2
@@ -94,6 +99,7 @@ UnitEncoder r_encoder;
 RGBLed rgb_led;
 Button start_button;
 Button stop_button;
+IOBoard io_board(Serial1);
 
 Game game;
 
@@ -147,6 +153,18 @@ void motor_loop_task(void *parameter) {
     }
 }
 
+void send_axes_position_task(void *parameter) {
+    while (true) {
+        io_board.sendAxesPosition(
+            x_motor.angle(),
+            y_motor.angle(),
+            l_motor.angle(),
+            r_motor.angle()
+        );
+        delay(200);
+    }
+}
+
 void measure_task(void *parameter) {    
     while (true) {
         Serial.print("Counter = ");
@@ -167,7 +185,7 @@ void setup() {
 
     // Configure USB & and IO board uarts
     Serial.begin(115200);
-    Serial1.begin (115200, SERIAL_8N1, IO_BOARD_UART_RX, IO_BOARD_UART_TX, false, 0);
+    Serial1.begin (115200, SERIAL_8N1, IO_BOARD_UART_RX, IO_BOARD_UART_TX, false);
     Serial1.setTimeout(0);
 
     // Configure inputs
@@ -197,14 +215,25 @@ void setup() {
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
     
-    // TODO:
-    // Start communication with I/O board
-    // Send a PING command and wait for a response (implemnt a retry)
-    // If the response is not received, log the error and do the red blinking of the LED
-    // If the communication is established, send an INIT command with the start web server status
+    bool start_web_server = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
 
-    // TODO: 
-    // Add a semaphore to protect to the I/O board communication. Different tasks on different cores can access the I/O board at the same time, which can lead to data corruption.
+    // Test connection with the I/O board (also waits for the board to be ready)
+    rgb_led.setColor(RGB_COLOR_YELLOW);
+    if (!io_board.testConnection(5000)) {
+        Serial.println("Failed to connect to the I/O board. Please check the connection.");
+        rgb_led.unrecoverableError();
+    }
+
+    // Restart the I/O board
+    rgb_led.setColor(RGB_COLOR_MAGENTA);
+    io_board.sendInit(start_web_server);
+
+    // Wait for the I/O board to be ready
+    if (!io_board.testConnection(10000)) {
+        Serial.println("Failed to restore I/O board connection after INIT command");
+        rgb_led.unrecoverableError();
+    }
+    rgb_led.setColor(RGB_COLOR_BLUE);
 
     // Test that all I2C devices are connected
     bool all_i2c_devices_found = true;
@@ -218,7 +247,7 @@ void setup() {
         rgb_led.unrecoverableError();
     }
 
-    // Start motor loop task on core 0
+    // Start motor loop task on core 0. Core 0 is used only for motor control
     xTaskCreatePinnedToCore (
         motor_loop_task,    // Function to implement the task
         "motor_loop",       // Name of the task
@@ -229,7 +258,18 @@ void setup() {
         0          // Core where the task should run
     );
 
-    // Start meauser task on core 1
+    // Start all other task on core 1
+    xTaskCreatePinnedToCore (
+        send_axes_position_task,   // Function to implement the task
+        "send_axes_pos",           // Name of the task
+        2000,       // Stack size in words
+        NULL,      // Task input parameter
+        0,         // Priority of the task
+        NULL,      // Task handle.
+        1          // Core where the task should run
+    );
+
+    /*
     xTaskCreatePinnedToCore (
         measure_task,   // Function to implement the task
         "measue",       // Name of the task
@@ -239,38 +279,46 @@ void setup() {
         NULL,      // Task handle.
         1          // Core where the task should run
     );
+    */
 
-    // Connect to WiFi
-    IPAddress staticIP(IP_ADDRESS);
-    IPAddress gateway(IP_GATEWAY);
-    IPAddress subnet(IP_SUBNET);
-    IPAddress dns(IP_DNS);
-
-    if (WiFi.config(staticIP, gateway, subnet, dns, dns)) {
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        while (WiFi.status() != WL_CONNECTED) {
-            delay(1000);
-            Logger::instance().logI("Connecting to WiFi...");
+    if (start_web_server) {
+        // Connect to WiFi
+        IPAddress staticIP(IP_ADDRESS);
+        IPAddress gateway(IP_GATEWAY);
+        IPAddress subnet(IP_SUBNET);
+        IPAddress dns(IP_DNS);
+    
+        if (WiFi.config(staticIP, gateway, subnet, dns, dns)) {
+            WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+            while (WiFi.status() != WL_CONNECTED) {
+                delay(1000);
+                Logger::instance().logI("Connecting to WiFi...");
+            }
+            Logger::instance().logI("Connected to WiFi!");
+            Logger::instance().logI("IP Address: " + String(WiFi.localIP()));
+    
+            server.begin(&game_settings);
+        } 
+        else {
+            Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");
+            rgb_led.unrecoverableError();
         }
-        Logger::instance().logI("Connected to WiFi!");
-        Logger::instance().logI("IP Address: " + String(WiFi.localIP()));
-
-        server.begin(&game_settings);
-    } 
-    else {
-        Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");
-        rgb_led.unrecoverableError();
     }
 
     rgb_led.setColor(RGB_COLOR_GREEN);
 }
 
+int counter = 0;
+int score1 = 0;
+int score2 = 0;
+
 void loop() {
     unsigned long time = micros();
 
-    // Serial test
     /*
-    Serial1.println("Serial 1!!");
+    // Serial test
+    //Serial1.println("Serial 1!!");
+    io_board.sendLog(LogLevel::Info, "Test log message from main loop");
     Serial.print("Try read serial 1...");
     String read1 = Serial1.readStringUntil('\n');
     if (!read1.isEmpty())
@@ -281,8 +329,10 @@ void loop() {
     Serial.print("Serial 1 time: ");
     Serial.print(delta_time);
     Serial.println("us");
+    delay(300);
     */
 
+    /*
     delay(4000);
     pbio_error_t err = home_with_switch(x_motor, START_BUTTON_PIN, LOW, l_motor_homing_config);
     if (err != PBIO_SUCCESS) {
@@ -292,6 +342,45 @@ void loop() {
     else {
         Logger::instance().logI("Y-axis motor homed successfully");
     }
+    */
+
+    /*
+    String msg = String("Test log message from main loop") + String(counter++);
+    io_board.sendLog(LogLevel::Info, msg.c_str());
+    delay(200);
+    */
+
+    if (io_board.testConnection(1000)) {
+        Serial.println("IO board connection is OK!!");
+    } else {
+        Serial.println("IO board connection failed :(");
+    }
+
+    if (score1 <= score2) {
+        score1++;
+        if (score1 >= 10) {
+            score1 = 0;
+            score2 = 0;
+        }
+    }
+    else {
+        score2++;
+        if (score2 >= 10) {
+            score2 = 0;
+        }
+    }
+    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
+    io_board.showScore(score1, score2, 50);
+    delay(1500);
+    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
+    io_board.showText("No scroll", 0);
+    delay(1500);
+    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
+    io_board.showText("Blink", 300);
+    delay(1500);
+    io_board.playSound(IO_BOARD_SOUND_BEEP2, 3);
+    io_board.showScrollingText("Long scrolling text !!", 50, true, 0);
+    delay(10000);
 
     /*
     x_motor.dc(100);

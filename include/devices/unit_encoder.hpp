@@ -29,6 +29,7 @@ class UnitEncoder {
    public:
     void begin(TwoWire* wire = &Wire, uint8_t addr = UNIT_ENC_ENCODER_ADDR);
     int16_t getValue();
+    void setValue(int16_t value);
     void clearValue();
     bool getButtonStatus();
     void setLEDColor(uint8_t index, uint32_t color);

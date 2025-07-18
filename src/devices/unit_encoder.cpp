@@ -39,6 +39,15 @@ int16_t UnitEncoder::getValue() {
     return value;
 }
 
+/*! @brief Read the encoder value.
+    @return The value of the encoder that was read */
+void UnitEncoder::setValue(int16_t value) {
+    uint8_t data[2];
+    data[0] = value & 0xff;
+    data[1] = (value >> 8) & 0xff;
+    writeBytes(_addr, UNIT_ENC_ENCODER_REG, data, 2);
+}
+
 /*! @brief Clear the encoder value
     @return The value of the encoder that was read */
 void UnitEncoder::clearValue() {
@@ -47,11 +56,11 @@ void UnitEncoder::clearValue() {
 }
 
 /*! @brief Get the current status of the rotary encoder keys.
-    @return 1 if the set was press, otherwise 0.. */
+    @return True if the button is pressed, false otherwise */
 bool UnitEncoder::getButtonStatus() {
     uint8_t data;
     readBytes(_addr, UNIT_ENC_BUTTON_REG, &data, 1);
-    return data;
+    return data == 0;
 }
 
 /*! @brief Set the color of the LED (HEX). */

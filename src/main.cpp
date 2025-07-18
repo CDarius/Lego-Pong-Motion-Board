@@ -11,6 +11,7 @@
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
 #include "motor_control/motorhoming.hpp"
+#include "motor_control/encoderjog.hpp"
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
 #include "utils/i2c_utils.hpp"
@@ -100,6 +101,9 @@ RGBLed rgb_led;
 Button start_button;
 Button stop_button;
 IOBoard io_board(Serial1);
+
+EncoderJog l_encoder_jog;
+EncoderJog r_encoder_jog;
 
 Game game;
 
@@ -207,10 +211,14 @@ void setup() {
     r_encoder.begin(&Wire1);
 
     // Configure motors
-    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 45.0, &settings_servo_ev3_large, log_motor_errors);
+    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 2.0, &settings_servo_ev3_large, log_motor_errors);
     y_motor.begin("Y", Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
+
+    // Configure jog control for left and right paddles
+    l_encoder_jog.begin(l_encoder);
+    r_encoder_jog.begin(r_encoder);
     
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
@@ -308,9 +316,12 @@ void setup() {
     rgb_led.setColor(RGB_COLOR_GREEN);
 }
 
+
+/*
 int counter = 0;
 int score1 = 0;
 int score2 = 0;
+*/
 
 void loop() {
     unsigned long time = micros();
@@ -350,6 +361,7 @@ void loop() {
     delay(200);
     */
 
+    /*
     if (io_board.testConnection(1000)) {
         Serial.println("IO board connection is OK!!");
     } else {
@@ -381,6 +393,7 @@ void loop() {
     io_board.playSound(IO_BOARD_SOUND_BEEP2, 3);
     io_board.showScrollingText("Long scrolling text !!", 50, true, 0);
     delay(10000);
+    */
 
     /*
     x_motor.dc(100);
@@ -401,4 +414,31 @@ void loop() {
      */
 
     //scanI2CDevices(&Wire1);
+
+    /*
+    io_board.showScrollingText("X-Axis jog", 50, true, 0);
+    l_encoder_jog.setUpdateIntervalMs(50);
+    l_encoder_jog.setEncoderMultiplier(4.0f);
+    l_encoder_jog.start(x_motor);
+
+    while (true) {
+        l_encoder_jog.update();
+        r_encoder_jog.update();
+
+        // Update jog control every 200ms
+        delay(50);
+    }
+    */
+
+    io_board.showScrollingText("X-Axis stall test", 50, true, 0);
+    Serial.println("Press the left paddle button to start ...");
+    while (!l_encoder.getButtonStatus()) {
+        Serial.print("Button stauts: ");
+        Serial.println(l_encoder.getButtonStatus() ? "Pressed" : "Released");
+        delay(100);
+    }
+    
+    float speed = x_motor.get_speed_limit();
+    x_motor.run_until_stalled(speed / 3, 70.0, PBIO_ACTUATION_HOLD);
+    Serial.println("Stalled !!");
 }

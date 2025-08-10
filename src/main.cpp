@@ -243,13 +243,26 @@ void setup() {
     }
     rgb_led.setColor(RGB_COLOR_BLUE);
 
+    // Start I/O baord comm task on core 1
+    xTaskCreatePinnedToCore (
+        send_axes_position_task,   // Function to implement the task
+        "send_axes_pos",           // Name of the task
+        2000,       // Stack size in words
+        NULL,      // Task input parameter
+        0,         // Priority of the task
+        NULL,      // Task handle.
+        1          // Core where the task should run
+    );
+
     // Test that all I2C devices are connected
     bool all_i2c_devices_found = true;
     if (!testI2CDeviceExist(&Wire, UNIT_ENC_ENCODER_ADDR, "Left paddle encoder")) {
         all_i2c_devices_found = false;
+        Logger::instance().logE("Left paddle encoder not found!!");
     }
     if (!testI2CDeviceExist(&Wire1, UNIT_ENC_ENCODER_ADDR, "Right paddle encoder")) {
         all_i2c_devices_found = false;
+        Logger::instance().logE("Right paddle encoder not found!!");
     }
     if (!all_i2c_devices_found) {
         rgb_led.unrecoverableError();
@@ -264,17 +277,6 @@ void setup() {
         0,         // Priority of the task
         NULL,      // Task handle.
         0          // Core where the task should run
-    );
-
-    // Start all other task on core 1
-    xTaskCreatePinnedToCore (
-        send_axes_position_task,   // Function to implement the task
-        "send_axes_pos",           // Name of the task
-        2000,       // Stack size in words
-        NULL,      // Task input parameter
-        0,         // Priority of the task
-        NULL,      // Task handle.
-        1          // Core where the task should run
     );
 
     /*

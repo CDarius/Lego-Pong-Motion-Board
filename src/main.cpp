@@ -31,18 +31,18 @@
 
 #define Y_AXIS_PWM_PIN_1        9
 #define Y_AXIS_PWM_PIN_2        46
-#define Y_AXIS_ENC_PIN_1        8
-#define Y_AXIS_ENC_PIN_2        3
+#define Y_AXIS_ENC_PIN_1        3
+#define Y_AXIS_ENC_PIN_2        8
 
 #define L_AXIS_PWM_PIN_1        18
 #define L_AXIS_PWM_PIN_2        17
-#define L_AXIS_ENC_PIN_1        15
-#define L_AXIS_ENC_PIN_2        16
+#define L_AXIS_ENC_PIN_1        16
+#define L_AXIS_ENC_PIN_2        15
 
 #define R_AXIS_PWM_PIN_1        4
 #define R_AXIS_PWM_PIN_2        5
-#define R_AXIS_ENC_PIN_1        7
-#define R_AXIS_ENC_PIN_2        6
+#define R_AXIS_ENC_PIN_1        6
+#define R_AXIS_ENC_PIN_2        7
 
 //#define IO_BOARD_UART_RX        44
 //#define IO_BOARD_UART_TX        43
@@ -432,6 +432,7 @@ void loop() {
     }
     */
 
+    /*
     io_board.showScrollingText("X-Axis stall test", 50, true, 0);
     Serial.println("Press the left paddle button to start ...");
     while (!l_encoder.getButtonStatus()) {
@@ -443,4 +444,10 @@ void loop() {
     float speed = x_motor.get_speed_limit();
     x_motor.run_until_stalled(speed / 3, 70.0, PBIO_ACTUATION_HOLD);
     Serial.println("Stalled !!");
+    */
+    
+    io_board.showScrollingText("X-Axis run test", 50, true, 0);
+    float speed = x_motor.get_speed_limit();
+    x_motor.run_angle(speed / 4, 360.0 * 4, PBIO_ACTUATION_HOLD);
+    delay(2000);
 }

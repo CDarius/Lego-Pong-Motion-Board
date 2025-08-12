@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "motor.hpp"
+#include "motorhoming.hpp"
 #include "error.hpp"
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
@@ -16,7 +17,7 @@ typedef struct {
 
 
 // MotorWithReferenceSwitch: Inherits from Motor, adds reference switch logic
-class MotorWithReferenceSwitch : public Motor {
+class MotorWithReferenceSwitch : public IMotorHoming {
     private:
         bool _referenced = false;
         const uint8_t _home_switch_pin;

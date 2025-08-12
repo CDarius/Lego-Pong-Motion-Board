@@ -1,7 +1,6 @@
-#ifndef __SETTING_AXISSWITCHHOMING_SPEED_HPP__
-#define __SETTING_AXISSWITCHHOMING_SPEED_HPP__
+#pragma once
 
-#include "motor_control\motorhoming.hpp"
+#include "motor_control\motorwithreferenceswitch.hpp"
 #include "settings\setting.hpp"
 
 class AxisSwitchHomingSpeedSetting : public Setting<float> {
@@ -63,5 +62,3 @@ class AxisSwitchHomingSpeedSetting : public Setting<float> {
             return 1.0;
         }
     };
-
-#endif

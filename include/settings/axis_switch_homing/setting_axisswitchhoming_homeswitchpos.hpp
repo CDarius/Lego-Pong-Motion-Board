@@ -1,7 +1,6 @@
-#ifndef __SETTING_AXISSWITCHHOMING_HOME_SWITCH_POS_HPP__
-#define __SETTING_AXISSWITCHHOMING_HOME_SWITCH_POS_HPP__
+#pragma once
 
-#include "motor_control\motorhoming.hpp"
+#include "motor_control\motorwithreferenceswitch.hpp"
 #include "settings\setting.hpp"
 
 class AxisSwitchHomingHomeSwitchPosSetting : public Setting<float> {
@@ -63,5 +62,3 @@ class AxisSwitchHomingHomeSwitchPosSetting : public Setting<float> {
             return 0.1;
         }
     };
-
-#endif

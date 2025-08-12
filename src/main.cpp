@@ -10,7 +10,7 @@
 #include "devices/io_board.hpp"
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
-#include "motor_control/motorhoming.hpp"
+#include "motor_control/motorwithreferenceswitch.hpp"
 #include "motor_control/encoderjog.hpp"
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
@@ -69,10 +69,6 @@
 
 ApiRestServer server;
 
-Motor x_motor;
-Motor y_motor;
-Motor l_motor;
-Motor r_motor;
 switch_homing_config_t y_motor_homing_config = {
     .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
@@ -95,6 +91,11 @@ switch_homing_config_t r_motor_homing_config = {
     .switch_axis_position = 0.0 // Position of the switch in stud
 };
 
+Motor x_motor;
+MotorWithReferenceSwitch y_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
+MotorWithReferenceSwitch l_motor(L_AXIS_HOME_SWITH_PIN, LOW, l_motor_homing_config);
+MotorWithReferenceSwitch r_motor(R_AXIS_HOME_SWITH_PIN, LOW, r_motor_homing_config);
+
 UnitEncoder l_encoder;
 UnitEncoder r_encoder;
 RGBLed rgb_led;
@@ -107,8 +108,7 @@ EncoderJog r_encoder_jog;
 
 Game game;
 
-Settings game_settings(game, x_motor, y_motor, l_motor, r_motor,
-    y_motor_homing_config, l_motor_homing_config, r_motor_homing_config);
+Settings game_settings(game, x_motor, y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");

@@ -4,7 +4,7 @@
 #include "setting_axisswitchhoming_minimumtravel.hpp"
 #include "setting_axisswitchhoming_retractdistance.hpp"
 #include "setting_axisswitchhoming_homeswitchpos.hpp"
-#include "motor_control\motorhoming.hpp"
+#include "motor_control\motorwithreferenceswitch.hpp"
 
 class SettingsAxisSwitchHomingGroup : public SettingsGroup {
     private:

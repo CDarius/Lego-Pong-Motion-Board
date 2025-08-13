@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include "monotonic.h"
 #include "config.h"
-#include "api_server.hpp"
+#include "api_server/api_server.hpp"
 #include "devices/unit_encoder.hpp"
 #include "devices/rgb_led.hpp"
 #include "devices/button.hpp"
@@ -19,6 +19,7 @@
 #include "utils/cancel_token.hpp"
 
 #include "settings/settings.hpp"
+#include "web_functions/web_functions.hpp"
 
 // ****************************************************
 // *** I/O Pins
@@ -109,6 +110,7 @@ EncoderJog r_encoder_jog;
 Game game;
 
 Settings game_settings(game, x_motor, y_motor, l_motor, r_motor);
+WebFunctions web_functions(y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");
@@ -139,12 +141,16 @@ void motor_loop_task(void *parameter) {
         l_motor.update();
         r_motor.update();
         
-        // Blink the watchdog LED every
+        // Blink the watchdog LED every 150 iterations (450 ms)
         counter++;
         if (counter >= 150) {
             counter = 0;
             led = !led;
+#ifndef DEVEL_NO_HARDWARE            
             digitalWrite(LED_OUTPUT, led ? HIGH : LOW);
+#else   
+            rgb_led.setColor(led ? RGB_COLOR_GREEN : RGB_COLOR_BLACK);
+#endif
         }
 
         // Run the task every 3ms
@@ -166,20 +172,6 @@ void send_axes_position_task(void *parameter) {
             r_motor.angle()
         );
         delay(200);
-    }
-}
-
-void measure_task(void *parameter) {    
-    while (true) {
-        Serial.print("Counter = ");
-        Serial.print(x_motor.angle());
-        Serial.print(", speed = ");
-        Serial.print(x_motor.speed());
-        Serial.print(" unit/sec, motor speed = ");
-        Serial.print(x_motor.motor_speed());
-        Serial.print(" deg/sec, motor RPM = ");
-        Serial.println(x_motor.motor_speed() / 6);
-        delay(500);    
     }
 }
 
@@ -224,7 +216,11 @@ void setup() {
     game_settings.restoreFromNVS();
     
     bool start_web_server = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
+#ifdef DEVEL_NO_HARDWARE
+    start_web_server = true;
+#endif
 
+#ifndef DEVEL_NO_HARDWARE
     // Test connection with the I/O board (also waits for the board to be ready)
     rgb_led.setColor(RGB_COLOR_YELLOW);
     if (!io_board.testConnection(5000)) {
@@ -247,11 +243,11 @@ void setup() {
     xTaskCreatePinnedToCore (
         send_axes_position_task,   // Function to implement the task
         "send_axes_pos",           // Name of the task
-        2000,       // Stack size in words
-        NULL,      // Task input parameter
-        0,         // Priority of the task
-        NULL,      // Task handle.
-        1          // Core where the task should run
+        2000,                   // Stack size in words
+        NULL,                   // Task input parameter
+        OTHER_TASK_PRIORITY,    // Priority of the task
+        NULL,                   // Task handle.
+        OTHER_TASK_CORE         // Core where the task should run
     );
 
     // Test that all I2C devices are connected
@@ -267,29 +263,18 @@ void setup() {
     if (!all_i2c_devices_found) {
         rgb_led.unrecoverableError();
     }
+#endif
 
     // Start motor loop task on core 0. Core 0 is used only for motor control
     xTaskCreatePinnedToCore (
-        motor_loop_task,    // Function to implement the task
-        "motor_loop",       // Name of the task
-        8000,      // Stack size in words
-        NULL,      // Task input parameter
-        0,         // Priority of the task
-        NULL,      // Task handle.
-        0          // Core where the task should run
+        motor_loop_task,        // Function to implement the task
+        "motor_loop",           // Name of the task
+        8000,                   // Stack size in words
+        NULL,                   // Task input parameter
+        MOTION_TASK_PRIORITY,   // Priority of the task
+        NULL,                   // Task handle.
+        MOTION_TASK_CORE        // Core where the task should run
     );
-
-    /*
-    xTaskCreatePinnedToCore (
-        measure_task,   // Function to implement the task
-        "measue",       // Name of the task
-        4000,      // Stack size in words
-        NULL,      // Task input parameter
-        0,         // Priority of the task
-        NULL,      // Task handle.
-        1          // Core where the task should run
-    );
-    */
 
     if (start_web_server) {
         // Connect to WiFi
@@ -307,7 +292,7 @@ void setup() {
             Logger::instance().logI("Connected to WiFi!");
             Logger::instance().logI("IP Address: " + String(WiFi.localIP()));
     
-            server.begin(&game_settings);
+            server.begin(&game_settings, &web_functions);
         } 
         else {
             Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");

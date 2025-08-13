@@ -1,5 +1,6 @@
 #pragma once
 
+#include "motor.hpp"
 #include "motor_control/error.hpp"
 #include "utils/cancel_token.hpp"
 

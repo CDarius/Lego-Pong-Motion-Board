@@ -1,16 +1,7 @@
-#ifndef __PROJECT_CONFIG_H__
-#define __PROJECT_CONFIG_H__
+#pragma once
 
-//#define USE_IO_BOARD_AP
-
-// Wifi configuration
-#ifdef USE_IO_BOARD_AP
-#define WIFI_SSID     "Lego_Pong"
-#define WIFI_PASSWORD "ContinuateASparareStronzi"
-#else
-#define WIFI_SSID     "Agenoria"
-#define WIFI_PASSWORD "carota24carati"
-#endif
+#include <freertos/FreeRTOSConfig.h>
+#include "secrets.h"
 
 #define IP_ADDRESS    192, 168, 0, 205  
 #define IP_GATEWAY    192, 168, 0, 1
@@ -26,4 +17,8 @@
 
 #define ENCODER_COUNTS_PER_DEGREE (2)
 
-#endif
+// Task configuration
+#define MOTION_TASK_CORE        (0)
+#define OTHER_TASK_CORE         (1)
+#define MOTION_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
+#define OTHER_TASK_PRIORITY     (0)

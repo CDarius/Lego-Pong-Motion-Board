@@ -21,6 +21,11 @@ bool CancelToken::isCancelled() const {
     return cancelled;
 }
 
+void CancelToken::cancel() {
+    std::lock_guard<std::mutex> lock(instancesMutex);
+    cancelled = true;
+}
+
 void CancelToken::cancelAll() {
     std::lock_guard<std::mutex> lock(instancesMutex);
     for (auto* token : instances) {

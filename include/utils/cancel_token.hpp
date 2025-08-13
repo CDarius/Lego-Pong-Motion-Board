@@ -28,6 +28,7 @@ public:
     ~CancelToken();
 
     bool isCancelled() const;
+    void cancel();
 
     static void cancelAll();
 };

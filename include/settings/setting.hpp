@@ -11,26 +11,26 @@ enum class SettingType {
 
 class ISetting {
 public:
-    virtual const char* getName() const;
-    virtual const char* getTitle() const;
-    virtual const char* getDescription() const;
-    virtual const char* getUnit() const;
-    virtual SettingType getType() const;
+    virtual const char* getName() const = 0;
+    virtual const char* getTitle() const = 0;
+    virtual const char* getDescription() const = 0;
+    virtual const char* getUnit() const = 0;
+    virtual SettingType getType() const = 0;
 
-    virtual const bool hasMinValue() const;
-    virtual const bool hasMaxValue() const;
-    virtual const bool hasChangeStep() const;
+    virtual const bool hasMinValue() const = 0;
+    virtual const bool hasMaxValue() const = 0;
+    virtual const bool hasChangeStep() const = 0;
 };
 
 template <typename T>
 class Setting : public ISetting {
 public:
-    virtual T getValue() const;
-    virtual void setValue(const T value);
+    virtual T getValue() const = 0;
+    virtual void setValue(const T value) = 0;
 
-    virtual const T getMinValue() const;
-    virtual const T getMaxValue() const;
-    virtual const T getChangeStep() const;
+    virtual const T getMinValue() const = 0;
+    virtual const T getMaxValue() const = 0;
+    virtual const T getChangeStep() const = 0;
 };
 
 class SettingUInt8 : public Setting<uint8_t> {

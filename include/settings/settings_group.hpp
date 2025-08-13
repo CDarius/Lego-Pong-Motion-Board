@@ -6,11 +6,11 @@
 
 class SettingsGroup {
     public:
-        virtual const char* getName() const;
-        virtual const char* getTitle() const;
+        virtual const char* getName() const = 0;
+        virtual const char* getTitle() const = 0;
 
-        virtual ISetting** getSettings();
-        virtual uint16_t getSettingsCount() const;
+        virtual ISetting** getSettings() = 0;
+        virtual uint16_t getSettingsCount() const = 0;
 
         ISetting* getSetting(const char* name);
 };

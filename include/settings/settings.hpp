@@ -38,7 +38,7 @@ class Settings {
         {            
         }
 
-        SettingsGroup* getSetting(const char* name);
+        SettingsGroup* getGroup(const char* name);
 
         SettingsGroup** getGroups();
         uint16_t getGroupsCount() const;

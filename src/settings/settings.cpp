@@ -1,6 +1,6 @@
 #include "settings/settings.hpp"
 
-SettingsGroup* Settings::getSetting(const char* name) {
+SettingsGroup* Settings::getGroup(const char* name) {
     for(uint16_t i=0; i < _groupsCount; i++) {
         SettingsGroup* group = _groups[i];
         if (strcmp(name, group->getName()) == 0)

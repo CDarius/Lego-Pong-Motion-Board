@@ -190,7 +190,7 @@ void ApiRestServer::setupSettingController() {
         String setting_name = uriParam(uri, 2);
 
         // Try to get the setting        
-        SettingsGroup* group = this->_settings->getSetting(group_name.c_str());
+        SettingsGroup* group = this->_settings->getGroup(group_name.c_str());
         ISetting* setting = group == nullptr ? nullptr : group->getSetting(setting_name.c_str());
 
         if (setting == nullptr)
@@ -219,7 +219,7 @@ void ApiRestServer::setupSettingController() {
         String setting_name = uriParam(uri, 2);
  
         // Try to get the setting        
-        SettingsGroup* group = this->_settings->getSetting(group_name.c_str());
+        SettingsGroup* group = this->_settings->getGroup(group_name.c_str());
         ISetting* setting = group == nullptr ? nullptr : group->getSetting(setting_name.c_str());
 
         if (setting == nullptr)

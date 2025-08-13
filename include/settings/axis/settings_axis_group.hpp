@@ -8,7 +8,7 @@
 class SettingsAxisGroup : public SettingsGroup {
     private:
         const char* _name;
-        const char* _description;
+        const char* _title;
 
         Motor& _motor;
         AxisSwLimitMSetting _swLimitM = AxisSwLimitMSetting(_motor);
@@ -18,7 +18,7 @@ class SettingsAxisGroup : public SettingsGroup {
         ISetting* _settings[3] = {&_swLimitM, &_swLimitP, &_maxSpeed};
 
     public:
-        SettingsAxisGroup(const char* name, const char* description, Motor& motor);
+        SettingsAxisGroup(const char* name, const char* title, Motor& motor);
 
         const char* getName() const;
         const char* getTitle() const;

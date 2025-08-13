@@ -3,7 +3,7 @@
 SettingsAxisGroup::SettingsAxisGroup(const char* name, const char* description, Motor& motor) : _motor(motor) 
 { 
     _name = name;
-    _description = description;
+    _title = description;
 }
 
 //virtual const char* getName() const;
@@ -12,7 +12,7 @@ const char* SettingsAxisGroup::getName() const {
 }
 
 const char* SettingsAxisGroup::getTitle() const {
-    return _description;
+    return _title;
 }
 
 ISetting** SettingsAxisGroup::getSettings() {

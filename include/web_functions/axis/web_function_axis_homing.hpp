@@ -25,11 +25,6 @@ public:
     const char* getDescription() const override;
     const char* getPrerequisitesDescription() const override;
 
-    bool shouldSaveResult() const override {
-        return false; // No result to save for homing
-    };
-    void saveResult() override {}
-
     bool arePrerequisitesMet() const override;
     WebFunctionExecutionStatus start() override;
     void stop() override;

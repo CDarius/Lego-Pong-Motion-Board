@@ -1,5 +1,18 @@
 #include "api_server/api_server.hpp"
 
+const char* ExecutionStatusToString(WebFunctionExecutionStatus status) {
+    switch (status) {
+        case WebFunctionExecutionStatus::Done:
+            return "Done";
+        case WebFunctionExecutionStatus::InProgress:
+            return "InProgress";
+        case WebFunctionExecutionStatus::Failed:
+            return "Failed";
+        default:
+            return "Unknown";
+    }
+}
+
 void ApiRestServer::setupWebFunctionController() {
     // Get the list of all groups
     _server.on("/webfunctions", [this](PsychicRequest *request)
@@ -28,7 +41,69 @@ void ApiRestServer::setupWebFunctionController() {
                 jfunction["name"] = function->getName();
                 jfunction["title"] = function->getTitle();
                 jfunction["description"] = function->getDescription();
+                jfunction["prerequisites"] = function->getPrerequisitesDescription();
             }
+        }
+
+        // Serialize the json
+        String jsonResponse;
+        serializeJson(doc, jsonResponse);
+
+        return request->reply(200, "application/json", jsonResponse.c_str());
+    });
+
+    // Get the value of a setting
+    // Uri format: "/webfunctions/{group name}/{function name}/start"
+    // Uri format: "/webfunctions/{group name}/{function name}/stop"
+    // Uri format: "/webfunctions/{group name}/{function name}/status"
+    // Uri format: "/webfunctions/{group name}/{function name}/save_result"
+    // Uri format: "/webfunctions/{group name}/{function name}/discard_result"
+    // Uri format: "/webfunctions/{group name}/{function name}/prerequisites"
+    _server.on("/webfunctions/*", [this](PsychicRequest *request)
+    {
+        // Extract parameters from the URL
+        String uri = request->uri();
+        String group_name = uriParam(uri, 1);
+        String function_name = uriParam(uri, 2);
+        String action = uriParam(uri, 3);
+
+        // Try to get the function
+        WebFunctionGroup* group = this->_webFunctions->getGroup(group_name.c_str());
+        if (!group) {
+            return request->reply(404, "application/json", "{\"error\":\"Group not found\"}");
+        }
+        WebFunction* function = group->getFunction(function_name.c_str());
+        if (!function) {
+            return request->reply(404, "application/json", "{\"error\":\"Function not found\"}");
+        }
+    
+
+        // Create an JSON document for the response
+        JsonDocument doc;
+        doc["group"] = group_name.c_str();
+        doc["function"] = function_name.c_str();
+        doc["action"] = action.c_str();
+
+        // Execute the action
+        if (action == "start") {
+            WebFunctionExecutionStatus status = function->start();
+            doc["status"] = ExecutionStatusToString(status);
+            const char* failureDescription = function->getFailuerDescription();
+            if (failureDescription) {
+                doc["failure_description"] = failureDescription;
+            }
+        } else if (action == "stop") {
+            function->stop();
+        } else if (action == "status") {
+            doc["status"] = ExecutionStatusToString(function->getRunningStatus());
+            const char* failureDescription = function->getFailuerDescription();
+            if (failureDescription) {
+                doc["failure_description"] = failureDescription;
+            }
+        } else if (action == "prerequisites") {
+            doc["prerequisites_met"] = function->arePrerequisitesMet();    
+        } else {
+            return request->reply(400, "application/json", "{\"error\":\"Invalid action\"}");
         }
 
         // Serialize the json

@@ -18,9 +18,6 @@ public:
     virtual const char* getDescription() const = 0;
     virtual const char* getPrerequisitesDescription() const = 0;
 
-    virtual bool shouldSaveResult() const = 0;
-    virtual void saveResult()= 0;
-    
     virtual bool arePrerequisitesMet() const = 0;
     virtual WebFunctionExecutionStatus start() = 0;
     virtual void stop() = 0;

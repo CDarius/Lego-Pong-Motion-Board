@@ -140,7 +140,7 @@ void ApiRestServer::setupSettingController() {
     });
     
     // Get the value of a setting
-    // Uri format: "/get-value/group name/param name"
+    // Uri format: "/settings/group name/param name"
     _server.on("/settings/*", [this](PsychicRequest *request)
     {
         // Extract parameters from the URL

@@ -26,7 +26,7 @@ public:
 
     virtual void arePrerequisitesMet(bool* results) const = 0;
     bool areAllPrerequisitesMet() const;
-    virtual WebFunctionExecutionStatus start() = 0;
+    virtual WebFunctionExecutionStatus start();
     virtual void stop() = 0;
     
     WebFunctionExecutionStatus getRunningStatus() const {

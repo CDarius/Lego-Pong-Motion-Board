@@ -74,6 +74,13 @@ public:
     }
 
     /*
+    Clear the text displayed on the IO board.
+    */
+    void clearText() {
+        showScrollingText("", 0, false, 0);
+    }
+
+    /*
     Show scrolling text on the IO board.
     The text will scroll with the specified animation delay.
     If repeat is true, the text will scroll indefinitely.

@@ -25,13 +25,7 @@ void WebFunctionAxisHoming::arePrerequisitesMet(bool* results) const {
 }
 
 WebFunctionExecutionStatus WebFunctionAxisHoming::start() {
-    _failureDescription = nullptr;
-
-    if (!areAllPrerequisitesMet()) {
-        _failureDescription = "Prerequisites not met for axis homing.";
-        _status = WebFunctionExecutionStatus::Failed;
-        return _status;
-    }
+    WebFunction::start(); // Call the base class start to initialize failure description and IO board
 
     _status = WebFunctionExecutionStatus::InProgress;
 

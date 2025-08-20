@@ -29,6 +29,8 @@ void WebFunctionAxisSetZero::arePrerequisitesMet(bool* results) const {
 }
 
 WebFunctionExecutionStatus WebFunctionAxisSetZero::start() {
+    WebFunction::start(); // Call the base class start to initialize failure description and IO board
+
     return _status;
 }
 

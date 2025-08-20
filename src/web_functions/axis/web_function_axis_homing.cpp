@@ -12,18 +12,22 @@ const char* WebFunctionAxisHoming::getDescription() const {
     return "Perform the axis homing procedure";
 }
 
-const char* WebFunctionAxisHoming::getPrerequisitesDescription() const {
-    return "";
+uint16_t WebFunctionAxisHoming::getPrerequisitesCount() const {
+    return 0; // No prerequisites
 }
 
-bool WebFunctionAxisHoming::arePrerequisitesMet() const {
-    return true; // No prerequisites
+const char* WebFunctionAxisHoming::getPrerequisiteDescription(uint16_t index) const {
+    return nullptr;
+}
+
+void WebFunctionAxisHoming::arePrerequisitesMet(bool* results) const {
+    // No prerequisites, so nothing to check
 }
 
 WebFunctionExecutionStatus WebFunctionAxisHoming::start() {
     _failureDescription = nullptr;
 
-    if (!arePrerequisitesMet()) {
+    if (!areAllPrerequisitesMet()) {
         _failureDescription = "Prerequisites not met for axis homing.";
         _status = WebFunctionExecutionStatus::Failed;
         return _status;

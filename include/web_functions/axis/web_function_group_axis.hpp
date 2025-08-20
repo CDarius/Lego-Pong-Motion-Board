@@ -2,6 +2,7 @@
 
 #include "web_functions/web_function_group.hpp"
 #include "web_function_axis_homing.hpp"
+#include "web_function_axis_set_zero.hpp"
 #include "utils/task_runner.hpp"
 #include "motor_control\motorhoming.hpp"
 
@@ -13,8 +14,9 @@ class WebFunctionGroupAxis : public WebFunctionGroup {
 
         IMotorHoming& _motor;
         WebFunctionAxisHoming _homing = WebFunctionAxisHoming(_motor, _taskRunner);
+        WebFunctionAxisSetZero _setZero = WebFunctionAxisSetZero(_motor);
 
-        WebFunction* _functions[1] = {&_homing};
+        WebFunction* _functions[2] = {&_homing, &_setZero};
 
     public:
         WebFunctionGroupAxis(const char* name, const char* title, IMotorHoming& motor, TaskRunner& taskRunner)

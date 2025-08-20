@@ -29,7 +29,11 @@ class Settings {
         SettingsAxisSwitchHomingGroup _lHomingSettings = SettingsAxisSwitchHomingGroup("l_axis_homing", "L Axis Homing", *_LMotor.config());
         SettingsAxisSwitchHomingGroup _rHomingSettings = SettingsAxisSwitchHomingGroup("r_axis_homing", "R Axis Homing", *_RMotor.config());
 
-        SettingsGroup* _groups[5] = {&_gameXAxis, &_xSettings, &_ySettings, &_lSettings, &_rSettings};
+        SettingsGroup* _groups[8] = {
+            &_gameXAxis, 
+            &_xSettings, &_ySettings, &_lSettings, &_rSettings, 
+            &_yHomingSettings, &_lHomingSettings, &_rHomingSettings
+        };
         uint16_t _groupsCount = sizeof(_groups) / sizeof(SettingsGroup*);
         
     public:

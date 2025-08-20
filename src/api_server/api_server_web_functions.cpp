@@ -41,7 +41,10 @@ void ApiRestServer::setupWebFunctionController() {
                 jfunction["name"] = function->getName();
                 jfunction["title"] = function->getTitle();
                 jfunction["description"] = function->getDescription();
-                jfunction["prerequisites"] = function->getPrerequisitesDescription();
+                JsonArray jprerequisites = jfunction["prerequisites"].to<JsonArray>();
+                for(uint16_t k = 0; k < function->getPrerequisitesCount(); k++) {
+                    jprerequisites.add(function->getPrerequisiteDescription(k));
+                }
             }
         }
 
@@ -101,7 +104,12 @@ void ApiRestServer::setupWebFunctionController() {
                 doc["failure_description"] = failureDescription;
             }
         } else if (action == "prerequisites") {
-            doc["prerequisites_met"] = function->arePrerequisitesMet();    
+            bool prerequisitesMet[function->getPrerequisitesCount()];
+            function->arePrerequisitesMet(prerequisitesMet);
+            JsonArray jprerequisites = doc["prerequisites_met"].to<JsonArray>();
+            for (uint16_t i = 0; i < function->getPrerequisitesCount(); i++) {
+                jprerequisites.add(prerequisitesMet[i]);
+            }
         } else {
             return request->reply(400, "application/json", "{\"error\":\"Invalid action\"}");
         }

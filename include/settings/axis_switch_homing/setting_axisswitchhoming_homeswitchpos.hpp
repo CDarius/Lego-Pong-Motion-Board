@@ -11,11 +11,11 @@ class AxisSwitchHomingHomeSwitchPosSetting : public Setting<float> {
         AxisSwitchHomingHomeSwitchPosSetting(switch_homing_config_t& config) : _config(config) {}
 
         float getValue() const override {
-            return _config.switch_axis_position;
+            return _config.axis_position_at_home_marker;
         }
 
         void setValue(const float value) override {
-            _config.switch_axis_position = value;
+            _config.axis_position_at_home_marker = value;
         }
 
         const char* getName() const override {

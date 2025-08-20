@@ -8,16 +8,13 @@
 #include "utils/cancel_token.hpp"
 #include "utils/logger.hpp"
 
-class WebFunctionAxisHoming : public WebFunction{
+class WebFunctionAxisSetZero : public WebFunction{
 private:
     IMotorHoming& _axis;
-    TaskRunner& _taskRunner;
-    TaskHandle_t _taskHandle = nullptr;
-    CancelToken* _cancelToken = nullptr;
 
 public:
     // Constructor that takes and stores an IMotorHoming reference
-    WebFunctionAxisHoming(IMotorHoming& axis, TaskRunner& taskRunner) : _axis(axis), _taskRunner(taskRunner) {};
+    WebFunctionAxisSetZero(IMotorHoming& axis) : _axis(axis) {};
 
     // Override methods as needed
     const char* getName() const override;

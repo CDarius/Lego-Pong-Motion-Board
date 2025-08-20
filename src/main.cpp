@@ -75,21 +75,18 @@ switch_homing_config_t y_motor_homing_config = {
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
-    .switch_axis_position = 0.0 // Position of the switch in stud
 };
 switch_homing_config_t l_motor_homing_config = {
     .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
-    .switch_axis_position = 0.0 // Position of the switch in stud
 };
 switch_homing_config_t r_motor_homing_config = {
     .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
-    .switch_axis_position = 0.0 // Position of the switch in stud
 };
 
 Motor x_motor;
@@ -175,7 +172,7 @@ void send_axes_position_task(void *parameter) {
     }
 }
 
-void setup() {
+void setup() {    
     // Wait for other devices to initialize
     delay(500);
 
@@ -195,6 +192,7 @@ void setup() {
     pinMode(LED_OUTPUT, OUTPUT);
     rgb_led.begin();
     rgb_led.setColor(RGB_COLOR_WHITE);
+    delay(5000);
 
     // Configure two I2C busses
     Wire.begin(I2C_BUS_1_SDA, I2C_BUS_1_SCL, 400000);

@@ -25,9 +25,9 @@ class Settings {
         SettingsAxisGroup _ySettings = SettingsAxisGroup("y_axis", "Y Axis", _YMotor);
         SettingsAxisGroup _lSettings = SettingsAxisGroup("l_axis", "L Axis", _LMotor);
         SettingsAxisGroup _rSettings = SettingsAxisGroup("r_axis", "R Axis", _RMotor);
-        SettingsAxisSwitchHomingGroup _yHomingSettings = SettingsAxisSwitchHomingGroup("y_axis_homing", "Y Axis Homing", *_YMotor.config());
-        SettingsAxisSwitchHomingGroup _lHomingSettings = SettingsAxisSwitchHomingGroup("l_axis_homing", "L Axis Homing", *_LMotor.config());
-        SettingsAxisSwitchHomingGroup _rHomingSettings = SettingsAxisSwitchHomingGroup("r_axis_homing", "R Axis Homing", *_RMotor.config());
+        SettingsAxisSwitchHomingGroup _yHomingSettings = SettingsAxisSwitchHomingGroup("y_axis_homing", "Y Axis Homing", _YMotor);
+        SettingsAxisSwitchHomingGroup _lHomingSettings = SettingsAxisSwitchHomingGroup("l_axis_homing", "L Axis Homing", _LMotor);
+        SettingsAxisSwitchHomingGroup _rHomingSettings = SettingsAxisSwitchHomingGroup("r_axis_homing", "R Axis Homing", _RMotor);
 
         SettingsGroup* _groups[8] = {
             &_gameXAxis, 

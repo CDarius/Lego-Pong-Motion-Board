@@ -11,16 +11,16 @@ class SettingsAxisSwitchHomingGroup : public SettingsGroup {
         const char* _name;
         const char* _description;
 
-        switch_homing_config_t& _config;
-        AxisSwitchHomingSpeedSetting _speed = AxisSwitchHomingSpeedSetting(_config);
-        AxisSwitchHomingMinimumTravelSetting _minimumTravel = AxisSwitchHomingMinimumTravelSetting(_config);
-        AxisSwitchHomingRetractDistanceSetting _retractDistance = AxisSwitchHomingRetractDistanceSetting(_config);
-        AxisSwitchHomingHomeSwitchPosSetting _homeSwitchPos = AxisSwitchHomingHomeSwitchPosSetting(_config);
+        MotorWithReferenceSwitch& _motor;
+        AxisSwitchHomingSpeedSetting _speed = AxisSwitchHomingSpeedSetting(*_motor.config());
+        AxisSwitchHomingMinimumTravelSetting _minimumTravel = AxisSwitchHomingMinimumTravelSetting(*_motor.config());
+        AxisSwitchHomingRetractDistanceSetting _retractDistance = AxisSwitchHomingRetractDistanceSetting(*_motor.config());
+        AxisSwitchHomingHomeSwitchPosSetting _homeSwitchPos = AxisSwitchHomingHomeSwitchPosSetting(_motor);
 
         ISetting* _settings[4] = {&_speed, &_minimumTravel, &_retractDistance, &_homeSwitchPos};
 
     public:
-        SettingsAxisSwitchHomingGroup(const char* name, const char* description, switch_homing_config_t& config);
+        SettingsAxisSwitchHomingGroup(const char* name, const char* description, MotorWithReferenceSwitch& motor);
 
         const char* getName() const;
         const char* getTitle() const;

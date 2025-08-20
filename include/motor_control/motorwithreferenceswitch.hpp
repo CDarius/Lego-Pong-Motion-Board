@@ -7,12 +7,7 @@
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
 
-
-struct homing_config_t {
-    float axis_position_at_home_marker; // Axis position at home marker: switch, stop, etc.. (motor units)
-};
-
-struct switch_homing_config_t : public homing_config_t {
+struct switch_homing_config_t  {
     bool start_in_positive_direction; // If true, start homing in the positive direction
     float speed; // Speed to use during homing (motor units/second)
     float minimum_travel; // Minimum required travel distance before hitting the switch (motor units)

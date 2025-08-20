@@ -1,21 +1,21 @@
 #pragma once
 
-#include "motor_control\motorwithreferenceswitch.hpp"
+#include "motor_control\motorhoming.hpp"
 #include "settings\setting.hpp"
 
 class AxisSwitchHomingHomeSwitchPosSetting : public Setting<float> {
     private:
-        switch_homing_config_t& _config;
+        IMotorHoming& _motorHoming;
 
     public:
-        AxisSwitchHomingHomeSwitchPosSetting(switch_homing_config_t& config) : _config(config) {}
+        AxisSwitchHomingHomeSwitchPosSetting(IMotorHoming& motorHoming) : _motorHoming(motorHoming) {}
 
         float getValue() const override {
-            return _config.axis_position_at_home_marker;
+            return _motorHoming.axis_position_at_home_marker;
         }
 
         void setValue(const float value) override {
-            _config.axis_position_at_home_marker = value;
+            _motorHoming.axis_position_at_home_marker = value;
         }
 
         const char* getName() const override {

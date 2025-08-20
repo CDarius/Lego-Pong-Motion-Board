@@ -14,7 +14,7 @@ private:
 
 public:
     // Constructor that takes and stores an IMotorHoming reference
-    WebFunctionAxisSetZero(IMotorHoming& axis) : _axis(axis) {};
+    WebFunctionAxisSetZero(IMotorHoming& axis, IOBoard& ioBoard) : _axis(axis), WebFunction(ioBoard) {};
 
     // Override methods as needed
     const char* getName() const override;

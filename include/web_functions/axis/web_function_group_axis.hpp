@@ -5,30 +5,19 @@
 #include "web_function_axis_set_zero.hpp"
 #include "utils/task_runner.hpp"
 #include "motor_control\motorhoming.hpp"
+#include "devices/io_board.hpp"
 
 class WebFunctionGroupAxis : public WebFunctionGroup {
     private:
-        const char* _name;
-        const char* _title;
-        TaskRunner& _taskRunner;
-
-        IMotorHoming& _motor;
-        WebFunctionAxisHoming _homing = WebFunctionAxisHoming(_motor, _taskRunner);
-        WebFunctionAxisSetZero _setZero = WebFunctionAxisSetZero(_motor);
+        IMotorHoming& _motor;        
+        WebFunctionAxisHoming _homing = WebFunctionAxisHoming(_motor, _taskRunner, _ioboard);
+        WebFunctionAxisSetZero _setZero = WebFunctionAxisSetZero(_motor, _ioboard);
 
         WebFunction* _functions[2] = {&_homing, &_setZero};
 
     public:
-        WebFunctionGroupAxis(const char* name, const char* title, IMotorHoming& motor, TaskRunner& taskRunner)
-            : _name(name), _title(title), _motor(motor), _taskRunner(taskRunner) {}
-
-        const char* getName() const {
-            return _name;
-        }
-
-        const char* getTitle() const {
-            return _title;
-        }
+        WebFunctionGroupAxis(const char* name, const char* title, IOBoard& ioboard, TaskRunner& taskRunner, IMotorHoming& motor)
+            : _motor(motor),  WebFunctionGroup(name, title, ioboard, taskRunner) {}
 
         WebFunction** getFunctions() override {
             return _functions;

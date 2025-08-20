@@ -107,7 +107,7 @@ EncoderJog r_encoder_jog;
 Game game;
 
 Settings game_settings(game, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");

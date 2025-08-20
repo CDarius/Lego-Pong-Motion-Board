@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "devices/io_board.hpp"
 
 enum class WebFunctionExecutionStatus {
     Done,
@@ -10,9 +11,11 @@ enum class WebFunctionExecutionStatus {
 
 class WebFunction {
 protected:
-    WebFunction() {}
+    IOBoard& _ioBoard;
     WebFunctionExecutionStatus _status = WebFunctionExecutionStatus::Done;
     const char* _failureDescription = nullptr;    
+
+    WebFunction(IOBoard& ioBoard) : _ioBoard(ioBoard) {}
 
 public:
     virtual const char* getName() const = 0;

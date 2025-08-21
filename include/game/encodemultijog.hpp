@@ -30,6 +30,9 @@ class EncoderMultiJog {
         // Get the encoder reference for jog control
         UnitEncoder* getEncoder() const;
 
+        // Get the current jogged motor
+        IMotorHoming* getMotor() const;
+
         // Start jog control for the specified axis
         void start(Axes axis);
 

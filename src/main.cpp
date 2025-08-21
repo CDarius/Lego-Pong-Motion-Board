@@ -57,13 +57,13 @@
 #define I2C_BUS_2_SDA           41
 #define I2C_BUS_2_SCL           42
 
-//#define START_BUTTON_PIN        40 // Grover port 1
-//#define STOP_BUTTON_PIN         39 // Grover port 1
-#define START_BUTTON_PIN        44 // Grover port 1
-#define STOP_BUTTON_PIN         43 // Grover port 1
-#define Y_AXIS_HOME_SWITH_PIN   21 // Groove port 3
-#define L_AXIS_HOME_SWITH_PIN   45 // Groove port 2
-#define R_AXIS_HOME_SWITH_PIN   47 // Groove port 2
+//#define START_BUTTON_PIN        40 // Grove port 1
+//#define STOP_BUTTON_PIN         39 // Grove port 1
+#define START_BUTTON_PIN        44 // Grove port 1
+#define STOP_BUTTON_PIN         43 // Grove port 1
+#define Y_AXIS_HOME_SWITH_PIN   21 // Grove port 3
+#define L_AXIS_HOME_SWITH_PIN   45 // Grove port 2
+#define R_AXIS_HOME_SWITH_PIN   47 // Grove port 2
 
 #define LED_OUTPUT              38
 
@@ -116,7 +116,7 @@ EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, fake_x_motor, y_mot
 Game game;
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(io_board, y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, l_encoder_jog, y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");

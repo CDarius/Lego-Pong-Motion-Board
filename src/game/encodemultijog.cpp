@@ -1,9 +1,18 @@
 #include "game/encodemultijog.hpp"
 
+UnitEncoder* EncoderMultiJog::getEncoder() const {
+    return &_unitEncoder;
+}
+
+IMotorHoming* EncoderMultiJog::getMotor() const {
+    return _encoderJog.getMotor();
+}
+
 void EncoderMultiJog::start(Axes axis) {
     IMotorHoming* targetAxis = nullptr;
     float multiplier = 1.0f;
 
+    // Get the new axis and its multiplier
     switch (axis) {
         case Axes::X:
             targetAxis = &_xAxis;
@@ -23,15 +32,21 @@ void EncoderMultiJog::start(Axes axis) {
             break;
     }
 
+    IMotorHoming* currentMotor = _encoderJog.getMotor();
+    if (currentMotor && currentMotor == targetAxis) {
+        // If we are already jogging the target axis, do nothing
+        return;
+    }
+    if (currentMotor && currentMotor != targetAxis) {
+        // If we are switching motors, stop the current axis first
+        _encoderJog.stop();
+    }
+
     if (targetAxis) {
         _encoderJog.setUpdateIntervalMs(_config.update_interval_ms);
         _encoderJog.setEncoderMultiplier(multiplier);
         _encoderJog.start(*targetAxis);
     }
-}
-
-UnitEncoder* EncoderMultiJog::getEncoder() const {
-    return &_unitEncoder;
 }
 
 void EncoderMultiJog::stop() {

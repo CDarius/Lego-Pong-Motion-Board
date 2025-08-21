@@ -33,9 +33,9 @@ public:
     // Get the encoder reference for jog control
     UnitEncoder* getEncoder() const;
 
-    // Set the encoder reference for jog control
-    void begin(UnitEncoder& encoder);
-    
+    // Get the current jogged motor
+    IMotorHoming* getMotor() const;
+
     // Start jog control with the given motor
     void start(IMotorHoming& motor);
 

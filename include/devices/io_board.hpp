@@ -74,6 +74,15 @@ public:
     }
 
     /*
+    Show a text message on the IO board.
+    The text will be displayed without scrolling.
+    If blink_interval_ms is greater than 0, the text will blink with the specified interval.
+    */
+    void showText(String text, int blink_interval_ms = 0) {
+        showScrollingText(text.c_str(), 0, false, blink_interval_ms);
+    }
+
+    /*
     Clear the text displayed on the IO board.
     */
     void clearText() {
@@ -87,6 +96,16 @@ public:
     If blink_interval_ms is greater than 0, the text will blink with the specified interval.
     */
     void showScrollingText(const char* text, int animation_delay_ms, bool repeat, int blink_interval_ms = 0);
+
+    /*
+    Show scrolling text on the IO board.
+    The text will scroll with the specified animation delay.
+    If repeat is true, the text will scroll indefinitely.
+    If blink_interval_ms is greater than 0, the text will blink with the specified interval.
+    */
+    void showScrollingText(String text, int animation_delay_ms, bool repeat, int blink_interval_ms = 0) {
+        showScrollingText(text.c_str(), animation_delay_ms, repeat, blink_interval_ms);
+    }
 
     /*
     Play a sound on the IO board.

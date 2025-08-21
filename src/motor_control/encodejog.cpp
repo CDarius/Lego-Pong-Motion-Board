@@ -22,6 +22,10 @@ UnitEncoder* EncoderJog::getEncoder() const {
     return &encoder;
 }
 
+IMotorHoming* EncoderJog::getMotor() const {
+    return motor;
+}
+
 void EncoderJog::start(IMotorHoming& motor) {
     this->motor = &motor;
     axis_speed = this->motor->get_speed_limit();

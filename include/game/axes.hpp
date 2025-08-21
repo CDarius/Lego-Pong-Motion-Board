@@ -7,3 +7,9 @@ enum class Axes {
 	L,
 	R
 };
+
+constexpr Axes ALL_AXES[] = {Axes::X, Axes::Y, Axes::L, Axes::R};
+#define NUM_AXES (sizeof(ALL_AXES) / sizeof(ALL_AXES[0]))
+
+
+

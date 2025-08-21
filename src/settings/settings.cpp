@@ -41,6 +41,12 @@ void storeGroupInNVS(Preferences& preferences, SettingsGroup& group) {
             preferences.putUChar(setting->getName(), usetting->getValue());
             break;
         }
+        case SettingType::UInt16:
+        {
+            Setting<uint16_t>* usetting = (Setting<uint16_t>*)setting;
+            preferences.putUShort(setting->getName(), usetting->getValue());
+            break;
+        }
         
         default:
             String errorMsg = "Failed to save a setting of type " + String((int)setting->getType()) + " to NVS storage. Unknown type";
@@ -90,6 +96,12 @@ void readGroupFromNVS(Preferences& preferences, SettingsGroup& group) {
         {
             Setting<uint8_t>* usetting = (Setting<uint8_t>*)setting;
             usetting->setValue(preferences.getUChar(setting->getName(), usetting->getValue()));            
+            break;
+        }
+        case SettingType::UInt16:
+        {
+            Setting<uint16_t>* usetting = (Setting<uint16_t>*)setting;
+            usetting->setValue(preferences.getUShort(setting->getName(), usetting->getValue()));            
             break;
         }
         

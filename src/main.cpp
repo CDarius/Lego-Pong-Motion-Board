@@ -14,6 +14,7 @@
 #include "motor_control/encoderjog.hpp"
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
+#include "game/encodemultijog.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
@@ -89,6 +90,7 @@ switch_homing_config_t r_motor_homing_config = {
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 
+MotorWithReferenceSwitch  fake_x_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
 Motor x_motor;
 MotorWithReferenceSwitch y_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
 MotorWithReferenceSwitch l_motor(L_AXIS_HOME_SWITH_PIN, LOW, l_motor_homing_config);
@@ -101,12 +103,19 @@ Button start_button;
 Button stop_button;
 IOBoard io_board(Serial1);
 
-EncoderJog l_encoder_jog;
-EncoderJog r_encoder_jog;
+encoder_multi_jog_config_t encoder_jog_config  {    
+    .update_interval_ms = 50, // Axis position update interval in milliseconds
+    .x_encoder_multiplier = 0.2, // X-Axis multiplier for encoder value to convert from encoder units to motor position units
+    .y_encoder_multiplier = 0.2, // Y-Axis multiplier for encoder value to convert from encoder units to motor position units
+    .l_r_encoder_multiplier = 0.2, // L-Axis and R-Axis multiplier for encoder value to convert from encoder units to motor position units
+};
+
+EncoderMultiJog l_encoder_jog(l_encoder, encoder_jog_config, fake_x_motor, y_motor, l_motor, r_motor);
+EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, fake_x_motor, y_motor, l_motor, r_motor);
 
 Game game;
 
-Settings game_settings(game, x_motor, y_motor, l_motor, r_motor);
+Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 WebFunctions web_functions(io_board, y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
@@ -206,10 +215,6 @@ void setup() {
     l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
 
-    // Configure jog control for left and right paddles
-    l_encoder_jog.begin(l_encoder);
-    r_encoder_jog.begin(r_encoder);
-    
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
     

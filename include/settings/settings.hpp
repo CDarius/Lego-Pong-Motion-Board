@@ -1,5 +1,4 @@
-#ifndef __GAME_AND_AXIS_SETTINGS_HPP__
-#define __GAME_AND_AXIS_SETTINGS_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include <Preferences.h>
@@ -8,19 +7,23 @@
 #include "motor_control/motorwithreferenceswitch.hpp"
 #include "game/game.hpp"
 #include "game/game_settings.hpp"
+#include "game/encodemultijog.hpp"
 #include "axis/settings_axis_group.hpp"
 #include "axis_switch_homing/settings_axis_switch_homing_group.hpp"
 #include "game_x_axis/settings_game_x_group.hpp"
+#include "jog/settings_jog_group.hpp"
 
 class Settings {
     private:
         GameSettings& _gameSettings;
+        encoder_multi_jog_config_t& _config;
         Motor& _XMotor;
         MotorWithReferenceSwitch& _YMotor;
         MotorWithReferenceSwitch& _LMotor;
         MotorWithReferenceSwitch& _RMotor;
 
         SettingsGameAxisXGroup _gameXAxis = SettingsGameAxisXGroup(_gameSettings);
+        SettingsJogGroup _jogSettings = SettingsJogGroup(_config);
         SettingsAxisGroup _xSettings = SettingsAxisGroup("x_axis", "X Axis", _XMotor);
         SettingsAxisGroup _ySettings = SettingsAxisGroup("y_axis", "Y Axis", _YMotor);
         SettingsAxisGroup _lSettings = SettingsAxisGroup("l_axis", "L Axis", _LMotor);
@@ -37,8 +40,9 @@ class Settings {
         uint16_t _groupsCount = sizeof(_groups) / sizeof(SettingsGroup*);
         
     public:
-        Settings(Game& game, Motor& xMotor, MotorWithReferenceSwitch& yMotor, MotorWithReferenceSwitch& lMotor, MotorWithReferenceSwitch& rMotor) 
-            : _gameSettings(*(game.getSettings())), _XMotor(xMotor), _YMotor(yMotor), _LMotor(lMotor), _RMotor(rMotor)
+        Settings(Game& game, encoder_multi_jog_config_t& config, 
+            Motor& xMotor, MotorWithReferenceSwitch& yMotor, MotorWithReferenceSwitch& lMotor, MotorWithReferenceSwitch& rMotor) 
+            : _gameSettings(*(game.getSettings())), _config(config), _XMotor(xMotor), _YMotor(yMotor), _LMotor(lMotor), _RMotor(rMotor)
         {            
         }
 
@@ -50,5 +54,3 @@ class Settings {
         void storeInNVS();
         void restoreFromNVS();
 };
-
-#endif

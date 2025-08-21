@@ -13,12 +13,12 @@ private:
     // Axis speed to use for jog movement
     float axis_speed = 0.0f;
     Motor* motor = nullptr;
-    UnitEncoder* encoder = nullptr;
+    UnitEncoder& encoder;
     uint64_t last_update_us = 0;
 
 public:
-    EncoderJog(int interval_ms = 200, float multiplier = 1.0f)
-        : update_interval_us(interval_ms * 1000), encoder_multiplier(multiplier) {}
+    EncoderJog(UnitEncoder& encoder, int interval_ms = 200, float multiplier = 1.0f)
+        : encoder(encoder), update_interval_us(interval_ms * 1000), encoder_multiplier(multiplier) {}
 
     // Get the axis position update interval in milliseconds
     int getUpdateIntervalMs() const;
@@ -30,12 +30,16 @@ public:
     // Set the encoder multiplier to convert encoder units to motor position units
     void setEncoderMultiplier(float multiplier);
 
+    // Get the encoder reference for jog control
+    UnitEncoder* getEncoder() const;
+
     // Set the encoder reference for jog control
     void begin(UnitEncoder& encoder);
+    
     // Start jog control with the given motor
     void start(Motor& motor);
 
-    // Stop jog control and clear motor/encoder pointers
+    // Stop jog control and clear motor pointers
     void stop();
 
     // Update jog control. Runs only if enough time has passed since last update.

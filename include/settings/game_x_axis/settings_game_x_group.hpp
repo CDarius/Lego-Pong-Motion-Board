@@ -1,3 +1,5 @@
+#pragma once
+
 #include "settings/setting.hpp"
 #include "settings/settings_group.hpp"
 #include "game/game_settings.hpp"
@@ -12,7 +14,7 @@ class SettingsGameAxisXGroup : public SettingsGroup {
         ISetting* _settings[1] = {&_gameBallStartSpeedX};
 
     public:
-        SettingsGameAxisXGroup(GameSettings& _gameSetttings);
+        SettingsGameAxisXGroup(GameSettings& _gameSetttings) : _gameSetttings(_gameSetttings) {}
 
         const char* getName() const;
         const char* getTitle() const;

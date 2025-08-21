@@ -10,6 +10,8 @@ WebFunctionExecutionStatus WebFunction::start() {
         return _status;
     }
 
+    _ioBoard.playSound(IO_BOARD_SOUND_BEEP);
+    
     return _status;
 }
 

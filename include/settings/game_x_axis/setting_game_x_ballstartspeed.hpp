@@ -35,10 +35,6 @@ class GameXBallStartSpeedSetting : public SettingUInt8 {
             return "stud/s";
         }
 
-        SettingType getType() const {
-            return SettingType::UInt8;
-        }
-
         const uint8_t getMinValue() const override {
             return 10;
         }

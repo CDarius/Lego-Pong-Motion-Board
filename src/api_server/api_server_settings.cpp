@@ -15,6 +15,12 @@ void ISettingToJsonValue(JsonDocument& doc, const char* key, ISetting& setting) 
         doc[key] = usetting.getValue();
         break;
     }
+    case SettingType::UInt16:
+    {
+        Setting<uint16_t>& usetting = (Setting<uint16_t>&)setting;
+        doc[key] = usetting.getValue();
+        break;
+    }
     
     default:
         doc[key] = nullptr;
@@ -35,6 +41,12 @@ void stringValueToISetting(String& string, ISetting& setting) {
     {
         Setting<uint8_t>& usetting = (Setting<uint8_t>&)setting;
         usetting.setValue((uint8_t)string.toInt());
+        break;
+    }
+    case SettingType::UInt16:
+    {
+        Setting<uint16_t>& usetting = (Setting<uint16_t>&)setting;
+        usetting.setValue((uint16_t)string.toInt());
         break;
     }
     
@@ -93,6 +105,18 @@ void ApiRestServer::setupSettingController() {
                     jsetting["type"] = "int"; 
                     {
                         Setting<uint8_t>* usetting = (Setting<uint8_t>*)setting;
+                        if (setting->hasMinValue())
+                            jsetting["minValue"] = usetting->getMinValue();
+                        if (setting->hasMaxValue())
+                            jsetting["maxValue"] = usetting->getMaxValue();
+                        if (setting->hasChangeStep())
+                            jsetting["stepChange"] = usetting->getChangeStep();    
+                    }
+                    break;
+                case SettingType::UInt16:
+                    jsetting["type"] = "int"; 
+                    {
+                        Setting<uint16_t>* usetting = (Setting<uint16_t>*)setting;
                         if (setting->hasMinValue())
                             jsetting["minValue"] = usetting->getMinValue();
                         if (setting->hasMaxValue())

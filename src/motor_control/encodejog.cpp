@@ -18,24 +18,23 @@ void EncoderJog::setEncoderMultiplier(float multiplier) {
     encoder_multiplier = multiplier;
 }
 
-void EncoderJog::begin(UnitEncoder& encoder) {
-    this->encoder = &encoder;
+UnitEncoder* EncoderJog::getEncoder() const {
+    return &encoder;
 }
 
 void EncoderJog::start(Motor& motor) {
     this->motor = &motor;
     axis_speed = this->motor->get_speed_limit();
     last_update_us = monotonic_us();
-    encoder->clearValue();
+    encoder.clearValue();
 }
 
 void EncoderJog::stop() {
     motor = nullptr;
-    encoder = nullptr;
 }
 
 void EncoderJog::update() {
-    if (!motor || !encoder) {
+    if (!motor) {
         return;
     }
     uint64_t now_us = monotonic_us();
@@ -43,7 +42,7 @@ void EncoderJog::update() {
         return;
     }
     last_update_us = now_us;
-    float new_position = motor->angle() + encoder->getValue() * encoder_multiplier;
-    encoder->clearValue();
+    float new_position = motor->angle() + encoder.getValue() * encoder_multiplier;
+    encoder.clearValue();
     motor->run_target(axis_speed, new_position, PBIO_ACTUATION_HOLD, false);
 }

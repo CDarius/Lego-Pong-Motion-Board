@@ -7,6 +7,7 @@
 enum class SettingType {
     FloatType,
     UInt8,
+    UInt16,
 };
 
 class ISetting {
@@ -35,6 +36,10 @@ public:
 
 class SettingUInt8 : public Setting<uint8_t> {
 public:
+    SettingType getType() const {
+        return SettingType::UInt8;
+    }
+
     const bool hasMinValue() const override {
         return true;
     }
@@ -56,6 +61,37 @@ public:
     }
     
     const uint8_t getChangeStep() const override {
+        return 1;
+    }
+};
+
+class SettingUInt16 : public Setting<uint16_t> {
+public:
+    SettingType getType() const {
+        return SettingType::UInt16;
+    }
+
+    const bool hasMinValue() const override {
+        return true;
+    }
+
+    const bool hasMaxValue() const override {
+        return true;
+    }
+
+    const bool hasChangeStep() const override {
+        return true;
+    }
+
+    const uint16_t getMinValue() const override {
+        return 0;
+    }
+
+    const uint16_t getMaxValue() const override {
+        return 65535;
+    }
+
+    const uint16_t getChangeStep() const override {
         return 1;
     }
 };

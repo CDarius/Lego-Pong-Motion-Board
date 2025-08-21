@@ -1,6 +1,6 @@
 
 #pragma once
-#include "motor_control/motor.hpp"
+#include "motorhoming.hpp"
 #include "devices/unit_encoder.hpp"
 
 // EncoderJog provides jog control for a motor using an external encoder as input.
@@ -12,7 +12,7 @@ private:
     float encoder_multiplier;
     // Axis speed to use for jog movement
     float axis_speed = 0.0f;
-    Motor* motor = nullptr;
+    IMotorHoming* motor = nullptr;
     UnitEncoder& encoder;
     uint64_t last_update_us = 0;
 
@@ -37,7 +37,7 @@ public:
     void begin(UnitEncoder& encoder);
     
     // Start jog control with the given motor
-    void start(Motor& motor);
+    void start(IMotorHoming& motor);
 
     // Stop jog control and clear motor pointers
     void stop();

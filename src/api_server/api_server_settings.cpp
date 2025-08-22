@@ -28,30 +28,38 @@ void ISettingToJsonValue(JsonDocument& doc, const char* key, ISetting& setting) 
     }
 }
 
-void stringValueToISetting(String& string, ISetting& setting) {
+bool jsonValueToISetting(JsonVariant& value, ISetting& setting) {
     switch (setting.getType())
     {
     case SettingType::FloatType:
     {
-        Setting<float>& fsetting = (Setting<float>&)setting;
-        fsetting.setValue(string.toFloat());
-        break;
+        if (!value.is<float>())
+            return false;
+
+            Setting<float>& fsetting = (Setting<float>&)setting;
+        fsetting.setValue(value.as<float>());
+        return true;
     }
     case SettingType::UInt8:
     {
+        if (!value.is<int>())
+            return false;
+
         Setting<uint8_t>& usetting = (Setting<uint8_t>&)setting;
-        usetting.setValue((uint8_t)string.toInt());
-        break;
+        usetting.setValue((uint8_t)value.as<int>());
+        return true;
     }
     case SettingType::UInt16:
     {
+        if (!value.is<int>())
+            return false;
+
         Setting<uint16_t>& usetting = (Setting<uint16_t>&)setting;
-        usetting.setValue((uint16_t)string.toInt());
-        break;
+        usetting.setValue((uint16_t)value.as<int>());
+        return true;
     }
-    
     default:
-        break;
+        return false;
     }
 }
 
@@ -200,7 +208,7 @@ void ApiRestServer::setupSettingController() {
         String uri = request->uri();
         String group_name = uriParam(uri, 1);
         String setting_name = uriParam(uri, 2);
- 
+
         // Try to get the setting        
         SettingsGroup* group = this->_settings->getGroup(group_name.c_str());
         ISetting* setting = group == nullptr ? nullptr : group->getSetting(setting_name.c_str());
@@ -208,22 +216,34 @@ void ApiRestServer::setupSettingController() {
         if (setting == nullptr)
             return request->reply(404);
 
-        // Get the value from the body
-        String value_str = request->body();
-        if (value_str.length() == 0)
+        // Parse the JSON body
+        String body = request->body();
+        if (body.length() == 0)
             return request->reply(400);
-        
-        stringValueToISetting(value_str, *setting);
+
+        JsonDocument doc;
+        DeserializationError err = deserializeJson(doc, body);
+        if (err)
+            return request->reply(400);
+
+        // Extract the "value" field
+        JsonVariant jsonValue = doc["value"];
+        if (jsonValue.isNull())
+            return request->reply(400);
+
+        // Update the setting value
+        if (!jsonValueToISetting(jsonValue, *setting))
+            return request->reply(400);
 
         // Create JSON response
-        JsonDocument doc;
-        doc["group"] = group_name;
-        doc["name"] = setting_name;
-        ISettingToJsonValue(doc, "value", *setting);
+        JsonDocument respDoc;
+        respDoc["group"] = group_name;
+        respDoc["name"] = setting_name;
+        ISettingToJsonValue(respDoc, "value", *setting);
 
         String jsonResponse;
-        serializeJson(doc, jsonResponse);
+        serializeJson(respDoc, jsonResponse);
 
         return request->reply(200, "application/json", jsonResponse.c_str());
-    });
+    });    
 }

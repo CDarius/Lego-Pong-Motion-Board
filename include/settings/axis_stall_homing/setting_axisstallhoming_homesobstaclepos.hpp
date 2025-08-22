@@ -1,37 +1,37 @@
 #pragma once
 
-#include "settings/setting.hpp"
-#include "game/encodemultijog.hpp"
+#include "motor_control\motorhoming.hpp"
+#include "settings\setting.hpp"
 
-class SettingJogLRMultiplier : public Setting<float> {
+class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
     private:
-        encoder_multi_jog_config_t& _config;
+        IMotorHoming& _motorHoming;
 
     public:
-        SettingJogLRMultiplier(encoder_multi_jog_config_t& config) : _config(config) {}
+        AxisStallHomingHomeObstaclePosSetting(IMotorHoming& motorHoming) : _motorHoming(motorHoming) {}
 
         float getValue() const override {
-            return _config.l_r_encoder_multiplier;
+            return _motorHoming.axis_position_at_home_marker;
         }
 
-        void setValue(float value) override {
-            _config.l_r_encoder_multiplier = value;
+        void setValue(const float value) override {
+            _motorHoming.axis_position_at_home_marker = value;
         }
 
         const char* getName() const override {
-            return "l_r_multiplier";
+            return "home_obstacle_pos";
         }
 
         const char* getTitle() const override {
-            return "L/R-Axis multiplier";
+            return "Home obstacle position";
         }
 
         const char* getDescription() const override {
-            return "L/R-Axis multiplier from encoder encoder counts to axis position";
+            return "Axis position when hit the home obstacle";
         }
 
         const char* getUnit() const override {
-            return "stud/count";
+            return "stud";
         }
 
         SettingType getType() const {
@@ -43,7 +43,7 @@ class SettingJogLRMultiplier : public Setting<float> {
         }
 
         const float getMinValue() const override {
-            return 0.01;
+            return -5.0;
         }
 
         const bool hasMaxValue() const override {
@@ -51,7 +51,7 @@ class SettingJogLRMultiplier : public Setting<float> {
         }
 
         const float getMaxValue() const override {
-            return 2.0;
+            return 100.0;
         }
 
         const bool hasChangeStep() const override {
@@ -61,4 +61,4 @@ class SettingJogLRMultiplier : public Setting<float> {
         const float getChangeStep() const override {
             return 0.1;
         }
-};
+    };

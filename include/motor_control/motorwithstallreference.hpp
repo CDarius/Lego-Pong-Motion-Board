@@ -7,34 +7,27 @@
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
 
-struct switch_homing_config_t  {
+struct stall_homing_config_t  {
     bool start_in_positive_direction; // If true, start homing in the positive direction
     float speed; // Speed to use during homing (motor units/second)
+    float duty_limit; // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     float minimum_travel; // Minimum required travel distance before hitting the switch (motor units)
     float retract_distance; // Distance to retract after hitting the home switch (motor units)
 };
 
-
-// MotorWithReferenceSwitch: Inherits from Motor, adds reference switch logic
-class MotorWithReferenceSwitch : public IMotorHoming {
+class MotorWithStallReference : public IMotorHoming {
     private:
         bool _referenced = false;
-        const uint8_t _home_switch_pin;
-        const int _switch_pressed_value;
-        switch_homing_config_t& _config;
+        stall_homing_config_t& _config;
 
     public:
-        MotorWithReferenceSwitch(uint8_t home_switch_pin, int switch_pressed_value, switch_homing_config_t& config)
-            : _home_switch_pin(home_switch_pin),
-            _switch_pressed_value(switch_pressed_value),
-            _config(config)
-        {}
+        MotorWithStallReference(stall_homing_config_t& config): _config(config) {}
 
         // Read-only property: referenced
         bool referenced() const override { return _referenced; }
 
         // Read-only property: config
-        switch_homing_config_t* config() const { return &_config; }
+        stall_homing_config_t* config() const { return &_config; }
 
         // Run axis homing procedure using a reference switch
         pbio_error_t run_axis_homing(CancelToken& cancel_token) override;

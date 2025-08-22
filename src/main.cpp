@@ -11,6 +11,7 @@
 #include "motor_control/motor.hpp"
 #include "motor_control/controlsettings.h"
 #include "motor_control/motorwithreferenceswitch.hpp"
+#include "motor_control/motorwithstallreference.hpp"
 #include "motor_control/encoderjog.hpp"
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
@@ -71,30 +72,39 @@
 
 ApiRestServer server;
 
+stall_homing_config_t x_motor_homing_config = {
+    .start_in_positive_direction = false,
+    .speed = 10.0, // Speed in motor stud/second
+    .duty_limit = 50.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
+    .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
+    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
+};
 switch_homing_config_t y_motor_homing_config = {
     .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
-switch_homing_config_t l_motor_homing_config = {
+stall_homing_config_t l_motor_homing_config = {
     .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
+    .duty_limit = 30.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
-switch_homing_config_t r_motor_homing_config = {
+stall_homing_config_t r_motor_homing_config = {
     .start_in_positive_direction = false,
     .speed = 10.0, // Speed in motor stud/second
+    .duty_limit = 30.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 
-MotorWithReferenceSwitch  fake_x_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
-Motor x_motor;
+
+MotorWithStallReference x_motor(x_motor_homing_config);
 MotorWithReferenceSwitch y_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
-MotorWithReferenceSwitch l_motor(L_AXIS_HOME_SWITH_PIN, LOW, l_motor_homing_config);
-MotorWithReferenceSwitch r_motor(R_AXIS_HOME_SWITH_PIN, LOW, r_motor_homing_config);
+MotorWithStallReference l_motor(l_motor_homing_config);
+MotorWithStallReference r_motor(r_motor_homing_config);
 
 UnitEncoder l_encoder;
 UnitEncoder r_encoder;
@@ -110,8 +120,8 @@ encoder_multi_jog_config_t encoder_jog_config  {
     .l_r_encoder_multiplier = 0.2, // L-Axis and R-Axis multiplier for encoder value to convert from encoder units to motor position units
 };
 
-EncoderMultiJog l_encoder_jog(l_encoder, encoder_jog_config, fake_x_motor, y_motor, l_motor, r_motor);
-EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, fake_x_motor, y_motor, l_motor, r_motor);
+EncoderMultiJog l_encoder_jog(l_encoder, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
+EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 
 Game game;
 

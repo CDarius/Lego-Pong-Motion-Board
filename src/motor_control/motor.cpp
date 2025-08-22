@@ -138,7 +138,7 @@ The total maneuver lasts for exactly the given amount of time.
 :param wait: Wait for the maneuver to complete before continuing with the rest of the program
 
 */
-pbio_error_t Motor::run_time(float speed, uint32_t time_ms, pbio_actuation_t then, bool wait) {
+pbio_error_t Motor::run_time(float speed, uint32_t time_ms, pbio_actuation_t then, bool wait, CancelToken* cancel_token) {
     pbio_error_t err;
 
     if (speed < 0 || time_ms < 0 || time_ms > DURATION_MAX_S*MS_PER_SECOND) {
@@ -159,7 +159,7 @@ pbio_error_t Motor::run_time(float speed, uint32_t time_ms, pbio_actuation_t the
     }
 
     if (wait) {
-        err = wait_for_completion();
+        err = wait_for_completion(cancel_token);
         if (err != PBIO_SUCCESS) {
             output_motor_error(err, "Motor::run_time(%f, %u) movement failed", speed, time_ms);
             return err;
@@ -176,7 +176,7 @@ Runs the motor at a constant speed until it stalls.
 :param duty_limit: Duty cycle limit % during this command. This is useful to avoid applying the full motor torque to a geared or lever mechanism. If it is None, the duty limit won’t be changed during this command
 :param then: What to do after coming to a standstill
  */
-pbio_error_t Motor::run_until_stalled(float speed, float duty_limit, pbio_actuation_t then) {
+pbio_error_t Motor::run_until_stalled(float speed, float duty_limit, pbio_actuation_t then, CancelToken* cancel_token) {
     pbio_error_t err;
 
     // If duty_limit argument, given, limit actuation during this maneuver
@@ -236,7 +236,7 @@ pbio_error_t Motor::run_until_stalled(float speed, float duty_limit, pbio_actuat
 
     // In this command we always wait for completion, so we can return the
     // final angle below.
-    err = wait_for_completion();
+    err = wait_for_completion(cancel_token);
     if (err != PBIO_SUCCESS) {
         if (override_duty_limit) {
             // Try to restore original settings
@@ -275,7 +275,7 @@ Runs the motor at a constant speed by a given angle (relative)
 :param then: What to do after coming to a standstill
 :param wait: Wait for the maneuver to complete before continuing with the rest of the program
 */
-pbio_error_t Motor::run_angle(float speed, float angle, pbio_actuation_t then, bool wait) {
+pbio_error_t Motor::run_angle(float speed, float angle, pbio_actuation_t then, bool wait, CancelToken* cancel_token) {
     pbio_error_t err;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         err = pbio_servo_run_angle(&_servo, speed, angle, then);
@@ -287,7 +287,7 @@ pbio_error_t Motor::run_angle(float speed, float angle, pbio_actuation_t then, b
     }
 
     if (wait) {
-        err = wait_for_completion();
+        err = wait_for_completion(cancel_token);
         if (err != PBIO_SUCCESS) {
             output_motor_error(err, "Motor::run_angle(%f, %f) movement failed", speed, angle);
             return err;
@@ -307,7 +307,7 @@ The direction of rotation is automatically selected based on the target angle. I
 :param then: What to do after coming to a standstill
 :param wait: Wait for the maneuver to complete before continuing with the rest of the program
 */
-pbio_error_t Motor::run_target(float speed, float target_angle, pbio_actuation_t then, bool wait) {
+pbio_error_t Motor::run_target(float speed, float target_angle, pbio_actuation_t then, bool wait, CancelToken* cancel_token) {
     pbio_error_t err;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         err = pbio_servo_run_target(&_servo, speed, target_angle, then);
@@ -319,7 +319,7 @@ pbio_error_t Motor::run_target(float speed, float target_angle, pbio_actuation_t
     }
 
     if (wait) {
-        err = wait_for_completion();
+        err = wait_for_completion(cancel_token);
         if (err != PBIO_SUCCESS) {
             output_motor_error(err, "Motor::run_target(%f, %f) movement failed", speed, target_angle);
             return err;
@@ -348,10 +348,23 @@ void Motor::track_target(float target_angle) {
 /**
 Wait until current movement is completed or fails
 */
-pbio_error_t Motor::wait_for_completion() {
+pbio_error_t Motor::wait_for_completion(CancelToken* cancel_token) {
     bool wait;
     pbio_error_t status;
+    CancelToken localToken;
+    if (cancel_token == nullptr) {
+        // If no cancel token is provided, create a local cancel token in order to be able 
+        // to stop the movement when a global cancel is raised
+        cancel_token = &localToken;
+    }
+
     while (true) {
+        IF_CANCELLED(*cancel_token, {
+            // If the movement is canceled, stop the motor
+            stop();
+            return PBIO_ERROR_CANCELED;
+        });
+
         if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
             status = _servo_status;
             wait = _servo_status == PBIO_SUCCESS && !pbio_control_is_done(&_servo.control);

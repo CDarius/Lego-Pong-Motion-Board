@@ -8,6 +8,7 @@
 #include "motor_control/servo.hpp"
 #include "motor_control/tacho.hpp"
 #include "motor_control/dcmotor.hpp"
+#include "utils/cancel_token.hpp"
 
 typedef void (*motor_error_output_func_t)(pbio_error_t err, const char* err_string, const char* message);
 
@@ -54,12 +55,12 @@ class Motor {
 
         void dc(float duty);
         pbio_error_t run(float speed);
-        pbio_error_t run_time(float speed, uint32_t time_ms, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true);
-        pbio_error_t run_until_stalled(float speed, float duty_limit = 100.0, pbio_actuation_t then = PBIO_ACTUATION_COAST);
-        pbio_error_t run_angle(float speed, float angle, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true);
-        pbio_error_t run_target(float speed, float target_angle, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true);
+        pbio_error_t run_time(float speed, uint32_t time_ms, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true, CancelToken* cancel_token = nullptr);
+        pbio_error_t run_until_stalled(float speed, float duty_limit = 100.0, pbio_actuation_t then = PBIO_ACTUATION_COAST, CancelToken* cancel_token = nullptr);
+        pbio_error_t run_angle(float speed, float angle, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true, CancelToken* cancel_token = nullptr);
+        pbio_error_t run_target(float speed, float target_angle, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true, CancelToken* cancel_token = nullptr);
         void track_target(float target_angle);
-        pbio_error_t wait_for_completion();
+        pbio_error_t wait_for_completion(CancelToken* cancel_token);
 
         void update();
 

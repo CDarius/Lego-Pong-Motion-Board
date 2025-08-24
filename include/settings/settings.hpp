@@ -35,8 +35,8 @@ class Settings {
         SettingsAxisStallHomingGroup _lHomingSettings = SettingsAxisStallHomingGroup("l_axis_homing", "L Axis Homing", _LMotor);
         SettingsAxisStallHomingGroup _rHomingSettings = SettingsAxisStallHomingGroup("r_axis_homing", "R Axis Homing", _RMotor);
 
-        SettingsGroup* _groups[9] = {
-            &_gameXAxis, 
+        SettingsGroup* _groups[10] = {
+            &_gameXAxis, &_jogSettings,
             &_xSettings, &_ySettings, &_lSettings, &_rSettings, 
             &_xHomingSettings, &_yHomingSettings, &_lHomingSettings, &_rHomingSettings
         };

@@ -27,7 +27,7 @@ void WebFunctionAxesJog::arePrerequisitesMet(bool* results) const {
 void WebFunctionAxesJog::startJog(int axisIndex) {
     Axes axis = ALL_AXES[axisIndex];
     _encoderJog.start(axis);
-    _ioBoard.showText("Jog: " + String(_encoderJog.getMotor()->name()));
+    _ioBoard.showText("Jog:" + String(_encoderJog.getMotor()->name()));
 }
 
 WebFunctionExecutionStatus WebFunctionAxesJog::start() {
@@ -73,6 +73,5 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
 void WebFunctionAxesJog::stop() {
     if (_cancelToken) {
         _cancelToken->cancel();
-        _cancelToken = nullptr;
     }
 }

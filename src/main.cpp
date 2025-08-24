@@ -60,8 +60,8 @@
 
 //#define START_BUTTON_PIN        40 // Grove port 1
 //#define STOP_BUTTON_PIN         39 // Grove port 1
-#define START_BUTTON_PIN        44 // Grove port 1
-#define STOP_BUTTON_PIN         43 // Grove port 1
+#define START_BUTTON_PIN        43 // Grove port 1
+#define STOP_BUTTON_PIN         44 // Grove port 1
 #define Y_AXIS_HOME_SWITH_PIN   21 // Grove port 3
 #define L_AXIS_HOME_SWITH_PIN   45 // Grove port 2
 #define R_AXIS_HOME_SWITH_PIN   47 // Grove port 2
@@ -220,7 +220,7 @@ void setup() {
     r_encoder.begin(&Wire1);
 
     // Configure motors
-    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 2.0, &settings_servo_ev3_large, log_motor_errors);
+    x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     y_motor.begin("Y", Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
     r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1.0, &settings_servo_ev3_large, log_motor_errors);
@@ -230,6 +230,9 @@ void setup() {
     
     bool start_web_server = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
 #ifdef DEVEL_NO_HARDWARE
+    start_web_server = true;
+#endif
+#if FORCE_START_WEB_SERVER
     start_web_server = true;
 #endif
 
@@ -444,8 +447,12 @@ void loop() {
     Serial.println("Stalled !!");
     */
     
+    /*
     io_board.showScrollingText("X-Axis run test", 50, true, 0);
     float speed = x_motor.get_speed_limit();
     x_motor.run_angle(speed / 4, 360.0 * 4, PBIO_ACTUATION_HOLD);
     delay(2000);
+    */
+
+    delay(100);
 }

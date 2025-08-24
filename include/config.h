@@ -1,12 +1,13 @@
 #pragma once
 
 #include <freertos/FreeRTOSConfig.h>
-#include "secrets.h"
 
 #define IP_ADDRESS    192, 168, 0, 205  
 #define IP_GATEWAY    192, 168, 0, 1
 #define IP_SUBNET     255, 255, 255, 0
 #define IP_DNS        192, 168, 0, 1
+
+#define FORCE_START_WEB_SERVER (0)
 
 // Motor configuration
 #define PBIO_CONFIG_SERVO_PERIOD_MS (3)
@@ -22,3 +23,6 @@
 #define OTHER_TASK_CORE         (1)
 #define MOTION_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
 #define OTHER_TASK_PRIORITY     (0)
+
+// Leave this file at the end to be able to override configurations
+#include "secrets.h"

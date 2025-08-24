@@ -56,6 +56,5 @@ WebFunctionExecutionStatus WebFunctionAxisHoming::start() {
 void WebFunctionAxisHoming::stop() {
     if (_cancelToken) {
         _cancelToken->cancel();
-        _cancelToken = nullptr;
     }
 }

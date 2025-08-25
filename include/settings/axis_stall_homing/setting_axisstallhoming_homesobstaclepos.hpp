@@ -19,7 +19,7 @@ class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
         }
 
         const char* getName() const override {
-            return "home_obstacle_pos";
+            return "obstacle_pos";
         }
 
         const char* getTitle() const override {

@@ -19,7 +19,7 @@ class AxisStallHomingRetractDistanceSetting : public Setting<float> {
         }
 
         const char* getName() const override {
-            return "retract_distance";
+            return "retract_dist";
         }
 
         const char* getTitle() const override {

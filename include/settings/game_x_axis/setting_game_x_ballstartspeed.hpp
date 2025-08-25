@@ -20,7 +20,7 @@ class GameXBallStartSpeedSetting : public SettingUInt8 {
         }
 
         const char* getName() const override {
-            return "ball_x_start_speed";
+            return "ball_x_start_sp";
         }
 
         const char* getTitle() const override {

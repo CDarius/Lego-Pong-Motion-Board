@@ -16,6 +16,7 @@
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
 #include "game/encodermultijog.hpp"
+#include "game/axes_homing.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
@@ -109,7 +110,6 @@ MotorWithStallReference r_motor(r_motor_homing_config);
 UnitEncoder l_encoder;
 UnitEncoder r_encoder;
 RGBLed rgb_led;
-Button start_button;
 Button stop_button;
 IOBoard io_board(Serial1);
 
@@ -142,13 +142,16 @@ void motor_loop_task(void *parameter) {
         uint64_t start_time = monotonic_us();
         uint32_t millis = (uint32_t)(start_time / US_PER_MS);
 
-        // Update start and stop buttons status
-        start_button.setRawState(millis, digitalRead(START_BUTTON_PIN) == LOW);
+        // Update stop buttons status
         stop_button.setRawState(millis, digitalRead(STOP_BUTTON_PIN) == LOW);
 
         // Stop game and all motors if the stop button was clicked
         if (stop_button.wasClicked()) {
             CancelToken::cancelAll();
+            x_motor.stop();
+            y_motor.stop();
+            l_motor.stop();
+            r_motor.stop();
         }
 
         // Update motors motion
@@ -317,6 +320,17 @@ void setup() {
     }
 
     rgb_led.setColor(RGB_COLOR_GREEN);
+    io_board.playSound(IO_BOARD_SOUND_START);
+
+    if (!start_web_server) {
+        // Home all axes
+        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog, START_BUTTON_PIN);
+        if (err != PBIO_SUCCESS) {
+            Logger::instance().logE("Failed to home all axes.");
+            rgb_led.unrecoverableError();
+        }
+        Logger::instance().logI("Axes homed successfully");
+    }
 }
 
 

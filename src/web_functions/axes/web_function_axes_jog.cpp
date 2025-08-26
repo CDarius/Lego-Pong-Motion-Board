@@ -60,6 +60,8 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
                 self->startJog(self->_axisIndex);
                 self->_ioBoard.playSound(IO_BOARD_SOUND_BEEP);
             }
+
+            delay(1); // Sleep the task
         }
         self->_status = WebFunctionExecutionStatus::Done;
         self->_ioBoard.clearText();

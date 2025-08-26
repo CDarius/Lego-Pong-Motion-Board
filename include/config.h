@@ -24,5 +24,8 @@
 #define MOTION_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
 #define OTHER_TASK_PRIORITY     (0)
 
+// Scrolling text animation speed
+#define SCROLLING_TEXT_ANIM_DELAY (50)
+
 // Leave this file at the end to be able to override configurations
 #include "secrets.h"

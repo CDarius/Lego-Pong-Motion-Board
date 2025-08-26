@@ -3,7 +3,7 @@
 #include "web_functions/web_function_group.hpp"
 #include "web_function_axes_jog.hpp"
 #include "utils/task_runner.hpp"
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 #include "devices/io_board.hpp"
 
 class WebFunctionGroupAxes : public WebFunctionGroup {

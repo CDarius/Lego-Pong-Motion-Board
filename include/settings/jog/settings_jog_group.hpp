@@ -2,7 +2,7 @@
 
 #include "settings/setting.hpp"
 #include "settings/settings_group.hpp"
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 #include "setting_jog_updateinterval.hpp"
 #include "setting_jog_xmultiplier.hpp"
 #include "setting_jog_ymultiplier.hpp"

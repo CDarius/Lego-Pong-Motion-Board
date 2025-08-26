@@ -1,7 +1,7 @@
 #pragma once
 
 #include "settings/setting.hpp"
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 
 class SettingJogYMultiplier : public Setting<float> {
     private:

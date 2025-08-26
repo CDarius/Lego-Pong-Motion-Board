@@ -15,7 +15,7 @@
 #include "motor_control/encoderjog.hpp"
 #include "motor_control/error.hpp"
 #include "game/game.hpp"
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
@@ -123,7 +123,7 @@ encoder_multi_jog_config_t encoder_jog_config  {
 EncoderMultiJog l_encoder_jog(l_encoder, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 
-Game game;
+Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 WebFunctions web_functions(io_board, l_encoder_jog, x_motor, y_motor, l_motor, r_motor);

@@ -1,4 +1,4 @@
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 
 UnitEncoder* EncoderMultiJog::getEncoder() const {
     return &_unitEncoder;

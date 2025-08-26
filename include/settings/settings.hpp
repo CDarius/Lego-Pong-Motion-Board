@@ -8,7 +8,7 @@
 #include "motor_control/motorwithstallreference.hpp"
 #include "game/game.hpp"
 #include "game/game_settings.hpp"
-#include "game/encodemultijog.hpp"
+#include "game/encodermultijog.hpp"
 #include "axis/settings_axis_group.hpp"
 #include "axis_switch_homing/settings_axis_switch_homing_group.hpp"
 #include "axis_stall_homing/settings_axis_stall_homing_group.hpp"

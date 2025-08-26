@@ -89,11 +89,17 @@ void ApiRestServer::setupWebFunctionController() {
 
         // Execute the action
         if (action == "start") {
-            WebFunctionExecutionStatus status = function->start();
-            doc["status"] = ExecutionStatusToString(status);
-            const char* failureDescription = function->getFailuerDescription();
-            if (failureDescription) {
-                doc["failure_description"] = failureDescription;
+            // Check if any function is already in progress
+            if (_webFunctions->checkAnyFunctionInProgress()) {
+                doc["status"] = ExecutionStatusToString(WebFunctionExecutionStatus::Failed);
+                doc["failure_description"] = "Another function is already in progress";
+            } else {
+                WebFunctionExecutionStatus status = function->start();
+                doc["status"] = ExecutionStatusToString(status);
+                const char* failureDescription = function->getFailuerDescription();
+                if (failureDescription) {
+                    doc["failure_description"] = failureDescription;
+                }
             }
         } else if (action == "stop") {
             function->stop();

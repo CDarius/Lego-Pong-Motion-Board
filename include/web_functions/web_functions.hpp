@@ -33,4 +33,7 @@ class WebFunctions {
 
         WebFunctionGroup** getGroups();
         uint16_t getGroupsCount() const;
+
+        // Returns true if any WebFunction in any group is InProgress
+        bool checkAnyFunctionInProgress() const;
 };

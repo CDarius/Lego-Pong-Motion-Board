@@ -24,7 +24,7 @@ void WebFunctionAxesJog::arePrerequisitesMet(bool* results) const {
     // No prerequisites, so nothing to check
 }
 
-void WebFunctionAxesJog::startJog(int axisIndex) {
+void WebFunctionAxesJog::startJog(uint8_t axisIndex) {
     Axes axis = ALL_AXES[axisIndex];
     _encoderJog.start(axis);
     _ioBoard.showText("Jog:" + String(_encoderJog.getMotor()->name()));
@@ -43,8 +43,7 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
         CancelToken cancel_token;
         self->_cancelToken = &cancel_token;
 
-        int axisIndex = 0;
-        self->startJog(axisIndex);
+        self->startJog(self->_axisIndex);
 
         UnitEncoder* encoder = self->_encoderJog.getEncoder();
         Button encoderButton;
@@ -57,8 +56,8 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
             uint32_t time = (uint32_t)(millis());
             encoderButton.setRawState(time, encoder->getButtonStatus());
             if (encoderButton.wasPressed()) {
-                axisIndex = (axisIndex + 1) % NUM_AXES;
-                self->startJog(axisIndex);
+                self->_axisIndex = (self->_axisIndex + 1) % NUM_AXES;
+                self->startJog(self->_axisIndex);
                 self->_ioBoard.playSound(IO_BOARD_SOUND_BEEP);
             }
         }

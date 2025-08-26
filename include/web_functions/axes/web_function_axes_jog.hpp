@@ -13,8 +13,9 @@ class WebFunctionAxesJog : public WebFunction {
         EncoderMultiJog& _encoderJog;
         TaskRunner& _taskRunner;
         CancelToken* _cancelToken = nullptr;
+        uint8_t _axisIndex = 0;
 
-        void startJog(int axisIndex);
+        void startJog(uint8_t axisIndex);
 
     public:
         WebFunctionAxesJog(EncoderMultiJog& encoderJog, TaskRunner& taskRunner, IOBoard& ioBoard)

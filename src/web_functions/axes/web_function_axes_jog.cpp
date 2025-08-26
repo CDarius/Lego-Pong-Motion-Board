@@ -63,6 +63,7 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
             }
         }
         self->_status = WebFunctionExecutionStatus::Done;
+        self->_ioBoard.clearText();
 
         self->_cancelToken = nullptr;
     }, this);

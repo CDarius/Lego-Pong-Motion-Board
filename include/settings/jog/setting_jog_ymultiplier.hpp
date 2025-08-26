@@ -31,7 +31,7 @@ class SettingJogYMultiplier : public Setting<float> {
         }
 
         const char* getUnit() const override {
-            return "";
+            return "stud/count";
         }
 
         SettingType getType() const {

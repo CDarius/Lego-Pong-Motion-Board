@@ -25,8 +25,7 @@ class MotorWithStallReference : public IMotorHoming {
 
         bool referenced() const override { return _referenced; }
 
-        stall_homing_config_t* config() const { return &_config; }
-        base_homing_config_t* base_config() const override { return &_config; }
+        stall_homing_config_t* config() const override { return &_config; }
 
         // Run axis homing procedure using a reference switch
         pbio_error_t run_axis_homing(CancelToken& cancel_token) override;

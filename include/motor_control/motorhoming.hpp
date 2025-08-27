@@ -17,5 +17,5 @@ class IMotorHoming : public Motor {
         virtual bool referenced() const = 0;
         virtual pbio_error_t run_axis_homing(CancelToken& cancel_token) = 0;
 
-        virtual base_homing_config_t* base_config() const = 0;
+        virtual base_homing_config_t* config() const = 0;
 };

@@ -80,6 +80,7 @@ stall_homing_config_t x_motor_homing_config = {
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
+
 switch_homing_config_t y_motor_homing_config = {
     .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second

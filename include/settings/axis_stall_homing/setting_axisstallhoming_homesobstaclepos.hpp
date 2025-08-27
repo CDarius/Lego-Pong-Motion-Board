@@ -11,11 +11,11 @@ class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
         AxisStallHomingHomeObstaclePosSetting(IMotorHoming& motorHoming) : _motorHoming(motorHoming) {}
 
         float getValue() const override {
-            return _motorHoming.axis_position_at_home_marker;
+            return _motorHoming.base_config()->axis_position_at_home_marker;
         }
 
         void setValue(const float value) override {
-            _motorHoming.axis_position_at_home_marker = value;
+            _motorHoming.base_config()->axis_position_at_home_marker = value;
         }
 
         const char* getName() const override {

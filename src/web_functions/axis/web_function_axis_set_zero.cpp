@@ -31,7 +31,7 @@ void WebFunctionAxisSetZero::arePrerequisitesMet(bool* results) const {
 WebFunctionExecutionStatus WebFunctionAxisSetZero::start() {
     WebFunction::start(); // Call the base class start to initialize failure description and IO board
 
-    _axis.axis_position_at_home_marker = _axis.axis_position_at_home_marker - _axis.angle();
+    _axis.base_config()->axis_position_at_home_marker -= _axis.angle();
     return _status;
 }
 

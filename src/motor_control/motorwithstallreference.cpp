@@ -26,7 +26,7 @@ pbio_error_t MotorWithStallReference::run_axis_homing(CancelToken& cancel_token)
         float travel_distance = abs(hit_position - start_position);
         if (travel_distance >= _config.minimum_travel) {
             // We hit the switch after moving the minimum distance
-            reset_angle(axis_position_at_home_marker);
+            reset_angle(_config.axis_position_at_home_marker);
             Logger::instance().logI(name() + String("-axis hit the reference obstacle"));
             break;
         }

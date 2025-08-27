@@ -7,13 +7,12 @@
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
 
-struct switch_homing_config_t  {
+struct switch_homing_config_t : public base_homing_config_t  {
     bool start_in_positive_direction; // If true, start homing in the positive direction
     float speed; // Speed to use during homing (motor units/second)
     float minimum_travel; // Minimum required travel distance before hitting the switch (motor units)
     float retract_distance; // Distance to retract after hitting the home switch (motor units)
 };
-
 
 // MotorWithReferenceSwitch: Inherits from Motor, adds reference switch logic
 class MotorWithReferenceSwitch : public IMotorHoming {
@@ -30,11 +29,10 @@ class MotorWithReferenceSwitch : public IMotorHoming {
             _config(config)
         {}
 
-        // Read-only property: referenced
         bool referenced() const override { return _referenced; }
 
-        // Read-only property: config
         switch_homing_config_t* config() const { return &_config; }
+        base_homing_config_t* base_config() const override { return &_config; }
 
         // Run axis homing procedure using a reference switch
         pbio_error_t run_axis_homing(CancelToken& cancel_token) override;

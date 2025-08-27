@@ -6,6 +6,7 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
 
     float forward_speed = _config.start_in_positive_direction ? _config.speed : -_config.speed;
     float backward_speed = -2.0 * forward_speed;
+    float backward_final_speed = get_speed_limit() * (forward_speed > 0 ? -1 : 1);
 
     Logger::instance().logI("Starting " + String(name()) + "-axis homing....");
 
@@ -70,8 +71,8 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
         return PBIO_ERROR_CANCELED;
     });
 
-    // Move away from the switch 
-    PBIO_RETURN_ON_ERROR(run_angle(backward_speed, _config.retract_distance, PBIO_ACTUATION_COAST, true, &cancel_token));
+    // Move away from the switch to the final position
+    PBIO_RETURN_ON_ERROR(run_target(backward_final_speed, _config.axis_position_after_home, PBIO_ACTUATION_COAST, true, &cancel_token));
 
     // Test if the switch is released
     if (digitalRead(_home_switch_pin) == _switch_pressed_value) {

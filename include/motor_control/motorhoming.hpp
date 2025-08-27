@@ -6,6 +6,7 @@
 
 struct base_homing_config_t {
     float axis_position_at_home_marker = 0.0;   // Axis position at home marker: switch, stop, etc.. (studs)
+    float axis_position_after_home = 0.0;       // Axis position reached after homing (studs)
 };
 
 class IMotorHoming : public Motor {

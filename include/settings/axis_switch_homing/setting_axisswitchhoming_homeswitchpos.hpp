@@ -5,17 +5,17 @@
 
 class AxisSwitchHomingHomeSwitchPosSetting : public Setting<float> {
     private:
-        IMotorHoming& _motorHoming;
+        base_homing_config_t& _config;
 
     public:
-        AxisSwitchHomingHomeSwitchPosSetting(IMotorHoming& motorHoming) : _motorHoming(motorHoming) {}
+        AxisSwitchHomingHomeSwitchPosSetting(base_homing_config_t& config) : _config(config) {}
 
         float getValue() const override {
-            return _motorHoming.base_config()->axis_position_at_home_marker;
+            return _config.axis_position_at_home_marker;
         }
 
         void setValue(const float value) override {
-            _motorHoming.base_config()->axis_position_at_home_marker = value;
+            _config.axis_position_at_home_marker = value;
         }
 
         const char* getName() const override {

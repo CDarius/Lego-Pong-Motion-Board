@@ -5,6 +5,7 @@
 #include "setting_axisstallhoming_minimumtravel.hpp"
 #include "setting_axisstallhoming_retractdistance.hpp"
 #include "setting_axisstallhoming_homesobstaclepos.hpp"
+#include "setting_axisstallhoming_posafterhome.hpp"
 #include "motor_control\motorwithstallreference.hpp"
 
 class SettingsAxisStallHomingGroup : public SettingsGroup {
@@ -17,9 +18,10 @@ class SettingsAxisStallHomingGroup : public SettingsGroup {
         AxisStallHomingDutyLimitSetting _dutyLimit = AxisStallHomingDutyLimitSetting(*_motor.config());
         AxisStallHomingMinimumTravelSetting _minimumTravel = AxisStallHomingMinimumTravelSetting(*_motor.config());
         AxisStallHomingRetractDistanceSetting _retractDistance = AxisStallHomingRetractDistanceSetting(*_motor.config());
-        AxisStallHomingHomeObstaclePosSetting _homeObstaclePos = AxisStallHomingHomeObstaclePosSetting(_motor);
+        AxisStallHomingHomeObstaclePosSetting _homeObstaclePos = AxisStallHomingHomeObstaclePosSetting(*_motor.config());
+        AxisStallHomingPosAfterHomeSetting _posAfterHome = AxisStallHomingPosAfterHomeSetting(*_motor.config());
 
-        ISetting* _settings[5] = {&_speed, &_dutyLimit, &_minimumTravel, &_retractDistance, &_homeObstaclePos};
+        ISetting* _settings[6] = {&_speed, &_dutyLimit, &_minimumTravel, &_retractDistance, &_homeObstaclePos, &_posAfterHome};
 
     public:
         SettingsAxisStallHomingGroup(const char* name, const char* description, MotorWithStallReference& motor);

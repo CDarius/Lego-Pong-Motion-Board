@@ -3,31 +3,31 @@
 #include "motor_control\motorhoming.hpp"
 #include "settings\setting.hpp"
 
-class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
+class AxisStallHomingPosAfterHomeSetting : public Setting<float> {
     private:
         base_homing_config_t& _config;
 
     public:
-        AxisStallHomingHomeObstaclePosSetting(base_homing_config_t& motorHoming) : _config(motorHoming) {}
+        AxisStallHomingPosAfterHomeSetting(base_homing_config_t& motorHoming) : _config(motorHoming) {}
 
         float getValue() const override {
-            return _config.axis_position_at_home_marker;
+            return _config.axis_position_after_home;
         }
 
         void setValue(const float value) override {
-            _config.axis_position_at_home_marker = value;
+            _config.axis_position_after_home = value;
         }
 
         const char* getName() const override {
-            return "obstacle_pos";
+            return "pos_after_home";
         }
 
         const char* getTitle() const override {
-            return "Home obstacle position";
+            return "Position reached after home";
         }
 
         const char* getDescription() const override {
-            return "Axis position when hit the home obstacle";
+            return "Axis position reached after the homing procedure is complete";
         }
 
         const char* getUnit() const override {
@@ -59,6 +59,6 @@ class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
         }
 
         const float getChangeStep() const override {
-            return 0.1;
+            return 0.5;
         }
     };

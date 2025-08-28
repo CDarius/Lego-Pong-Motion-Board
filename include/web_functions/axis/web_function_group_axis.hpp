@@ -3,8 +3,9 @@
 #include "web_functions/web_function_group.hpp"
 #include "web_function_axis_homing.hpp"
 #include "web_function_axis_set_zero.hpp"
+#include "web_function_axis_maxspeed.hpp"
+#include "motor_control/motorhoming.hpp"
 #include "utils/task_runner.hpp"
-#include "motor_control\motorhoming.hpp"
 #include "devices/io_board.hpp"
 
 class WebFunctionGroupAxis : public WebFunctionGroup {
@@ -12,8 +13,9 @@ class WebFunctionGroupAxis : public WebFunctionGroup {
         IMotorHoming& _motor;        
         WebFunctionAxisHoming _homing = WebFunctionAxisHoming(_motor, _taskRunner, _ioboard);
         WebFunctionAxisSetZero _setZero = WebFunctionAxisSetZero(_motor, _ioboard);
+        WebFunctionAxisMaxSpeed _maxSpeed = WebFunctionAxisMaxSpeed(_motor, _taskRunner, _ioboard);
 
-        WebFunction* _functions[2] = {&_homing, &_setZero};
+        WebFunction* _functions[3] = {&_homing, &_setZero, &_maxSpeed};
 
     public:
         WebFunctionGroupAxis(const char* name, const char* title, IOBoard& ioboard, TaskRunner& taskRunner, IMotorHoming& motor)

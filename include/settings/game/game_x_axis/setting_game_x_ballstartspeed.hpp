@@ -1,22 +1,21 @@
-#ifndef __SETTING_GAME_BALLSTARTXSPEED_HPP__
-#define __SETTING_GAME_BALLSTARTXSPEED_HPP__
+#pragma once
 
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
 class GameXBallStartSpeedSetting : public SettingUInt8 {
     private:
-        GameSettings& _gameSettings;
+        GameXAxisSettings& _settings;
 
     public:
-        GameXBallStartSpeedSetting(GameSettings& gameSettings) : _gameSettings(gameSettings) {}
+        GameXBallStartSpeedSetting(GameXAxisSettings& settings) : _settings(settings) {}
 
         uint8_t getValue() const override {
-            return _gameSettings.xAxis.startBallGameSpeed;
+            return _settings.startBallGameSpeed;
         }
 
         void setValue(const uint8_t value) override {
-            _gameSettings.xAxis.startBallGameSpeed = value;
+            _settings.startBallGameSpeed = value;
         }
 
         const char* getName() const override {
@@ -32,7 +31,7 @@ class GameXBallStartSpeedSetting : public SettingUInt8 {
         }
 
         const char* getUnit() const override {
-            return "stud/s";
+            return "%";
         }
 
         const uint8_t getMinValue() const override {
@@ -42,6 +41,8 @@ class GameXBallStartSpeedSetting : public SettingUInt8 {
         const uint8_t getMaxValue() const override {
             return 100;
         }
-    };
 
-#endif
+        const uint8_t getChangeStep() const override {
+            return 5;
+        }
+    };

@@ -19,10 +19,11 @@
 #define ENCODER_COUNTS_PER_DEGREE (2)
 
 // Task configuration
-#define MOTION_TASK_CORE        (0)
-#define OTHER_TASK_CORE         (1)
-#define MOTION_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
-#define OTHER_TASK_PRIORITY     (0)
+#define MOTION_TASK_CORE            (0)
+#define OTHER_TASK_CORE             (1)
+#define MOTION_TASK_PRIORITY        (configMAX_PRIORITIES - 1)
+#define OTHER_TASK_PRIORITY         (0)
+#define OTHER_TASK_HIGH_PRIORITY    (10)
 
 // Scrolling text animation speed
 #define SCROLLING_TEXT_ANIM_DELAY (50)

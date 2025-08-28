@@ -7,18 +7,25 @@
 #include "utils/task_runner.hpp"
 #include "utils/cancel_token.hpp"
 #include "utils/logger.hpp"
-#include "config.h"
+#include "game/game_settings.hpp"
 
-class WebFunctionAxisMaxSpeed : public WebFunction{
+#define BOUNCE_SAFE_OVERSHOOT_DISTANCE (6)  // Safe overshoot distance in studs
+
+class WebFunctionGameBounce : public WebFunction{
 private:
     IMotorHoming& _axis;
     TaskRunner& _taskRunner;
     TaskHandle_t _taskHandle = nullptr;
     CancelToken* _cancelToken = nullptr;
+    float* _bounceInversionOvershootAtSpeed;
+
+    pbio_error_t _runBounceTest(uint8_t speedCmdPercentage, float& overshoot, CancelToken& cancel_token);
     
 public:
     // Constructor that takes and stores an IMotorHoming reference
-    WebFunctionAxisMaxSpeed(IMotorHoming& axis, TaskRunner& taskRunner, IOBoard& ioBoard) : _axis(axis), _taskRunner(taskRunner), WebFunction(ioBoard) {};
+    WebFunctionGameBounce(IMotorHoming& axis, float* bounceInversionOvershootAtSpeed, TaskRunner& taskRunner, IOBoard& ioBoard) : 
+        _axis(axis), _bounceInversionOvershootAtSpeed(bounceInversionOvershootAtSpeed), 
+        _taskRunner(taskRunner), WebFunction(ioBoard) {};
 
     // Override methods as needed
     const char* getName() const override;

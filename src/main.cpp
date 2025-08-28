@@ -124,7 +124,7 @@ EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l
 Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(io_board, l_encoder_jog, x_motor, y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, l_encoder_jog, *game.getSettings(),  x_motor, y_motor, l_motor, r_motor);
 
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");

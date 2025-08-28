@@ -95,6 +95,8 @@ WebFunctionExecutionStatus WebFunctionAxisMaxSpeed::start() {
                 self->_axis.brake();
                 break;
             }
+
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
         }
 
         // ****************************************
@@ -146,6 +148,8 @@ WebFunctionExecutionStatus WebFunctionAxisMaxSpeed::start() {
                 self->_axis.brake();
                 break;
             }
+
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
         }
 
         // As a result take the 95% of the smaller of the two speeds

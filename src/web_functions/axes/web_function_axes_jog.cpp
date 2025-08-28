@@ -63,6 +63,7 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
 
             delay(1); // Sleep the task
         }
+        self->_encoderJog.stop();
         self->_status = WebFunctionExecutionStatus::Done;
         self->_ioBoard.clearText();
 

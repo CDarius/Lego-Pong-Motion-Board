@@ -10,8 +10,10 @@ private:
     int update_interval_us;
     // Multiplier for encoder value to convert from encoder units to motor position units
     float encoder_multiplier;
-    // Axis speed to use for jog movement
-    float axis_speed = 0.0f;
+    // Position setpoint for the axis
+    float pos_setpoint = 0.0f;
+    // Last jog wheel value
+    int16_t last_encoder_value = 0;
     IMotorHoming* motor = nullptr;
     UnitEncoder& encoder;
     uint64_t last_update_us = 0;

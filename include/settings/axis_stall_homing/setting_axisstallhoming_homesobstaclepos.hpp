@@ -27,7 +27,7 @@ class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
         }
 
         const char* getDescription() const override {
-            return "Axis position when hit the home obstacle";
+            return "Axis position when hit the reference obstacle";
         }
 
         const char* getUnit() const override {

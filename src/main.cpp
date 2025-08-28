@@ -78,7 +78,6 @@ stall_homing_config_t x_motor_homing_config = {
     .speed = 10.0, // Speed in motor stud/second
     .duty_limit = 50.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
-    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 
 switch_homing_config_t y_motor_homing_config = {
@@ -88,18 +87,16 @@ switch_homing_config_t y_motor_homing_config = {
     .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 stall_homing_config_t l_motor_homing_config = {
-    .start_in_positive_direction = false,
+    .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
     .duty_limit = 30.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
-    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 stall_homing_config_t r_motor_homing_config = {
-    .start_in_positive_direction = false,
+    .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
     .duty_limit = 30.0, // Duty cycle limit to detect stall on the reference obstacle (0.0% to 100.0%)
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
-    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 
 

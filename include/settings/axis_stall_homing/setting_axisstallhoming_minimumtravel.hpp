@@ -27,7 +27,7 @@ class AxisStallHomingMinimumTravelSetting : public Setting<float> {
         }
 
         const char* getDescription() const override {
-            return "Mimum required travel distance before hitting the switch. If the distance is less than this value, the homing will restart.";
+            return "Mimum required travel distance before hitting the reference obstacle. If the distance is less than this value, the homing will restart.";
         }
 
         const char* getUnit() const override {

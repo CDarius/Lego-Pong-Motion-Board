@@ -28,12 +28,16 @@ IMotorHoming* EncoderJog::getMotor() const {
 
 void EncoderJog::start(IMotorHoming& motor) {
     this->motor = &motor;
-    axis_speed = this->motor->get_speed_limit();
-    last_update_us = monotonic_us();
+    pos_setpoint = this->motor->angle();
+    last_encoder_value = 0;
     encoder.clearValue();
+    last_update_us = monotonic_us();
 }
 
 void EncoderJog::stop() {
+    if (motor) {
+        motor->stop();
+    }
     motor = nullptr;
 }
 
@@ -49,9 +53,16 @@ void EncoderJog::update() {
     }
     last_update_us = now_us;
 
-    // Calculate the new position based on the encoder value
-    float new_position = motor->angle() + encoder.getValue() * encoder_multiplier;
-    encoder.clearValue();
+    // Detect a change in jog encoder value
+    int16_t encoder_value = encoder.getValue();
+    int16_t new_step = encoder_value - last_encoder_value;
+        
+    if (new_step == 0) {
+        // No movement requested
+        return;
+    }
+
+    float new_position = pos_setpoint + ((float)new_step) * encoder_multiplier;;
 
     // Clamp the new position to the motor's software limits if referenced
     if (motor->referenced()) {
@@ -61,5 +72,8 @@ void EncoderJog::update() {
             new_position = motor->getSwLimitPlus();
     }
 
-    motor->run_target(axis_speed, new_position, PBIO_ACTUATION_HOLD, false);
+    // Track the target position
+    motor->track_target(new_position);
+    pos_setpoint = new_position;
+    last_encoder_value = encoder_value;
 }

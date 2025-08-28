@@ -27,7 +27,7 @@ class AxisStallHomingSpeedSetting : public Setting<float> {
         }
 
         const char* getDescription() const override {
-            return "Axis speed when moving toward the home switch";
+            return "Axis speed when moving toward the reference obstacle";
         }
 
         const char* getUnit() const override {

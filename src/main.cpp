@@ -448,9 +448,9 @@ void loop() {
     /*
     io_board.showScrollingText("X-Axis stall test", 50, true, 0);
     Serial.println("Press the left paddle button to start ...");
-    while (!l_encoder.getButtonStatus()) {
+    while (!l_encoder.isButtonPressed()) {
         Serial.print("Button stauts: ");
-        Serial.println(l_encoder.getButtonStatus() ? "Pressed" : "Released");
+        Serial.println(l_encoder.isButtonPressed() ? "Pressed" : "Released");
         delay(100);
     }
     

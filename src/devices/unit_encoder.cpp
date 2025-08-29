@@ -57,7 +57,7 @@ void UnitEncoder::clearValue() {
 
 /*! @brief Get the current status of the rotary encoder keys.
     @return True if the button is pressed, false otherwise */
-bool UnitEncoder::getButtonStatus() {
+bool UnitEncoder::isButtonPressed() {
     uint8_t data;
     readBytes(_addr, UNIT_ENC_BUTTON_REG, &data, 1);
     return data == 0;

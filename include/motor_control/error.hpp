@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2018-2020 The Pybricks Authors
+// Copyright (c) 2025 CDarius
 
-#ifndef _PBIO_ERROR_H_
-#define _PBIO_ERROR_H_
+#pragma once
 
 #include <Arduino.h>
 
@@ -35,5 +35,3 @@ const char *pbio_error_str(pbio_error_t err);
             return _err;                   \
         }                                  \
     } while (0)
-    
-#endif // _PBIO_ERROR_H_

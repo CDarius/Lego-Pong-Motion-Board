@@ -21,8 +21,8 @@ class WebFunctions {
         IMotorHoming& _YMotor;
         IMotorHoming& _LMotor;
         IMotorHoming& _RMotor;
-        WebFunctionGroupGameX _gameXGroup = WebFunctionGroupGameX(_ioBoard, _taskRunner, _XMotor, _gameSettings.xAxis);
-        WebFunctionGroupGameY _gameYGroup = WebFunctionGroupGameY(_ioBoard, _taskRunner, _YMotor, _gameSettings.yAxis);
+        WebFunctionGroupGameX _gameXGroup = WebFunctionGroupGameX(_ioBoard, _taskRunner, _XMotor, _gameSettings.xAxis, *(_encoderJog.getEncoder()));
+        WebFunctionGroupGameY _gameYGroup = WebFunctionGroupGameY(_ioBoard, _taskRunner, _YMotor, _gameSettings.yAxis, *(_encoderJog.getEncoder()));
         WebFunctionGroupAxes _axesGroup = WebFunctionGroupAxes(_ioBoard, _taskRunner, _encoderJog);
         WebFunctionGroupAxis _xAxisGroup = WebFunctionGroupAxis("x_axis", "X-Axis", _ioBoard, _taskRunner, _XMotor);
         WebFunctionGroupAxis _yAxisGroup = WebFunctionGroupAxis("y_axis", "Y-Axis", _ioBoard, _taskRunner, _YMotor);

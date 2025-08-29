@@ -6,6 +6,8 @@
 #include "setting_game_x_ballstartspeed.hpp"
 #include "setting_game_x_ballspeedbounceinc.hpp"
 #include "setting_game_x_ballbounceinverson.hpp"
+#include "setting_game_x_ballpaddledist.hpp"
+#include "settings/game/setting_axis_minspeed.hpp"
 
 class SettingsGameAxisXGroup : public SettingsGroup {
     private:
@@ -13,6 +15,8 @@ class SettingsGameAxisXGroup : public SettingsGroup {
 
         GameXBallStartSpeedSetting _gameBallStartSpeedX = GameXBallStartSpeedSetting(_gameSettings);
         GameXBallSpeedBounceIncrementSetting _gameBallSpeedBounceIncX = GameXBallSpeedBounceIncrementSetting(_gameSettings);
+        GameMinSpeedSetting _gameMinSpeedX = GameMinSpeedSetting(_gameSettings.minCloseLoopSpeed);
+        GameXBallPaddleDistSetting _gameBallPaddleDistX = GameXBallPaddleDistSetting(_gameSettings);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot50 = GameXBallBounceInversionOvershootSetting(_gameSettings, 0);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot60 = GameXBallBounceInversionOvershootSetting(_gameSettings, 1);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot70 = GameXBallBounceInversionOvershootSetting(_gameSettings, 2);
@@ -20,8 +24,9 @@ class SettingsGameAxisXGroup : public SettingsGroup {
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot90 = GameXBallBounceInversionOvershootSetting(_gameSettings, 4);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot100 = GameXBallBounceInversionOvershootSetting(_gameSettings, 5);
 
-        ISetting* _settings[8] = {
-            &_gameBallStartSpeedX, &_gameBallSpeedBounceIncX,
+        ISetting* _settings[10] = {
+            &_gameBallStartSpeedX, &_gameBallSpeedBounceIncX, &_gameMinSpeedX,
+            &_gameBallPaddleDistX,
             &_gameBallBounceInvOvershoot50, &_gameBallBounceInvOvershoot60,
             &_gameBallBounceInvOvershoot70, &_gameBallBounceInvOvershoot80,
             &_gameBallBounceInvOvershoot90, &_gameBallBounceInvOvershoot100

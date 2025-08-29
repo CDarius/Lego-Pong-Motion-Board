@@ -2,22 +2,26 @@
 
 #include "web_functions/web_function_group.hpp"
 #include "web_functions/game/web_function_game_bounce.hpp"
+#include "web_functions/game/web_function_game_mincloseloopspeed.hpp"
 #include "motor_control/motorhoming.hpp"
 #include "utils/task_runner.hpp"
 #include "devices/io_board.hpp"
+#include "devices/unit_encoder.hpp"
 #include "game/game_settings.hpp"
 
 class WebFunctionGroupGameX : public WebFunctionGroup {
     private:
         IMotorHoming& _motor;
+        UnitEncoder& _encoder;
         GameXAxisSettings& _gameSettings;
         WebFunctionGameBounce _bounce = WebFunctionGameBounce(_motor, _gameSettings.bounceInversionOvershootAtSpeed, _taskRunner, _ioboard);
+        WebFunctionGameMinCloseLoopSpeed _minSpeed = WebFunctionGameMinCloseLoopSpeed(_motor, _gameSettings.minCloseLoopSpeed, _encoder, _taskRunner, _ioboard);
 
-        WebFunction* _functions[1] = {&_bounce};
+        WebFunction* _functions[2] = {&_bounce, &_minSpeed};
 
     public:
-        WebFunctionGroupGameX(IOBoard& ioboard, TaskRunner& taskRunner, IMotorHoming& motor, GameXAxisSettings& gameSettings) :
-            _motor(motor), _gameSettings(gameSettings), WebFunctionGroup("game_x", "Game X", ioboard, taskRunner) {}
+        WebFunctionGroupGameX(IOBoard& ioboard, TaskRunner& taskRunner, IMotorHoming& motor, GameXAxisSettings& gameSettings, UnitEncoder& encoder) :
+            _motor(motor), _gameSettings(gameSettings), _encoder(encoder), WebFunctionGroup("game_x", "Game X", ioboard, taskRunner) {}
 
         WebFunction** getFunctions() override {
             return _functions;

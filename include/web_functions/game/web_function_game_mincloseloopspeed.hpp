@@ -7,24 +7,25 @@
 #include "utils/task_runner.hpp"
 #include "utils/cancel_token.hpp"
 #include "utils/logger.hpp"
-#include "game/game_settings.hpp"
+#include "devices/unit_encoder.hpp"
 
-#define BOUNCE_SAFE_OVERSHOOT_DISTANCE (6.0f)  // Safe overshoot distance in studs
+#define MIN_SPEED_SAFE_OVERSHOOT_DISTANCE (4.0f)  // Safe overshoot distance in studs
 
-class WebFunctionGameBounce : public WebFunction{
+class WebFunctionGameMinCloseLoopSpeed : public WebFunction{
 private:
     IMotorHoming& _axis;
+    UnitEncoder& _encoder;
+    float& _closeLoopMinSpeed;
     TaskRunner& _taskRunner;
     TaskHandle_t _taskHandle = nullptr;
-    CancelToken* _cancelToken = nullptr;
-    float* _bounceInversionOvershootAtSpeed;
-
-    pbio_error_t _runBounceTest(uint8_t speedCmdPercentage, float& overshoot, CancelToken& cancel_token);
+    CancelToken* _cancelToken = nullptr;    
     
 public:
     // Constructor that takes and stores an IMotorHoming reference
-    WebFunctionGameBounce(IMotorHoming& axis, float* bounceInversionOvershootAtSpeed, TaskRunner& taskRunner, IOBoard& ioBoard) : 
-        _axis(axis), _bounceInversionOvershootAtSpeed(bounceInversionOvershootAtSpeed), 
+    WebFunctionGameMinCloseLoopSpeed(IMotorHoming& axis, float& closeLoopMinSpeed, UnitEncoder& encoder, TaskRunner& taskRunner, IOBoard& ioBoard) : 
+        _axis(axis), 
+        _closeLoopMinSpeed(closeLoopMinSpeed),
+        _encoder(encoder),
         _taskRunner(taskRunner), WebFunction(ioBoard) {};
 
     // Override methods as needed

@@ -99,6 +99,7 @@ WebFunctionExecutionStatus WebFunctionGameBounce::start() {
             self->_bounceInversionOvershootAtSpeed[i] = max_overshoot;
         }
 
+        self->_status = WebFunctionExecutionStatus::Done;
         self->_cancelToken = nullptr;
     }, this);
 

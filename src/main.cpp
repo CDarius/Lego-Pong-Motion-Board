@@ -126,6 +126,8 @@ Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
 WebFunctions web_functions(io_board, l_encoder_jog, *game.getSettings(),  x_motor, y_motor, l_motor, r_motor);
 
+bool service_mode;
+
 void log_motor_errors(pbio_error_t err, const char* err_string, const char* message) {
     String Message = String("[") + (err_string ? err_string : "Unknown") + "] " + (message ? message : "");
     Logger::instance().logE(Message.c_str());
@@ -229,8 +231,10 @@ void setup() {
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
     
-    bool start_web_server = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
-#ifdef DEVEL_NO_HARDWARE
+    service_mode = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
+    bool start_web_server = service_mode;
+#if defined(DEVEL_NO_HARDWARE) || defined(FORCE_SERVICE_MODE)
+    service_mode = true;
     start_web_server = true;
 #endif
 #if FORCE_START_WEB_SERVER
@@ -320,7 +324,7 @@ void setup() {
     rgb_led.setColor(RGB_COLOR_GREEN);
     io_board.playSound(IO_BOARD_SOUND_START);
 
-    if (!start_web_server) {
+    if (!service_mode) {
         // Home all axes
         pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog, START_BUTTON_PIN);
         if (err != PBIO_SUCCESS) {
@@ -332,139 +336,23 @@ void setup() {
 }
 
 
-/*
-int counter = 0;
-int score1 = 0;
-int score2 = 0;
-*/
-
 void loop() {
-    unsigned long time = micros();
+    if (!service_mode) {
+        Button startButton;
 
-    /*
-    // Serial test
-    //Serial1.println("Serial 1!!");
-    io_board.sendLog(LogLevel::Info, "Test log message from main loop");
-    Serial.print("Try read serial 1...");
-    String read1 = Serial1.readStringUntil('\n');
-    if (!read1.isEmpty())
-        Serial.println(read1);
-    else
-        Serial.println("NO DATA");
-    unsigned long delta_time = micros() - time;
-    Serial.print("Serial 1 time: ");
-    Serial.print(delta_time);
-    Serial.println("us");
-    delay(300);
-    */
+        // Wait for the start button press
+        while (!startButton.wasClicked())
+        {
+            startButton.setRawState(millis(), digitalRead(START_BUTTON_PIN) == LOW);
+            delay(100);
+        }
 
-    /*
-    delay(4000);
-    pbio_error_t err = home_with_switch(x_motor, START_BUTTON_PIN, LOW, l_motor_homing_config);
-    if (err != PBIO_SUCCESS) {
-        Logger::instance().logE("Failed to home Y-axis motor: ");
-        rgb_led.unrecoverableError();
+        // Run one match with a random player
+        GamePlayer player = (esp_random() & 1) ? GamePlayer::L : GamePlayer::R;
+        game.run(player);
     }
     else {
-        Logger::instance().logI("Y-axis motor homed successfully");
-    }
-    */
-
-    /*
-    String msg = String("Test log message from main loop") + String(counter++);
-    io_board.sendLog(LogLevel::Info, msg.c_str());
-    delay(200);
-    */
-
-    /*
-    if (io_board.testConnection(1000)) {
-        Serial.println("IO board connection is OK!!");
-    } else {
-        Serial.println("IO board connection failed :(");
-    }
-
-    if (score1 <= score2) {
-        score1++;
-        if (score1 >= 10) {
-            score1 = 0;
-            score2 = 0;
-        }
-    }
-    else {
-        score2++;
-        if (score2 >= 10) {
-            score2 = 0;
-        }
-    }
-    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
-    io_board.showScore(score1, score2, 50);
-    delay(1500);
-    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
-    io_board.showText("No scroll", 0);
-    delay(1500);
-    io_board.playSound(IO_BOARD_SOUND_BEEP2, 1);
-    io_board.showText("Blink", 300);
-    delay(1500);
-    io_board.playSound(IO_BOARD_SOUND_BEEP2, 3);
-    io_board.showScrollingText("Long scrolling text !!", 50, true, 0);
-    delay(10000);
-    */
-
-    /*
-    x_motor.dc(100);
-    y_motor.dc(100);
-    l_motor.dc(100);
-    r_motor.dc(100);
-    delay(4000);
-    x_motor.dc(-100);
-    y_motor.dc(-100);
-    l_motor.dc(-100);
-    r_motor.dc(-100);
-    delay(4000);
-    x_motor.stop();
-    y_motor.stop();
-    l_motor.stop();
-    r_motor.stop();
-    delay(2000);
-     */
-
-    //scanI2CDevices(&Wire1);
-
-    /*
-    io_board.showScrollingText("X-Axis jog", 50, true, 0);
-    l_encoder_jog.setUpdateIntervalMs(50);
-    l_encoder_jog.setEncoderMultiplier(4.0f);
-    l_encoder_jog.start(x_motor);
-
-    while (true) {
-        l_encoder_jog.update();
-        r_encoder_jog.update();
-
-        // Update jog control every 200ms
-        delay(50);
-    }
-    */
-
-    /*
-    io_board.showScrollingText("X-Axis stall test", 50, true, 0);
-    Serial.println("Press the left paddle button to start ...");
-    while (!l_encoder.isButtonPressed()) {
-        Serial.print("Button stauts: ");
-        Serial.println(l_encoder.isButtonPressed() ? "Pressed" : "Released");
+        // Service mode, nothing to do here
         delay(100);
     }
-    
-    float speed = x_motor.get_speed_limit();
-    x_motor.run_until_stalled(speed / 3, 70.0, PBIO_ACTUATION_HOLD);
-    Serial.println("Stalled !!");
-    */
-    
-    /*
-    io_board.showScrollingText("X-Axis run test", 50, true, 0);
-    float speed = x_motor.get_speed_limit();
-    x_motor.run_angle(speed / 4, 360.0 * 4, PBIO_ACTUATION_HOLD);
-    delay(2000);
-    */
-
-    delay(100);
 }

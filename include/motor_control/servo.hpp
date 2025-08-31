@@ -22,7 +22,7 @@ typedef struct _pbio_servo_t {
 
 void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float counts_per_unit, pbio_control_settings_t *settings);
 
-void pbio_servo_reset_angle(pbio_servo_t *srv, int32_t reset_angle);
+void pbio_servo_reset_angle(pbio_servo_t *srv, float reset_angle);
 pbio_error_t pbio_servo_is_stalled(pbio_servo_t *srv, bool *stalled);
 
 void pbio_servo_stop(pbio_servo_t *srv, pbio_actuation_t after_stop);

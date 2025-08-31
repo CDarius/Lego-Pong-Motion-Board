@@ -162,7 +162,12 @@ float Tacho::getAngularRate() const {
     return getRate() / _gear_ratio;
 }
 
-void Tacho::resetAngle(int32_t angle) {
+/**
+ * Reset the angle of the tacho
+ *
+ * @param angle: The angle to reset to (in user units)
+ */
+void Tacho::resetAngle(float angle) {
     if (_direction == PBIO_DIRECTION_COUNTERCLOCKWISE)
         angle =-angle;
 

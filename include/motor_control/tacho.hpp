@@ -17,7 +17,7 @@ class Tacho {
 
         int32_t getCount() const;
         float getAngle() const;
-        void resetAngle(int32_t angle);
+        void resetAngle(float angle);
 
         int32_t getRate() const;
         float getAngularRate() const;

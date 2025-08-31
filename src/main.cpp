@@ -48,8 +48,6 @@
 #define R_AXIS_ENC_PIN_1        6
 #define R_AXIS_ENC_PIN_2        7
 
-//#define IO_BOARD_UART_RX        44
-//#define IO_BOARD_UART_TX        43
 #define IO_BOARD_UART_RX        39
 #define IO_BOARD_UART_TX        40
 
@@ -59,13 +57,10 @@
 #define I2C_BUS_2_SDA           41
 #define I2C_BUS_2_SCL           42
 
-//#define START_BUTTON_PIN        40 // Grove port 1
-//#define STOP_BUTTON_PIN         39 // Grove port 1
 #define START_BUTTON_PIN        43 // Grove port 1
 #define STOP_BUTTON_PIN         44 // Grove port 1
-#define Y_AXIS_HOME_SWITH_PIN   21 // Grove port 3
-#define L_AXIS_HOME_SWITH_PIN   45 // Grove port 2
-#define R_AXIS_HOME_SWITH_PIN   47 // Grove port 2
+
+#define Y_AXIS_HOME_SWITCH_PIN   45 // Grove port 2
 
 #define LED_OUTPUT              38
 
@@ -81,10 +76,11 @@ stall_homing_config_t x_motor_homing_config = {
 };
 
 switch_homing_config_t y_motor_homing_config = {
+    .home_switch_pin = Y_AXIS_HOME_SWITCH_PIN,
+    .switch_pressed_value = HIGH,
     .start_in_positive_direction = true,
     .speed = 10.0, // Speed in motor stud/second
     .minimum_travel = 12.0, // Minimum travel distance before hitting the switch in stud
-    .retract_distance = 8.0, // Distance to retract after hitting the switch in stud
 };
 stall_homing_config_t l_motor_homing_config = {
     .start_in_positive_direction = true,
@@ -101,7 +97,7 @@ stall_homing_config_t r_motor_homing_config = {
 
 
 MotorWithStallReference x_motor(x_motor_homing_config);
-MotorWithReferenceSwitch y_motor(Y_AXIS_HOME_SWITH_PIN, LOW, y_motor_homing_config);
+MotorWithReferenceSwitch y_motor(y_motor_homing_config);
 MotorWithStallReference l_motor(l_motor_homing_config);
 MotorWithStallReference r_motor(r_motor_homing_config);
 
@@ -204,9 +200,7 @@ void setup() {
     // Configure inputs
     pinMode(START_BUTTON_PIN, INPUT_PULLUP);
     pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);
-    pinMode(Y_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
-    pinMode(L_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
-    pinMode(R_AXIS_HOME_SWITH_PIN, INPUT_PULLUP);
+    pinMode(Y_AXIS_HOME_SWITCH_PIN, INPUT_PULLUP);
 
     // Configure outputs
     pinMode(LED_OUTPUT, OUTPUT);

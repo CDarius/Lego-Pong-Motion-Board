@@ -5,7 +5,7 @@ WebFunctionExecutionStatus WebFunction::start() {
     _ioBoard.clearText();
 
     if (!areAllPrerequisitesMet()) {
-        _failureDescription = "Prerequisites not met for axis homing.";
+        _failureDescription = "Prerequisites not met for this function";
         _status = WebFunctionExecutionStatus::Failed;
         return _status;
     }

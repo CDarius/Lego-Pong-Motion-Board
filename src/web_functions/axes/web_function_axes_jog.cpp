@@ -54,7 +54,7 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
 
             // Switch axis on paddle press
             uint32_t time = (uint32_t)(millis());
-            encoderButton.setRawState(time, encoder->getButtonStatus());
+            encoderButton.setRawState(time, encoder->isButtonPressed());
             if (encoderButton.wasPressed()) {
                 self->_axisIndex = (self->_axisIndex + 1) % NUM_AXES;
                 self->startJog(self->_axisIndex);

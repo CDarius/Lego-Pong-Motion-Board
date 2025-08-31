@@ -8,7 +8,7 @@ void TaskRunner::runAsync(TaskMethod method, void* context) {
             _taskName,              // Task name
             4096,                   // Stack size
             this,                   // Task parameter
-            OTHER_TASK_PRIORITY,    // Task priority
+            _priority,              // Task priority
             &_taskHandle,           // Task handle
             OTHER_TASK_CORE         // Core where the task should run
         );

@@ -31,7 +31,7 @@ class UnitEncoder {
     int16_t getValue();
     void setValue(int16_t value);
     void clearValue();
-    bool getButtonStatus();
+    bool isButtonPressed();
     void setLEDColor(uint8_t index, uint32_t color);
 };
 

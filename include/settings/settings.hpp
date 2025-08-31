@@ -12,7 +12,8 @@
 #include "axis/settings_axis_group.hpp"
 #include "axis_switch_homing/settings_axis_switch_homing_group.hpp"
 #include "axis_stall_homing/settings_axis_stall_homing_group.hpp"
-#include "game_x_axis/settings_game_x_group.hpp"
+#include "game/game_x_axis/settings_game_x_group.hpp"
+#include "game/game_y_axis/settings_game_y_group.hpp"
 #include "jog/settings_jog_group.hpp"
 
 class Settings {
@@ -24,7 +25,8 @@ class Settings {
         MotorWithStallReference& _LMotor;
         MotorWithStallReference& _RMotor;
 
-        SettingsGameAxisXGroup _gameXAxis = SettingsGameAxisXGroup(_gameSettings);
+        SettingsGameAxisXGroup _gameXAxis = SettingsGameAxisXGroup(_gameSettings.xAxis);
+        SettingsGameAxisYGroup _gameYAxis = SettingsGameAxisYGroup(_gameSettings.yAxis);
         SettingsJogGroup _jogSettings = SettingsJogGroup(_config);
         SettingsAxisGroup _xSettings = SettingsAxisGroup("x_axis", "X Axis", _XMotor);
         SettingsAxisGroup _ySettings = SettingsAxisGroup("y_axis", "Y Axis", _YMotor);
@@ -35,8 +37,8 @@ class Settings {
         SettingsAxisStallHomingGroup _lHomingSettings = SettingsAxisStallHomingGroup("l_axis_homing", "L Axis Homing", _LMotor);
         SettingsAxisStallHomingGroup _rHomingSettings = SettingsAxisStallHomingGroup("r_axis_homing", "R Axis Homing", _RMotor);
 
-        SettingsGroup* _groups[10] = {
-            &_gameXAxis, &_jogSettings,
+        SettingsGroup* _groups[11] = {
+            &_gameXAxis, &_gameYAxis, &_jogSettings,
             &_xSettings, &_ySettings, &_lSettings, &_rSettings, 
             &_xHomingSettings, &_yHomingSettings, &_lHomingSettings, &_rHomingSettings
         };

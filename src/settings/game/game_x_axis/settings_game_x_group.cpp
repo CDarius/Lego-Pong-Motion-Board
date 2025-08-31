@@ -1,4 +1,4 @@
-#include "settings/game_x_axis/settings_game_x_group.hpp"
+#include "settings/game/game_x_axis/settings_game_x_group.hpp"
 
 const char* SettingsGameAxisXGroup::getName() const {
     return "game_x_axis";

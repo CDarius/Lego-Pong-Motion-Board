@@ -9,22 +9,20 @@
 #include "utils/logger.hpp"
 #include "devices/unit_encoder.hpp"
 
-#define MIN_SPEED_SAFE_CLOSE_LOOP_OVERSHOOT_DISTANCE (4.0f)  // Safe overshoot distance in studs
+#define MIN_SPEED_SAFE_OPEN_LOOPOVERSHOOT_DISTANCE (6.0f)  // Safe overshoot distance in studs
 
-class WebFunctionGameMinCloseLoopSpeed : public WebFunction{
+class WebFunctionGameOpenLoopSpeedTest : public WebFunction{
 private:
     IMotorHoming& _axis;
     UnitEncoder& _encoder;
-    float& _closeLoopMinSpeed;
     TaskRunner& _taskRunner;
     TaskHandle_t _taskHandle = nullptr;
     CancelToken* _cancelToken = nullptr;    
     
 public:
     // Constructor that takes and stores an IMotorHoming reference
-    WebFunctionGameMinCloseLoopSpeed(IMotorHoming& axis, float& closeLoopMinSpeed, UnitEncoder& encoder, TaskRunner& taskRunner, IOBoard& ioBoard) : 
+    WebFunctionGameOpenLoopSpeedTest(IMotorHoming& axis, UnitEncoder& encoder, TaskRunner& taskRunner, IOBoard& ioBoard) : 
         _axis(axis), 
-        _closeLoopMinSpeed(closeLoopMinSpeed),
         _encoder(encoder),
         _taskRunner(taskRunner), WebFunction(ioBoard) {};
 

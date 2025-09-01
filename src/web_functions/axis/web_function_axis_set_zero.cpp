@@ -9,7 +9,7 @@ const char* WebFunctionAxisSetZero::getTitle() const {
 }
 
 const char* WebFunctionAxisSetZero::getDescription() const {
-    return "Set the axis to zero position at current location";
+    return "Change the obstacle/switch position used during homing to set the axis to zero position at current location. Launch the homing procedure afterwards.";
 }
 
 uint16_t WebFunctionAxisSetZero::getPrerequisitesCount() const {

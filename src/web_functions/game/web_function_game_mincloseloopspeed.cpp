@@ -5,11 +5,11 @@ const char* WebFunctionGameMinCloseLoopSpeed::getName() const {
 }
 
 const char* WebFunctionGameMinCloseLoopSpeed::getTitle() const {
-    return "Game Axis Min Speed";
+    return "Axis Min Close Loop Speed";
 }
 
 const char* WebFunctionGameMinCloseLoopSpeed::getDescription() const {
-    return "Traverse the axis to at the minimum speed. Use the left encoder to change the speed and press it to confirm.";
+    return "Traverse the axis to at the minimum close loop speed. Use the left encoder to change the speed and press it to confirm.";
 }
 
 uint16_t WebFunctionGameMinCloseLoopSpeed::getPrerequisitesCount() const {
@@ -51,13 +51,13 @@ WebFunctionExecutionStatus WebFunctionGameMinCloseLoopSpeed::start() {
         while (!cancel_token.isCancelled()) {            
             // Invert the axis when the limit is reached
             if (direction > 0) {
-                float limit = self->_axis.getSwLimitPlus() - MIN_SPEED_SAFE_OVERSHOOT_DISTANCE;
+                float limit = self->_axis.getSwLimitPlus() - MIN_SPEED_SAFE_CLOSE_LOOP_OVERSHOOT_DISTANCE;
                 if (self->_axis.angle() >= limit) {
                     direction = -1.0f;
                     changeSpeed = true;
                 }
             } else {
-                float limit = self->_axis.getSwLimitMinus() + MIN_SPEED_SAFE_OVERSHOOT_DISTANCE;
+                float limit = self->_axis.getSwLimitMinus() + MIN_SPEED_SAFE_CLOSE_LOOP_OVERSHOOT_DISTANCE;
                 if (self->_axis.angle() <= limit) {
                     direction = 1.0f;
                     changeSpeed = true;
@@ -87,18 +87,23 @@ WebFunctionExecutionStatus WebFunctionGameMinCloseLoopSpeed::start() {
                     self->_status = WebFunctionExecutionStatus::Failed;
                     break;
                 }
+
+                self->_ioBoard.showText(String(speed, 1));
             }
 
             // Apply the new min speed if the user click the encoder
             if (self->_encoder.isButtonPressed()) {
                 self->_closeLoopMinSpeed = speed;
-                self->_status = WebFunctionExecutionStatus::Done;
                 break;
             }
         }
 
         self->_axis.stop();
+        self->_ioBoard.clearText();
         self->_cancelToken = nullptr;
+        if (self->_status == WebFunctionExecutionStatus::InProgress) {
+            self->_status = WebFunctionExecutionStatus::Done;
+        }
     }, this);
 
     return _status;

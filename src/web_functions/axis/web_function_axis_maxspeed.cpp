@@ -42,120 +42,142 @@ WebFunctionExecutionStatus WebFunctionAxisMaxSpeed::start() {
         self->_cancelToken = &cancel_token;
         float sw_limit_plus = self->_axis.getSwLimitPlus();
         float sw_limit_minus = self->_axis.getSwLimitMinus();
-        float max_positive_speed = 0.0f;
-        float max_negative_speed = 0.0f;
+        float max_positive_speed[MAX_SPEED_TEST_NUM_ITERATIONS] = {0.0f};
+        float max_negative_speed[MAX_SPEED_TEST_NUM_ITERATIONS] = {0.0f};
         float speed;
 
-        // ****************************************
-        // Measure max speed in positive direction        
-        // ****************************************
-
-        // Move to sw limit minus
-        pbio_error_t err = self->_axis.run_target(
-            self->_axis.get_speed_limit(),
-            sw_limit_minus,
-            PBIO_ACTUATION_HOLD,
-            true,
-            &cancel_token);
-
-        IF_CANCELLED(cancel_token, {
-            self->_status = WebFunctionExecutionStatus::Done;
-            self->_cancelToken = nullptr;
-            return;
-        });
-
-        if (err != PBIO_SUCCESS) {
-            Logger::instance().logE("Error during step 1 " + String(self->_axis.name()) + "-axis max speed measurement: " + String(pbio_error_str(err)));
-            self->_failureDescription = "Failed to reach start position (sw limit -)";
-            self->_status = WebFunctionExecutionStatus::Failed;
-            self->_cancelToken = nullptr;
-            return;
-        }
-        
-        float stop_position = sw_limit_plus - 8.0; // Stop 8 studs before the end of the travel
-
-        // Start the axis the maximum power
-        self->_axis.dc(100);
-
-        while (true) {
+        for (int i = 0; i < MAX_SPEED_TEST_NUM_ITERATIONS; i++) {
             IF_CANCELLED(cancel_token, {
                 self->_status = WebFunctionExecutionStatus::Done;
                 self->_cancelToken = nullptr;
                 return;
             });
 
-            // Track the maximum speed
-            speed = self->_axis.speed();
-            if (speed > max_positive_speed) {
-                max_positive_speed = speed;
-            }
+            // ****************************************
+            // Measure max speed in positive direction        
+            // ****************************************
 
-            // Stop the axis before the end of the travel
-            if (self->_axis.angle() >= stop_position) {
-                self->_axis.brake();
-                break;
-            }
+            // Move to sw limit minus
+            pbio_error_t err = self->_axis.run_target(
+                self->_axis.get_speed_limit(),
+                sw_limit_minus,
+                PBIO_ACTUATION_HOLD,
+                true,
+                &cancel_token);
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
-        }
-
-        // ****************************************
-        // Measure max speed in negative direction
-        // ****************************************
-
-        // Move to sw limit minus
-        err = self->_axis.run_target(
-            self->_axis.get_speed_limit(),
-            sw_limit_plus,
-            PBIO_ACTUATION_HOLD,
-            true,
-            &cancel_token);
-
-        IF_CANCELLED(cancel_token, {
-            self->_status = WebFunctionExecutionStatus::Done;
-            self->_cancelToken = nullptr;
-            return;
-        });
-
-        if (err != PBIO_SUCCESS) {
-            Logger::instance().logE("Error during step 2 " + String(self->_axis.name()) + "-axis max speed measurement: " + String(pbio_error_str(err)));
-            self->_failureDescription = "Failed to reach start position (sw limit +)";
-            self->_status = WebFunctionExecutionStatus::Failed;
-            self->_cancelToken = nullptr;
-            return;
-        }
-        
-        stop_position = sw_limit_minus + 8.0; // Stop 8 studs before the end of the travel
-
-        // Start the axis the maximum power
-        self->_axis.dc(-100);
-
-        while (true) {
             IF_CANCELLED(cancel_token, {
                 self->_status = WebFunctionExecutionStatus::Done;
                 self->_cancelToken = nullptr;
                 return;
             });
 
-            // Track the maximum speed
-            speed = self->_axis.speed();
-            if (speed < max_negative_speed) {
-                max_negative_speed = speed;
+            if (err != PBIO_SUCCESS) {
+                Logger::instance().logE("Error during step 1 " + String(self->_axis.name()) + "-axis max speed measurement: " + String(pbio_error_str(err)));
+                self->_failureDescription = "Failed to reach start position (sw limit -)";
+                self->_status = WebFunctionExecutionStatus::Failed;
+                self->_cancelToken = nullptr;
+                return;
+            }
+            
+            float stop_position = sw_limit_plus - 8.0; // Stop 8 studs before the end of the travel
+
+            // Start the axis the maximum power
+            self->_axis.dc(100);
+
+            while (true) {
+                IF_CANCELLED(cancel_token, {
+                    self->_status = WebFunctionExecutionStatus::Done;
+                    self->_cancelToken = nullptr;
+                    return;
+                });
+
+                // Track the maximum speed
+                speed = self->_axis.speed();
+                if (speed > max_positive_speed[i]) {
+                    max_positive_speed[i] = speed;
+                }
+
+                // Stop the axis before the end of the travel
+                if (self->_axis.angle() >= stop_position) {
+                    self->_axis.brake();
+                    break;
+                }
+
+                delay(PBIO_CONFIG_SERVO_PERIOD_MS);
             }
 
-            // Stop the axis before the end of the travel
-            if (self->_axis.angle() <= stop_position) {
-                self->_axis.brake();
-                break;
-            }
+            // ****************************************
+            // Measure max speed in negative direction
+            // ****************************************
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+            // Move to sw limit minus
+            err = self->_axis.run_target(
+                self->_axis.get_speed_limit(),
+                sw_limit_plus,
+                PBIO_ACTUATION_HOLD,
+                true,
+                &cancel_token);
+
+            IF_CANCELLED(cancel_token, {
+                self->_status = WebFunctionExecutionStatus::Done;
+                self->_cancelToken = nullptr;
+                return;
+            });
+
+            if (err != PBIO_SUCCESS) {
+                Logger::instance().logE("Error during step 2 " + String(self->_axis.name()) + "-axis max speed measurement: " + String(pbio_error_str(err)));
+                self->_failureDescription = "Failed to reach start position (sw limit +)";
+                self->_status = WebFunctionExecutionStatus::Failed;
+                self->_cancelToken = nullptr;
+                return;
+            }
+            
+            stop_position = sw_limit_minus + 8.0; // Stop 8 studs before the end of the travel
+
+            // Start the axis the maximum power
+            self->_axis.dc(-100);
+
+            while (true) {
+                IF_CANCELLED(cancel_token, {
+                    self->_status = WebFunctionExecutionStatus::Done;
+                    self->_cancelToken = nullptr;
+                    return;
+                });
+
+                // Track the maximum speed
+                speed = self->_axis.speed();
+                if (speed < max_negative_speed[i]) {
+                    max_negative_speed[i] = speed;
+                }
+
+                // Stop the axis before the end of the travel
+                if (self->_axis.angle() <= stop_position) {
+                    self->_axis.brake();
+                    break;
+                }
+
+                delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+            }
+        }
+
+        // Find minimum of max_positive_speed and absolute minimum of max_negative_speed
+        float min_positive = max_positive_speed[0];
+        float min_negative = fabs(max_negative_speed[0]);
+        for (int i = 1; i < MAX_SPEED_TEST_NUM_ITERATIONS; i++) {
+            if (max_positive_speed[i] < min_positive) {
+                min_positive = max_positive_speed[i];
+            }
+            if (fabs(max_negative_speed[i]) < min_negative) {
+                min_negative = fabs(max_negative_speed[i]);
+            }
         }
 
         // As a result take the 95% of the smaller of the two speeds
-        float speed_limit = 0.95 * min(max_positive_speed, -max_negative_speed);
+        float speed_limit = min(min_positive, min_negative);
+        speed_limit = roundf(speed_limit * 10.0f) / 10.0f; // Round to one decimal place
         self->_axis.set_speed_limit(speed_limit);
 
+        self->_status = WebFunctionExecutionStatus::Done;
         self->_cancelToken = nullptr;
     }, this);
 

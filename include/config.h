@@ -7,8 +7,6 @@
 #define IP_SUBNET     255, 255, 255, 0
 #define IP_DNS        192, 168, 0, 1
 
-#define FORCE_START_WEB_SERVER (0)
-
 // Motor configuration
 #define PBIO_CONFIG_SERVO_PERIOD_MS (3)
 

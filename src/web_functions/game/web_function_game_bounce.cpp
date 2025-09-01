@@ -46,13 +46,15 @@ WebFunctionExecutionStatus WebFunctionGameBounce::start() {
 
         const float x_speeds[] = X_AXIS_BOUNCE_INVERSIONS_SPEEDS;
         const float y_speeds[] = Y_AXIS_BOUNCE_INVERSIONS_SPEEDS;
+        uint8_t speeds_count;
 
         // Set speeds and speeds_count based on axis name
         if (strcmp(self->_axis.name(), "X") == 0) {
             speeds = x_speeds;
-            
+            speeds_count = sizeof(x_speeds) / sizeof(x_speeds[0]);
         } else if (strcmp(self->_axis.name(), "Y") == 0) {
             speeds = y_speeds;
+            speeds_count = sizeof(y_speeds) / sizeof(y_speeds[0]);
         } else {
             Logger::instance().logE("Invalid axis for axis bounce overshoot measure. Axis: " + String(self->_axis.name()));
             self->_failureDescription = "Invalid axis for axis bounce overshoot measure";
@@ -60,8 +62,6 @@ WebFunctionExecutionStatus WebFunctionGameBounce::start() {
             self->_cancelToken = nullptr;
             return;
         }
-
-        const uint8_t speeds_count = sizeof(x_speeds) / sizeof(x_speeds[0]);
 
         // Run the bounce test for each speed
         for (uint8_t i = 0; i < speeds_count; i++) {
@@ -73,7 +73,7 @@ WebFunctionExecutionStatus WebFunctionGameBounce::start() {
                 float direction = j == 0 ? 1.0 : -1.0; // First positive, then negative
                 float overshoot;
                 
-                pbio_error_t err = self->_runBounceTest(direction * (float)speeds[i], overshoot, cancel_token);
+                pbio_error_t err = self->_runBounceTest(direction * speeds[i], overshoot, cancel_token);
                 IF_CANCELLED(cancel_token, {
                     self->_status = WebFunctionExecutionStatus::Done;
                     self->_cancelToken = nullptr;
@@ -96,6 +96,7 @@ WebFunctionExecutionStatus WebFunctionGameBounce::start() {
 
             // Get the maximum overshoot
             float max_overshoot = fmaxf(overshootPlus, overshootMinus);
+            max_overshoot = roundf(max_overshoot * 10.0f) / 10.0f; // Round to 1 decimal places
             self->_bounceInversionOvershootAtSpeed[i] = max_overshoot;
         }
 
@@ -112,11 +113,11 @@ void WebFunctionGameBounce::stop() {
     }
 }
 
-pbio_error_t WebFunctionGameBounce::_runBounceTest(uint8_t speedCmdPercentage, float& overshoot, CancelToken& cancel_token) {
+pbio_error_t WebFunctionGameBounce::_runBounceTest(float speedCmdPercentage, float& overshoot, CancelToken& cancel_token) {
     float startPosition = speedCmdPercentage > 0 ? _axis.getSwLimitMinus() : _axis.getSwLimitPlus();
     float inversionPosition = speedCmdPercentage > 0 ? _axis.getSwLimitPlus() - BOUNCE_SAFE_OVERSHOOT_DISTANCE : _axis.getSwLimitMinus() + BOUNCE_SAFE_OVERSHOOT_DISTANCE;
     
-    // Move to start position
+    // Move to start position    
     pbio_error_t err = _axis.run_target(
         _axis.get_speed_limit(),
         startPosition,
@@ -138,7 +139,7 @@ pbio_error_t WebFunctionGameBounce::_runBounceTest(uint8_t speedCmdPercentage, f
                 return PBIO_ERROR_CANCELED;
             });
 
-            delay(1);
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS + 1);
         }
     } else {
         while (_axis.angle() > inversionPosition) {
@@ -146,7 +147,7 @@ pbio_error_t WebFunctionGameBounce::_runBounceTest(uint8_t speedCmdPercentage, f
                 return PBIO_ERROR_CANCELED;
             });
 
-            delay(1);
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS + 1);
         }
     }
 
@@ -160,7 +161,7 @@ pbio_error_t WebFunctionGameBounce::_runBounceTest(uint8_t speedCmdPercentage, f
                 return PBIO_ERROR_CANCELED;
             });
 
-            delay(1);
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
         }
     } else {
         while (_axis.speed() < 0) {
@@ -168,7 +169,7 @@ pbio_error_t WebFunctionGameBounce::_runBounceTest(uint8_t speedCmdPercentage, f
                 return PBIO_ERROR_CANCELED;
             });
 
-            delay(1);
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
         }
     }
 

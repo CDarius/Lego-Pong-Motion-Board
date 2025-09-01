@@ -8,25 +8,21 @@
 #include "utils/cancel_token.hpp"
 
 struct switch_homing_config_t : public base_homing_config_t  {
+    uint8_t home_switch_pin; // I/O pin number where the home switch is connected
+    int switch_pressed_value; // Value indicating the switch is pressed (LOW or HIGH)
     bool start_in_positive_direction; // If true, start homing in the positive direction
     float speed; // Speed to use during homing (motor units/second)
     float minimum_travel; // Minimum required travel distance before hitting the switch (motor units)
-    float retract_distance; // Distance to retract after hitting the home switch (motor units)
 };
 
 // MotorWithReferenceSwitch: Inherits from Motor, adds reference switch logic
 class MotorWithReferenceSwitch : public IMotorHoming {
     private:
         bool _referenced = false;
-        const uint8_t _home_switch_pin;
-        const int _switch_pressed_value;
         switch_homing_config_t& _config;
 
     public:
-        MotorWithReferenceSwitch(uint8_t home_switch_pin, int switch_pressed_value, switch_homing_config_t& config)
-            : _home_switch_pin(home_switch_pin),
-            _switch_pressed_value(switch_pressed_value),
-            _config(config)
+        MotorWithReferenceSwitch(switch_homing_config_t& config) : _config(config)
         {}
 
         bool referenced() const override { return _referenced; }

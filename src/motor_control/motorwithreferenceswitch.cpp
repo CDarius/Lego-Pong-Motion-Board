@@ -23,7 +23,7 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
         PBIO_RETURN_ON_ERROR(run(forward_speed));
 
         // Wait for the home switch to be pressed
-        while (digitalRead(_home_switch_pin) != _switch_pressed_value) {
+        while (digitalRead(_config.home_switch_pin) != _config.switch_pressed_value) {
             delay(PBIO_CONFIG_SERVO_PERIOD_MS);
             IF_CANCELLED(cancel_token, {
                 // If the homing is canceled, stop the motor
@@ -56,7 +56,7 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
             PBIO_RETURN_ON_ERROR(run_angle(backward_speed, _config.minimum_travel * 1.05, PBIO_ACTUATION_HOLD, true, &cancel_token));
             start_position = angle();
             // Test if the switch is released
-            if (digitalRead(_home_switch_pin) == _switch_pressed_value) {
+            if (digitalRead(_config.home_switch_pin) == _config.switch_pressed_value) {
                 // The switch should not be pressed after retracting
                 Logger::instance().logE("Home switch still pressed after retracting");
                 return PBIO_ERROR_HOME_SWITCH_ERR;
@@ -75,7 +75,7 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
     PBIO_RETURN_ON_ERROR(run_target(backward_final_speed, _config.axis_position_after_home, PBIO_ACTUATION_COAST, true, &cancel_token));
 
     // Test if the switch is released
-    if (digitalRead(_home_switch_pin) == _switch_pressed_value) {
+    if (digitalRead(_config.home_switch_pin) == _config.switch_pressed_value) {
         // The switch should not be pressed after retracting
         Logger::instance().logE("Home switch still pressed after retracting");
         return PBIO_ERROR_HOME_SWITCH_ERR;

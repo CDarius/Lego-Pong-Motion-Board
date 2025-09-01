@@ -19,7 +19,7 @@ Sets the rotation angle of the sensor to a desired value.
 
 :param reset_angle: Value to which the angle should be reset in user unit
 */
-void pbio_servo_reset_angle(pbio_servo_t *srv, int32_t reset_angle) {
+void pbio_servo_reset_angle(pbio_servo_t *srv, float reset_angle) {
 
     pbio_error_t err;
 
@@ -47,7 +47,7 @@ void pbio_servo_reset_angle(pbio_servo_t *srv, int32_t reset_angle) {
     srv->tacho->resetAngle(reset_angle);
 
     // Set the new target based on the old angle and the old target, after the angle reset
-    int32_t new_target = (int32_t)(reset_angle + target_old - angle_old);
+    float new_target = reset_angle + target_old - angle_old;
     pbio_servo_track_target(srv, new_target);
 }
 

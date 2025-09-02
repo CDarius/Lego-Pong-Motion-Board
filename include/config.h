@@ -24,7 +24,9 @@
 #define OTHER_TASK_HIGH_PRIORITY    (10)
 
 // Scrolling text animation speed
-#define SCROLLING_TEXT_ANIM_DELAY (50)
+#define SCROLLING_TEXT_ANIM_DELAY   (50)
+#define SCROLLING_SCORE_ANIM_DELAY  (50)
+#define SCRORE_BLINK_DELAY          (300)
 
 // Leave this file at the end to be able to override configurations
 #include "secrets.h"

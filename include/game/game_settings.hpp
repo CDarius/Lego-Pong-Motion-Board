@@ -19,7 +19,8 @@ struct GameXAxisSettings {
 
 struct GameYAxisSettings {
     float minCloseLoopSpeed = 10.0f;            // Minimum speed for close loop movements (stud/second)
-    uint8_t startSpeedRange = 50;               // Speed range for the random serving speed (%) 
+    uint8_t bounceSpeedMin = 55;                // Bounce/serve minimum speed (%) 
+    uint8_t bounceSpeedMax = 100;               // Bounce/serve maximum speed (%)
     float paddleCollisionTolerance = 1.0f;      // Ball-paddle collision tolerance (stud)
     float bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT]    // Ball y-axis overshoot distance when a bounce inversion occurs (stud)
         = {0.0f};        
@@ -28,5 +29,5 @@ struct GameYAxisSettings {
 struct GameSettings {
     GameXAxisSettings xAxis;
     GameYAxisSettings yAxis;
-
+    
 };

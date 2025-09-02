@@ -22,6 +22,7 @@ enum class GamePlayer {
 };
 
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)
+#define GAME_WIN_SCORE (3)
 
 class Game {
     private:
@@ -61,8 +62,8 @@ class Game {
         void bounceBallTopBottom();
         // Test if the ball has reached the paddle on X axis. When return true we must then check the Y axis to understand if the ball is also at the paddle height
         bool isBallAtPaddleBounceLimit() const;
-        // Test if the ball is within the paddle's Y-axis range and should bounce
-        bool isBallInPaddleYRange() const;
+        // Test if the ball is within the paddle's Y-axis range and if it is bounce
+        bool bounceOnPaddle();
         // Calculate the travel overshoot when the ball speed X is inverted
         float getXInversionOvershoot(float speed) const;
         // Calculate the travel overshoot when the ball speed Y is inverted

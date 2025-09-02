@@ -8,6 +8,7 @@
 #include "setting_game_x_ballbounceinverson.hpp"
 #include "setting_game_x_ballpaddledist.hpp"
 #include "settings/game/setting_axis_minspeed.hpp"
+#include "settings/game/setting_game_paddletol.hpp"
 
 class SettingsGameAxisXGroup : public SettingsGroup {
     private:
@@ -17,15 +18,16 @@ class SettingsGameAxisXGroup : public SettingsGroup {
         GameXBallSpeedBounceIncrementSetting _gameBallSpeedBounceIncX = GameXBallSpeedBounceIncrementSetting(_gameSettings);
         GameMinSpeedSetting _gameMinSpeedX = GameMinSpeedSetting(_gameSettings.minCloseLoopSpeed);
         GameXBallPaddleDistSetting _gameBallPaddleDistX = GameXBallPaddleDistSetting(_gameSettings);
+        GamePaddleCollisionToleranceSetting _gamePaddleCollisionToleranceX = GamePaddleCollisionToleranceSetting(_gameSettings.paddleCollisionTolerance);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot60 = GameXBallBounceInversionOvershootSetting(_gameSettings, 0);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot70 = GameXBallBounceInversionOvershootSetting(_gameSettings, 1);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot80 = GameXBallBounceInversionOvershootSetting(_gameSettings, 2);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot90 = GameXBallBounceInversionOvershootSetting(_gameSettings, 3);
         GameXBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot100 = GameXBallBounceInversionOvershootSetting(_gameSettings, 4);
 
-        ISetting* _settings[9] = {
+        ISetting* _settings[10] = {
             &_gameBallStartSpeedX, &_gameBallSpeedBounceIncX, &_gameMinSpeedX,
-            &_gameBallPaddleDistX,
+            &_gameBallPaddleDistX, &_gamePaddleCollisionToleranceX,
             &_gameBallBounceInvOvershoot60, &_gameBallBounceInvOvershoot70, 
             &_gameBallBounceInvOvershoot80, &_gameBallBounceInvOvershoot90, 
             &_gameBallBounceInvOvershoot100

@@ -3,31 +3,31 @@
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
-class GameYBallStartSpeedRangeSetting : public SettingUInt8 {
+class GameYBallBounceMinSpeedSetting : public SettingUInt8 {
     private:
         GameYAxisSettings& _settings;
 
     public:
-        GameYBallStartSpeedRangeSetting(GameYAxisSettings& settings) : _settings(settings) {}
+        GameYBallBounceMinSpeedSetting(GameYAxisSettings& settings) : _settings(settings) {}
 
         uint8_t getValue() const override {
-            return _settings.startSpeedRange;
+            return _settings.bounceSpeedMin;
         }
 
         void setValue(const uint8_t value) override {
-            _settings.startSpeedRange = value;
+            _settings.bounceSpeedMin = value;
         }
 
         const char* getName() const override {
-            return "ball_y_start_sp";
+            return "ball_y_spd_min";
         }
 
         const char* getTitle() const override {
-            return "Ball start speed range on Y-Axis";
+            return "Ball minimum bounce speed";
         }
 
         const char* getDescription() const override {
-            return "Ball Y-Axis speed range for serve when a new game start or after a goal";
+            return "Ball Y-Axis minimum speed for serve or bounce";
         }
 
         const char* getUnit() const override {
@@ -35,11 +35,11 @@ class GameYBallStartSpeedRangeSetting : public SettingUInt8 {
         }
 
         const uint8_t getMinValue() const override {
-            return 10;
+            return 40;
         }
 
         const uint8_t getMaxValue() const override {
-            return 100;
+            return 60;
         }
 
         const uint8_t getChangeStep() const override {

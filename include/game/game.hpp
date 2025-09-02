@@ -37,15 +37,36 @@ class Game {
         uint8_t _scoreL = 0;
         uint8_t _scoreR = 0;
 
+        // Game motion state
+        float _ballX = 0.0f;
+        float _ballY = 0.0f;
+        float _paddleL = 0.0f;
+        float _paddleR = 0.0f;
+        float _speedX = 0.0f;
+        float _speedY = 0.0f;
+        float _overshootX = 0.0f;
+        float _overshootY = 0.0f;
+
         // Move the ball in front of the player paddle
         pbio_error_t moveBallToPaddle(GamePlayer player, CancelToken& cancelToken);
         // Make ball track the paddle vertical position
         void ballTrackPaddle(IMotorHoming& axis);
         // Return true if the ball is on the specified player's paddle column (ball X is near the paddle)
         bool isBallOnThePaddleColumn(GamePlayer player) const;
-        // Make a ball interpolated movement
-        pbio_error_t moveBall(float x, float y, CancelToken& cancelToken);
-
+        // Make a ball close loop interpolated movement
+        pbio_error_t moveBallCloseLoop(float x, float y, CancelToken& cancelToken);
+        // Throw the ball from player's paddle
+        void throwBall(GamePlayer player);
+        // Bounce the ball on top or bottom border
+        void bounceBallTopBottom();
+        // Test if the ball has reached the paddle on X axis. When return true we must then check the Y axis to understand if the ball is also at the paddle height
+        bool isBallAtPaddleBounceLimit() const;
+        // Test if the ball is within the paddle's Y-axis range and should bounce
+        bool isBallInPaddleYRange() const;
+        // Calculate the travel overshoot when the ball speed X is inverted
+        float getXInversionOvershoot(float speed) const;
+        // Calculate the travel overshoot when the ball speed Y is inverted
+        float getYInversionOvershoot(float speed) const;
 
     public:
         Game(

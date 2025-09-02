@@ -61,6 +61,7 @@ class Motor {
         pbio_error_t run_target(float speed, float target_angle, pbio_actuation_t then = PBIO_ACTUATION_HOLD, bool wait = true, CancelToken* cancel_token = nullptr);
         void track_target(float target_angle);
         pbio_error_t wait_for_completion(CancelToken* cancel_token);
+        bool is_completion();
 
         void update();
 

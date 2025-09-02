@@ -372,12 +372,30 @@ pbio_error_t Motor::wait_for_completion(CancelToken* cancel_token) {
         }
             
         if (wait)
-            delay(5);
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS + 1);
         else
             break;
     }
 
     return status;
+}
+
+/**
+ * Check if the motor has completed its movement.
+ *
+ * @return True if the motor has completed its movement, false otherwise.
+ */
+bool Motor::is_completion() {
+    bool completed = false;
+    pbio_error_t status;
+
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        status = _servo_status;
+        completed = _servo_status == PBIO_SUCCESS && !pbio_control_is_done(&_servo.control);
+        xSemaphoreGive(_xMutex);
+    }
+
+    return completed;
 }
 
 /**

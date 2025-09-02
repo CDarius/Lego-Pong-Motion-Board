@@ -45,6 +45,42 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
             delay(PBIO_CONFIG_SERVO_PERIOD_MS);
         }
 
+        // Throw the ball
+        throwBall(servingPlayer);
+
+        // Bounce the ball until a player scores
+        while (true) {
+            IF_CANCELLED(cancelToken, {
+                _xMotor.stop();
+                _yMotor.stop();
+                _lMotor.stop();
+                _rMotor.stop();
+                return PBIO_ERROR_CANCELED;
+            });
+
+            // Update axes positions
+            _ballX = _xMotor.angle();
+            _ballY = _yMotor.angle();
+            _paddleL = _lMotor.angle();
+            _paddleR = _rMotor.angle();
+
+            bounceBallTopBottom();
+
+            if (isBallAtPaddleBounceLimit()) {
+                // The ball has reached the paddle on X-axis. Now test if it is within the paddle's Y-axis range or not
+                // If it is, the ball bounce, otherwise the player misses (other player score)
+                if (isBallInPaddleYRange()) {
+                    // The ball is within the paddle's Y-axis range then bounce
+                } else {
+                    if (servingPlayer == GamePlayer::L) {
+                        _scoreL++;
+                    } else {
+                        _scoreR++;
+                    }
+                    _ioBoard.showScore(_scoreL, _scoreR);
+                }                
+            }
+        }
     }
 
     return PBIO_SUCCESS;
@@ -120,7 +156,7 @@ pbio_error_t Game::moveBallToPaddle(GamePlayer player, CancelToken& cancelToken)
         }
 
         // Move the ball in front of the paddle
-        PBIO_RETURN_ON_ERROR(moveBall(ballX, ballY, cancelToken));
+        PBIO_RETURN_ON_ERROR(moveBallCloseLoop(ballX, ballY, cancelToken));
     }
 
     return PBIO_SUCCESS;
@@ -139,6 +175,148 @@ bool Game::isBallOnThePaddleColumn(GamePlayer player) const {
     }
 }
 
-pbio_error_t Game::moveBall(float x, float y, CancelToken& cancelToken) {
-    return PBIO_ERROR_NOT_IMPLEMENTED;
+pbio_error_t Game::moveBallCloseLoop(float x, float y, CancelToken& cancelToken) {
+    float deltaX = x - _xMotor.angle();
+    float deltaY = y - _yMotor.angle();
+    float absDeltaX = fabs(deltaX);
+    float absDeltaY = fabs(deltaY);
+
+    float maxSpeedX = _xMotor.get_speed_limit();
+    float maxSpeedY = _yMotor.get_speed_limit();
+
+    float deltaTimeX = absDeltaX / maxSpeedX;
+    float deltaTimeY = absDeltaY / maxSpeedY;
+
+    IMotorHoming *masterMotor, *slaveMotor;
+    float startMaster, startSlave;
+    float destMaster, destSlave;
+    float deltaMaster, deltaSlave;
+
+    if (deltaTimeX > deltaTimeY) {
+        // X is the longest movement, Y follows
+        masterMotor = &(_xMotor);
+        slaveMotor = &(_yMotor);
+        startMaster = x;
+        startSlave = y;
+        destMaster = x;
+        destSlave = y;
+        deltaMaster = deltaX;
+        deltaSlave = deltaY;
+    } else {
+        // Y is the longest movement, X follows
+        masterMotor = &(_yMotor);
+        slaveMotor = &(_xMotor);
+        startMaster = y;
+        startSlave = x;
+        destMaster = y;
+        destSlave = x;
+        deltaMaster = deltaY;
+        deltaSlave = deltaX;
+    }
+
+    // Start the master motor to run to its target position
+    pbio_error_t err = masterMotor->run_target(masterMotor->get_speed_limit(), destMaster, PBIO_ACTUATION_HOLD, false, &cancelToken);
+    if (err != PBIO_SUCCESS) {
+        return err;
+    }
+
+    // Make the slave motor follow the master motor
+    while (!masterMotor->is_completion()) {
+        IF_CANCELLED(cancelToken, {
+            masterMotor->stop();
+            slaveMotor->stop();
+            return PBIO_ERROR_CANCELED;
+        });
+
+        float masterPos = masterMotor->angle();
+        float progress = (masterPos - startMaster) / deltaMaster;
+        float targetSlavePos = progress * deltaSlave + startSlave;
+
+        slaveMotor->track_target(targetSlavePos);
+
+        delay(2 * PBIO_CONFIG_SERVO_PERIOD_MS);
+    }
+
+    // Ensure that slave motor is arrived at the target position too
+    err = slaveMotor->run_target(slaveMotor->get_speed_limit(), destSlave, PBIO_ACTUATION_HOLD, true, &cancelToken);
+
+    return err;
+}
+
+void Game::throwBall(GamePlayer player) {
+    _speedX = ((float)_settings.xAxis.startBallGameSpeed) * ((player == GamePlayer::L) ? 1.0f : -1.0f);
+    _speedY = ((float)random(-10000, 10001) / 10000.0f) * _settings.yAxis.startSpeedRange;
+    _overshootX = getXInversionOvershoot(_speedX);
+    _overshootY = getYInversionOvershoot(_speedY);
+    _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
+}
+
+void Game::bounceBallTopBottom() {
+    bool invert;
+    if (_speedY > 0.0f) {
+        // Going down
+        float border = _yMotor.getSwLimitPlus();
+
+        invert = (_ballY + _overshootY) > border;
+    } else {
+        // Going up
+        float border = _yMotor.getSwLimitMinus();
+
+        invert = (_ballY - _overshootY) < border;
+    }
+
+    if (invert) {
+        _speedY = -(_speedY);
+        _yMotor.dc(_speedY);
+        _ioBoard.playSound(IO_BOARD_SOUND_WALL);
+    }
+}
+
+bool Game::isBallAtPaddleBounceLimit() const {
+    if (_speedX > 0.0f) {
+        // Going right
+        float border = _xMotor.getSwLimitPlus() - GAME_PADDLE_W;
+
+        return (_ballX + _overshootX) > border;
+    } else {
+        // Going left
+        float border = _xMotor.getSwLimitMinus() + GAME_PADDLE_W;
+
+        return (_ballX - _overshootX) < border;
+    }
+}
+
+bool Game::isBallInPaddleYRange() const {
+    float paddleY = (_speedX > 0.0f) ? _paddleR : _paddleL;
+
+    float yMin = paddleY - GAME_BALL_L;
+    float yMax = paddleY + GAME_PADDLE_H;
+
+    return (_ballY >= yMin && _ballY <= yMax);
+}
+
+float Game::getYInversionOvershoot(float speed) const {
+    float absSpeed = fabs(speed);
+
+    float thresholds[] = Y_AXIS_BOUNCE_INVERSIONS_SPEEDS;
+    for (int i = 0; i < Y_AXIS_BOUNCE_INVERSIONS_COUNT; i++) {
+        if (absSpeed < thresholds[i]) {
+            return _settings.yAxis.bounceInversionOvershootAtSpeed[i];
+        }
+    }
+
+    return _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
+}
+
+float Game::getXInversionOvershoot(float speed) const {
+    float absSpeed = fabs(speed);
+
+    float thresholds[] = X_AXIS_BOUNCE_INVERSIONS_SPEEDS;
+    for (int i = 0; i < X_AXIS_BOUNCE_INVERSIONS_COUNT; i++) {
+        if (absSpeed < thresholds[i]) {
+            return _settings.xAxis.bounceInversionOvershootAtSpeed[i];
+        }
+    }
+
+    return _settings.xAxis.bounceInversionOvershootAtSpeed[X_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
 }

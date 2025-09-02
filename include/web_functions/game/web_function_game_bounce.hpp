@@ -19,7 +19,7 @@ private:
     CancelToken* _cancelToken = nullptr;
     float* _bounceInversionOvershootAtSpeed;
 
-    pbio_error_t _runBounceTest(uint8_t speedCmdPercentage, float& overshoot, CancelToken& cancel_token);
+    pbio_error_t _runBounceTest(float speedCmdPercentage, float& overshoot, CancelToken& cancel_token);
     
 public:
     // Constructor that takes and stores an IMotorHoming reference

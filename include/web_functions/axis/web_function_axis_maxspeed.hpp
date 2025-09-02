@@ -9,6 +9,8 @@
 #include "utils/logger.hpp"
 #include "config.h"
 
+#define MAX_SPEED_TEST_NUM_ITERATIONS (3)
+
 class WebFunctionAxisMaxSpeed : public WebFunction{
 private:
     IMotorHoming& _axis;

@@ -13,18 +13,17 @@ class SettingsGameAxisYGroup : public SettingsGroup {
 
         GameYBallStartSpeedRangeSetting _gameBallStartSpeedRange = GameYBallStartSpeedRangeSetting(_gameSettings);
         GameMinSpeedSetting _gameMinSpeedY = GameMinSpeedSetting(_gameSettings.minCloseLoopSpeed);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot50 = GameYBallBounceInversionOvershootSetting(_gameSettings, 0);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot60 = GameYBallBounceInversionOvershootSetting(_gameSettings, 1);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot70 = GameYBallBounceInversionOvershootSetting(_gameSettings, 2);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot80 = GameYBallBounceInversionOvershootSetting(_gameSettings, 3);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot90 = GameYBallBounceInversionOvershootSetting(_gameSettings, 4);
-        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot100 = GameYBallBounceInversionOvershootSetting(_gameSettings, 5);
+        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot60 = GameYBallBounceInversionOvershootSetting(_gameSettings, 0);
+        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot70 = GameYBallBounceInversionOvershootSetting(_gameSettings, 1);
+        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot80 = GameYBallBounceInversionOvershootSetting(_gameSettings, 2);
+        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot90 = GameYBallBounceInversionOvershootSetting(_gameSettings, 3);
+        GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot100 = GameYBallBounceInversionOvershootSetting(_gameSettings, 4);
 
-        ISetting* _settings[8] = {
-            &_gameBallStartSpeedRange, &_gameMinSpeedY,
-            &_gameBallBounceInvOvershoot50, &_gameBallBounceInvOvershoot60,
-            &_gameBallBounceInvOvershoot70, &_gameBallBounceInvOvershoot80,
-            &_gameBallBounceInvOvershoot90, &_gameBallBounceInvOvershoot100
+        ISetting* _settings[7] = {
+            &__gameBallStartSpeedRange, &_gameMinSpeedY,
+            &_gameBallBounceInvOvershoot60, &_gameBallBounceInvOvershoot70,
+            &_gameBallBounceInvOvershoot80, &_gameBallBounceInvOvershoot90,
+            &_gameBallBounceInvOvershoot100
         };
 
     public:

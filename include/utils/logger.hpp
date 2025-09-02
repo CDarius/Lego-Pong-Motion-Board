@@ -2,6 +2,7 @@
 #define __MESSAGE_LOGGER_HPP__
 
 #include <Arduino.h>
+#include <functional>
 
 enum class LogLevel
 {
@@ -33,10 +34,16 @@ public:
     void logI(const char* message);
     void logI(const String& message);
 
+    void setOutput(std::function<void(LogLevel, const char*)> func) {
+        outputFunc = func;
+    }
+
 private:
     // Private constructor to prevent instantiation
     Logger() = default;
     ~Logger() = default;
+
+    std::function<void(LogLevel, const char*)> outputFunc;
 };
 
 #endif

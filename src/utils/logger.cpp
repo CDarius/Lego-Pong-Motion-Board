@@ -1,18 +1,12 @@
 #include "utils/logger.hpp"
 
 void Logger::logE(const char* message) {
-    const char prefix[] = "LOG:E#";
-    size_t prefixLen = sizeof(prefix) - 1; // exclude null terminator
-    size_t msgLen = strlen(message);
-    size_t bufLen = prefixLen + msgLen;
+    String prefix = "LOG:E#";
+    Serial.println(prefix + message);
 
-    uint8_t* buffer = new uint8_t[bufLen];
-    memcpy(buffer, prefix, prefixLen);
-    memcpy(buffer + prefixLen, message, msgLen);
-
-    Serial.write(buffer, bufLen);
-
-    delete[] buffer;
+    if (outputFunc) {
+        outputFunc(LogLevel::Error, message);
+    }
 }
 
 void Logger::logE(const String& message) {
@@ -20,19 +14,12 @@ void Logger::logE(const String& message) {
 }
 
 void Logger::logW(const char* message) {
-    const char prefix[] = "LOG:W#";
-    size_t prefixLen = sizeof(prefix) - 1; // exclude null terminator
-    size_t msgLen = strlen(message);
-    size_t bufLen = prefixLen + msgLen;
+    String prefix = "LOG:W#";
+    Serial.println(prefix + message);
 
-    uint8_t* buffer = new uint8_t[bufLen];
-    memcpy(buffer, prefix, prefixLen);
-    memcpy(buffer + prefixLen, message, msgLen);
-
-    Serial.write(buffer, bufLen);
-    Serial.write('\n');
-
-    delete[] buffer;
+    if (outputFunc) {
+        outputFunc(LogLevel::Warning, message);
+    }
 }
 
 void Logger::logW(const String& message) {
@@ -40,19 +27,12 @@ void Logger::logW(const String& message) {
 }
 
 void Logger::logI(const char* message) {
-    const char prefix[] = "LOG:I#";
-    size_t prefixLen = sizeof(prefix) - 1; // exclude null terminator
-    size_t msgLen = strlen(message);
-    size_t bufLen = prefixLen + msgLen;
+    String prefix = "LOG:I#";
+    Serial.println(prefix + message);
 
-    uint8_t* buffer = new uint8_t[bufLen];
-    memcpy(buffer, prefix, prefixLen);
-    memcpy(buffer + prefixLen, message, msgLen);
-
-    Serial.write(buffer, bufLen);
-    Serial.write('\n');
-
-    delete[] buffer;
+    if (outputFunc) {
+        outputFunc(LogLevel::Info, message);
+    }
 }
 
 void Logger::logI(const String& message) {

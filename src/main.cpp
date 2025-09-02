@@ -199,6 +199,11 @@ void setup() {
     Serial1.begin (115200, SERIAL_8N1, IO_BOARD_UART_RX, IO_BOARD_UART_TX, false);
     Serial1.setTimeout(0);
 
+    // Configure log output to ioboard
+    Logger::instance().setOutput([](LogLevel level, const char* message) {
+        io_board.sendLog(level, message);
+    });
+
     // Configure inputs
     pinMode(START_BUTTON_PIN, INPUT_PULLUP);
     pinMode(STOP_BUTTON_PIN, INPUT_PULLUP);

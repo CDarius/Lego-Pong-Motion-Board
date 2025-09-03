@@ -26,6 +26,10 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
         
         Button encoderButton;
 
+        // Stop the jog to reload all jog parameter at the following start
+        _lEncoderJog.stop();
+        _rEncoderJog.stop();
+
         // Wait for the serving player to throw the ball
         _lEncoderJog.start(Axes::L);
         _rEncoderJog.start(Axes::R);
@@ -337,19 +341,35 @@ bool Game::bounceOnPaddle() {
     bool inRange = (_ballY >= yMin && _ballY <= yMax);
     if (inRange) {
         // The ball is in front of the paddle, bounce
+
+        // Invert and increment X-Axis speed
         _speedX = -(_speedX + _settings.xAxis.ballBounceSpeedIncrement * (_speedX > 0.0f ? 1.0f : -1.0f));
         if (_speedX > 100.0f) _speedX = 100.0f;
         if (_speedX < -100.0f) _speedX = -100.0f;
         _xMotor.dc(_speedX);
         _overshootX = getXInversionOvershoot(_speedX);
 
-        float relativePosition = 2.0f * (_ballY - yMin) / (yMax - yMin) - 1.0f;        
+        // Calculate the new Y-Axis speed based on the position relative to paddle
+        float relativePosition = 2.0f * (_ballY - yMin) / (yMax - yMin) - 1.0f;
         _speedY = relativePosition * (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin);
         _speedY += (float)(_speedY > 0.0f ? _settings.yAxis.bounceSpeedMin : -_settings.yAxis.bounceSpeedMin);
         _yMotor.dc(_speedY);
         _overshootY = getYInversionOvershoot(_speedY);
 
         _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
+        
+        if (fabs(_speedX) == 100.0f) {
+            // When the X-Axis speed is at maximum, also increment the L/R-Axes jog speed
+            float jogMultiplier = _lEncoderJog.getEncoderMultiplier();
+            if (jogMultiplier > _settings.lrAxis.minJogEncoderMultiplier) {
+                jogMultiplier -= _settings.lrAxis.jogMultiplierDecrement;
+                if (jogMultiplier < _settings.lrAxis.minJogEncoderMultiplier) {
+                    jogMultiplier = _settings.lrAxis.minJogEncoderMultiplier;
+                }
+                _lEncoderJog.setEncoderMultiplier(jogMultiplier);
+                _rEncoderJog.setEncoderMultiplier(jogMultiplier);
+            }
+        }
     }
 
     return inRange;

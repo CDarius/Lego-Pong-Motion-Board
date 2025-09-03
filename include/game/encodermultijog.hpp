@@ -8,9 +8,9 @@
 
 struct encoder_multi_jog_config_t  {    
     uint16_t update_interval_ms; // Axis position update interval in milliseconds
-    float x_encoder_multiplier; // X-Axis multiplier for encoder value to convert from encoder units to motor position units
-    float y_encoder_multiplier; // Y-Axis multiplier for encoder value to convert from encoder units to motor position units
-    float l_r_encoder_multiplier; // L-Axis and R-Axis multiplier for encoder value to convert from encoder units to motor position units
+    float x_encoder_multiplier; // X-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
+    float y_encoder_multiplier; // Y-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
+    float l_r_encoder_multiplier; // L-Axis and R-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
 };
 
 class EncoderMultiJog {
@@ -32,6 +32,11 @@ class EncoderMultiJog {
 
         // Get the current jogged motor
         IMotorHoming* getMotor() const;
+
+        // Get the current encoder multiplier to convert encoder units to motor position units
+        float getEncoderMultiplier() const;
+        // Set the current encoder multiplier to convert encoder units to motor position units
+        void setEncoderMultiplier(float multiplier);
 
         // Start jog control for the specified axis
         void start(Axes axis);

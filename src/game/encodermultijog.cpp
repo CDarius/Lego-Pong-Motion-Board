@@ -8,6 +8,14 @@ IMotorHoming* EncoderMultiJog::getMotor() const {
     return _encoderJog.getMotor();
 }
 
+float EncoderMultiJog::getEncoderMultiplier() const {
+    return _encoderJog.getEncoderMultiplier();
+}
+
+void EncoderMultiJog::setEncoderMultiplier(float multiplier) {
+    _encoderJog.setEncoderMultiplier(multiplier);
+}
+
 void EncoderMultiJog::start(Axes axis) {
     IMotorHoming* targetAxis = nullptr;
     float multiplier = 1.0f;

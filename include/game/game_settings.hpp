@@ -26,8 +26,13 @@ struct GameYAxisSettings {
         = {0.0f};        
 };
 
+struct GameLRAxisSettings {
+    float minJogEncoderMultiplier = 0.2f;    // Minimum jog encoder multiplier for left/right paddles (stud/count)
+    float jogMultiplierDecrement = 0.2f;      // Jog encoder multiplier decrement step for left/right paddles (stud/count)
+};
+
 struct GameSettings {
     GameXAxisSettings xAxis;
     GameYAxisSettings yAxis;
-    
+    GameLRAxisSettings lrAxis;
 };

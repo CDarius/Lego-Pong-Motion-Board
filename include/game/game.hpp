@@ -55,7 +55,7 @@ class Game {
         // Return true if the ball is on the specified player's paddle column (ball X is near the paddle)
         bool isBallOnThePaddleColumn(GamePlayer player) const;
         // Make a ball close loop interpolated movement
-        pbio_error_t moveBallCloseLoop(float x, float y, CancelToken& cancelToken);
+        pbio_error_t moveBallCloseLoop(float x, float y, CancelToken& cancelToken, float speedX = NAN, float speedY = NAN);
         // Throw the ball from player's paddle
         void throwBall(GamePlayer player);
         // Bounce the ball on top or bottom border

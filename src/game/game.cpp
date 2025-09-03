@@ -84,7 +84,7 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
                         _rEncoderJog.stop();
                         _rMotor.track_target(_paddleR);
                         // Move ball past the right paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitPlus(), _ballY, cancelToken);
+                        moveBallCloseLoop(_xMotor.getSwLimitPlus(), _ballY, cancelToken, _xMotor.speed(), _yMotor.speed());
                         // Increment the score
                         _scoreL++;
                     } else {
@@ -93,7 +93,7 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
                         _lEncoderJog.stop();
                         _lMotor.track_target(_paddleL);
                         // Move ball past the left paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitMinus(), _ballY, cancelToken);
+                        moveBallCloseLoop(_xMotor.getSwLimitMinus(), _ballY, cancelToken, _xMotor.speed(), _yMotor.speed());
                         // Increment the score
                         _scoreR++;
                     }
@@ -216,14 +216,14 @@ bool Game::isBallOnThePaddleColumn(GamePlayer player) const {
     }
 }
 
-pbio_error_t Game::moveBallCloseLoop(float x, float y, CancelToken& cancelToken) {
+pbio_error_t Game::moveBallCloseLoop(float x, float y, CancelToken& cancelToken, float speedX, float speedY) {
     float deltaX = x - _xMotor.angle();
     float deltaY = y - _yMotor.angle();
     float absDeltaX = fabs(deltaX);
     float absDeltaY = fabs(deltaY);
 
-    float maxSpeedX = _xMotor.get_speed_limit();
-    float maxSpeedY = _yMotor.get_speed_limit();
+    float maxSpeedX = isnan(speedX) ? _xMotor.get_speed_limit() : speedX;
+    float maxSpeedY = isnan(speedY) ? _yMotor.get_speed_limit() : speedY;
 
     float deltaTimeX = absDeltaX / maxSpeedX;
     float deltaTimeY = absDeltaY / maxSpeedY;

@@ -15,6 +15,7 @@
 #include "game/game_x_axis/settings_game_x_group.hpp"
 #include "game/game_y_axis/settings_game_y_group.hpp"
 #include "game/game_lr_axis/settings_game_lr_group.hpp"
+#include "ai_player/settings_aiplayer_group.hpp"
 #include "jog/settings_jog_group.hpp"
 
 class Settings {
@@ -29,6 +30,7 @@ class Settings {
         SettingsGameAxisXGroup _gameXAxis = SettingsGameAxisXGroup(_gameSettings.xAxis);
         SettingsGameAxisYGroup _gameYAxis = SettingsGameAxisYGroup(_gameSettings.yAxis);
         SettingsGameAxisLRGroup _gameLRAxis = SettingsGameAxisLRGroup(_gameSettings.lrAxis);
+        SettingsAIPlayerGroup _aiPlayerSettings = SettingsAIPlayerGroup("ai_player", "AI Player", _gameSettings.aiPlayer);
         SettingsJogGroup _jogSettings = SettingsJogGroup(_config);
         SettingsAxisGroup _xSettings = SettingsAxisGroup("x_axis", "X Axis", _XMotor);
         SettingsAxisGroup _ySettings = SettingsAxisGroup("y_axis", "Y Axis", _YMotor);
@@ -39,8 +41,8 @@ class Settings {
         SettingsAxisStallHomingGroup _lHomingSettings = SettingsAxisStallHomingGroup("l_axis_homing", "L Axis Homing", _LMotor);
         SettingsAxisStallHomingGroup _rHomingSettings = SettingsAxisStallHomingGroup("r_axis_homing", "R Axis Homing", _RMotor);
 
-        SettingsGroup* _groups[12] = {
-            &_gameXAxis, &_gameYAxis, &_gameLRAxis, &_jogSettings,
+        SettingsGroup* _groups[13] = {
+            &_gameXAxis, &_gameYAxis, &_gameLRAxis, &_jogSettings, &_aiPlayerSettings,
             &_xSettings, &_ySettings, &_lSettings, &_rSettings, 
             &_xHomingSettings, &_yHomingSettings, &_lHomingSettings, &_rHomingSettings
         };

@@ -1,6 +1,17 @@
 #include "game/game.hpp"
 
-pbio_error_t Game::run(GamePlayer startPlayer) {
+bool playerIsAI(GamePlayer player, GameMode mode) {
+    if (mode == GameMode::PLAYER_VS_PLAYER)
+        return false;
+    if (mode == GameMode::AI_VS_AI)
+        return true;
+    if (mode == GameMode::PLAYER_VS_AI)
+        return (player == GamePlayer::R);
+
+    return false;
+}
+
+pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
     CancelToken cancelToken;
 
     // Init game
@@ -9,44 +20,43 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
     _ioBoard.showScore(0, 0);
     GamePlayer servingPlayer = startPlayer;
 
+    _lPlayerIsAI = playerIsAI(GamePlayer::L, mode);
+    _rPlayerIsAI = playerIsAI(GamePlayer::R, mode);
+
     // Game loop
     while (true) {
         // Move the ball in front of the serving player paddle
         PBIO_RETURN_ON_ERROR(moveBallToPaddle(servingPlayer, cancelToken));
 
-        // Ensure that serving player is not pushing the encoder
-        EncoderMultiJog* servingEncoder = (servingPlayer == GamePlayer::L) ? &_lEncoderJog : &_rEncoderJog;
-        while (servingEncoder->getEncoder()->isButtonPressed())
-        {
-            IF_CANCELLED(cancelToken, {
-                return PBIO_ERROR_CANCELED;
-            });
-            delay(100);
+        bool servingPlayerIsAI = playerIsAI(servingPlayer, mode);
+
+        if (!servingPlayerIsAI) {
+            // Ensure that serving player is not pushing the encoder
+            EncoderMultiJog* servingEncoder = (servingPlayer == GamePlayer::L) ? &_lEncoderJog : &_rEncoderJog;
+            while (servingEncoder->getEncoder()->isButtonPressed())
+            {
+                IF_CANCELLED(cancelToken, {
+                    return PBIO_ERROR_CANCELED;
+                });
+                delay(100);
+            }
         }
         
-        Button encoderButton;
-
-        // Stop the jog to reload all jog parameter at the following start
+        // Stop the jog to force to reload all jog parameter at the next start
         _lEncoderJog.stop();
         _rEncoderJog.stop();
 
+        // Enable jog for non AI players
+        if (!_lPlayerIsAI)
+            _lEncoderJog.start(Axes::L);
+        if (!_rPlayerIsAI)
+            _rEncoderJog.start(Axes::R);
+
         // Wait for the serving player to throw the ball
-        _lEncoderJog.start(Axes::L);
-        _rEncoderJog.start(Axes::R);
-        while (!encoderButton.wasPressed())
-        {
-            IF_CANCELLED(cancelToken, {
-                return PBIO_ERROR_CANCELED;
-            });
-
-            // Both players move the paddles with their encoders
-            _lEncoderJog.update();
-            _rEncoderJog.update();
-
-            // Ball track the serving player paddle
-            ballTrackPaddle(*(servingEncoder->getMotor()));
-
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+        if (servingPlayerIsAI) {
+            PBIO_RETURN_ON_ERROR(aiPlayerServeBall(servingPlayer, cancelToken));
+        } else {
+            PBIO_RETURN_ON_ERROR(humanPlayerServeBall(servingPlayer, cancelToken));
         }
 
         // Throw the ball
@@ -55,6 +65,8 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
         // Bounce the ball until a player scores
         while (true) {
             IF_CANCELLED(cancelToken, {
+                _lEncoderJog.stop();
+                _rEncoderJog.stop();
                 _xMotor.stop();
                 _yMotor.stop();
                 _lMotor.stop();
@@ -68,9 +80,17 @@ pbio_error_t Game::run(GamePlayer startPlayer) {
             _paddleL = _lMotor.angle();
             _paddleR = _rMotor.angle();
 
-            // Jog the paddles
-            _lEncoderJog.update();
-            _rEncoderJog.update();
+            // Jog the paddles for non AI players
+            if (!_lPlayerIsAI)
+                _lEncoderJog.update();
+            if (!_rPlayerIsAI)
+                _rEncoderJog.update();
+
+            // Update AI players
+            if (_lPlayerIsAI)
+                aiPlayer(GamePlayer::L);
+            if (_rPlayerIsAI)
+                aiPlayer(GamePlayer::R);
 
             // Bounce the ball on top or bottom border
             bounceBallTopBottom();
@@ -288,6 +308,69 @@ pbio_error_t Game::moveBallCloseLoop(float x, float y, CancelToken& cancelToken,
     return err;
 }
 
+pbio_error_t Game::humanPlayerServeBall(GamePlayer player, CancelToken& cancelToken) {
+    // Wait for the serving player to throw the ball    
+    Button encoderButton;
+    EncoderMultiJog* servingEncoder = (player == GamePlayer::L) ? &_lEncoderJog : &_rEncoderJog;
+
+    while (!encoderButton.wasPressed())
+    {
+        IF_CANCELLED(cancelToken, {
+            return PBIO_ERROR_CANCELED;
+        });
+
+        // Both players move the paddles with their encoders if they are not AI
+        if (!_lPlayerIsAI)
+            _lEncoderJog.update();
+        if (!_rPlayerIsAI)
+            _rEncoderJog.update();
+
+        // Ball track the serving player paddle
+        ballTrackPaddle(*(servingEncoder->getMotor()));
+
+        encoderButton.setRawState(millis(), servingEncoder->getEncoder()->isButtonPressed());
+
+        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+    }
+
+    return PBIO_SUCCESS;
+}
+
+pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken) {
+    IMotorHoming* servingMotor = (player == GamePlayer::L) ? &(_lMotor) : &(_rMotor);
+
+    // Move the paddle to a random position
+    float paddlePos = servingMotor->getSwLimitMinus() + (float)random(0, 10001) / 10000.0f * (servingMotor->getSwLimitPlus() - servingMotor->getSwLimitMinus() - GAME_PADDLE_H);
+    PBIO_RETURN_ON_ERROR(servingMotor->run_target(
+        _settings.aiPlayer.paddleMaxSpeed * 0.85f,
+        paddlePos,
+        PBIO_ACTUATION_HOLD,
+        false,
+        &cancelToken
+    ));
+
+    // Ball track the moving paddle
+    while (!servingMotor->is_completion()) {
+        IF_CANCELLED(cancelToken, {
+            servingMotor->stop();
+            return PBIO_ERROR_CANCELED;
+        });
+
+        // Move the other player paddle with its encoder if it is not AI
+        if (!_lPlayerIsAI)
+            _lEncoderJog.update();
+        if (!_rPlayerIsAI)
+            _rEncoderJog.update();
+
+        // Ball track the serving player paddle
+        ballTrackPaddle(*servingMotor);
+
+        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+    }
+
+    return PBIO_SUCCESS;
+}
+
 void Game::throwBall(GamePlayer player) {
     _speedX = ((float)_settings.xAxis.startBallGameSpeed) * ((player == GamePlayer::L) ? 1.0f : -1.0f);
     _speedY = ((float)random(-10000, 10001) / 10000.0f) * (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin);
@@ -373,6 +456,30 @@ bool Game::bounceOnPaddle() {
     }
 
     return inRange;
+}
+
+void Game::aiPlayer(GamePlayer player) {
+    unsigned long now = millis();
+    if ((now - _lastAIUpdateTime) < _settings.aiPlayer.playerUpdateTimeMs) {
+        return;
+    }
+    _lastAIUpdateTime = now;
+
+    // Ideal tracking position
+    float paddleTargetPos = _ballY + GAME_BALL_L / 2.0f - GAME_PADDLE_H / 2.0f;
+    // Add some random error
+    paddleTargetPos += ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
+
+    // Limit target pos on software limits
+    if (paddleTargetPos < _rMotor.getSwLimitMinus()) {
+        paddleTargetPos = _rMotor.getSwLimitMinus();
+    } else if (paddleTargetPos > _rMotor.getSwLimitPlus()) {
+        paddleTargetPos = _rMotor.getSwLimitPlus();
+    }
+
+    // Move the paddle
+    IMotorHoming* playerMotor = (player == GamePlayer::L) ? &_lMotor : &_rMotor;
+    playerMotor->run_target(_settings.aiPlayer.paddleMaxSpeed, paddleTargetPos, PBIO_ACTUATION_HOLD, false);
 }
 
 float Game::getYInversionOvershoot(float speed) const {

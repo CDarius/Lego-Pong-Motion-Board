@@ -21,6 +21,12 @@ enum class GamePlayer {
     R
 };
 
+enum class GameMode {
+    PLAYER_VS_PLAYER,
+    PLAYER_VS_AI,
+    AI_VS_AI
+};
+
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)
 #define GAME_WIN_SCORE (3)
 
@@ -48,6 +54,11 @@ class Game {
         float _overshootX = 0.0f;
         float _overshootY = 0.0f;
 
+        // AI player state
+        unsigned long _lastAIUpdateTime = 0;
+        bool _lPlayerIsAI;
+        bool _rPlayerIsAI;
+        
         // Move the ball in front of the player paddle
         pbio_error_t moveBallToPaddle(GamePlayer player, CancelToken& cancelToken);
         // Make ball track the paddle vertical position
@@ -56,6 +67,10 @@ class Game {
         bool isBallOnThePaddleColumn(GamePlayer player) const;
         // Make a ball close loop interpolated movement
         pbio_error_t moveBallCloseLoop(float x, float y, CancelToken& cancelToken, float speedX = NAN, float speedY = NAN);
+        // Human player serve the ball from the paddle
+        pbio_error_t humanPlayerServeBall(GamePlayer player, CancelToken& cancelToken);
+        // AI player serve the ball from the paddle
+        pbio_error_t aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken);
         // Throw the ball from player's paddle
         void throwBall(GamePlayer player);
         // Bounce the ball on top or bottom border
@@ -68,6 +83,8 @@ class Game {
         float getXInversionOvershoot(float speed) const;
         // Calculate the travel overshoot when the ball speed Y is inverted
         float getYInversionOvershoot(float speed) const;
+        // AI player logic
+        void aiPlayer(GamePlayer player);
 
     public:
         Game(
@@ -84,5 +101,5 @@ class Game {
             return &_settings;
         }
 
-        pbio_error_t run(GamePlayer startPlayer);
+        pbio_error_t run(GamePlayer startPlayer, GameMode mode);
 };

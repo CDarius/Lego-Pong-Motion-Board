@@ -27,12 +27,19 @@ struct GameYAxisSettings {
 };
 
 struct GameLRAxisSettings {
-    float minJogEncoderMultiplier = 0.2f;    // Minimum jog encoder multiplier for left/right paddles (stud/count)
-    float jogMultiplierDecrement = 0.2f;      // Jog encoder multiplier decrement step for left/right paddles (stud/count)
+    float minJogEncoderMultiplier = 0.2f;       // Minimum jog encoder multiplier for left/right paddles (stud/count)
+    float jogMultiplierDecrement = 0.2f;        // Jog encoder multiplier decrement step for left/right paddles (stud/count)
+};
+
+struct GameAIPlayerSettings {
+    float paddleMaxSpeed = 32.0f;               // Maximum paddle speed for AI player (stud/second)
+    float paddleMaxError = 5.0f;                // Maximum paddle position error for AI player (stud)
+    uint16_t playerUpdateTimeMs = 300;          // AI player update time (ms)
 };
 
 struct GameSettings {
     GameXAxisSettings xAxis;
     GameYAxisSettings yAxis;
     GameLRAxisSettings lrAxis;
+    GameAIPlayerSettings aiPlayer;
 };

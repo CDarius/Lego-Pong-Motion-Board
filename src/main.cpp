@@ -334,7 +334,6 @@ void setup() {
     }
 }
 
-
 void loop() {
     if (!service_mode) {
         Button startButton;
@@ -348,7 +347,7 @@ void loop() {
 
         // Run one match with a random player
         GamePlayer player = (esp_random() & 1) ? GamePlayer::L : GamePlayer::R;
-        game.run(player);
+        game.run(player, GameMode::PLAYER_VS_PLAYER);
     }
     else {
         // Service mode, nothing to do here

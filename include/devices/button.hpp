@@ -1,8 +1,7 @@
 // Copyright (c) M5Stack. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-#ifndef __M5_BUTTON_CLASS_H__
-#define __M5_BUTTON_CLASS_H__
+#pragma once
 
 #include <Arduino.h>
 
@@ -75,5 +74,3 @@ private:
     uint8_t _oldPress = 0;
     uint8_t _clickCount = 0;
 };
-
-#endif

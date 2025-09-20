@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2018-2020 The Pybricks Authors
 
-#ifndef _PBIO_SERVO_H_
-#define _PBIO_SERVO_H_
+#pragma once
 
 #include <Arduino.h>
 #include "monotonic.h"
@@ -37,5 +36,3 @@ pbio_error_t pbio_servo_run_target(pbio_servo_t *srv, float speed, float target,
 void pbio_servo_track_target(pbio_servo_t *srv, float target);
 
 pbio_error_t pbio_servo_control_update(pbio_servo_t *srv);
-
-#endif // _PBIO_SERVO_H_

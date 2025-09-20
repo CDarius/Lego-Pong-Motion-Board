@@ -1,37 +1,42 @@
 #pragma once
 
-#include "game/game_settings.hpp"
-#include "settings/setting.hpp"
+#include "motor_control\motor.hpp"
+#include "settings\setting.hpp"
 
-class GameLRPaddleMinJogMultiplierSetting : public Setting<float> {
+class AxisPosToleranceSetting : public Setting<float> {
     private:
-        GameLRAxisSettings& _settings;
+        Motor& _motor;
 
     public:
-        GameLRPaddleMinJogMultiplierSetting(GameLRAxisSettings& settings) : _settings(settings) {}
+        AxisPosToleranceSetting(Motor& motor) : _motor(motor) {}
 
         float getValue() const override {
-            return _settings.minJogEncoderMultiplier;
+            float speed,position;
+            _motor.get_target_tolerances(&speed, &position);
+            return position;
         }
 
         void setValue(const float value) override {
-            _settings.minJogEncoderMultiplier = value;
+            float speed,position;
+            _motor.get_target_tolerances(&speed, &position);
+            position = value;
+            _motor.set_target_tolerances(speed, position);
         }
 
         const char* getName() const override {
-            return "min_jog_multi";
+            return "pos_tolerance";
         }
 
         const char* getTitle() const override {
-            return "Minimum jog multiplier";
+            return "Position Tolerance";
         }
 
         const char* getDescription() const override {
-            return "Minimum jog multiplier applied at left/right paddles during a game";
+            return "Maximum position deviation tolerance at the end of a close loop movement";
         }
 
         const char* getUnit() const override {
-            return "stud/count";
+            return "stud";
         }
 
         SettingType getType() const {
@@ -43,7 +48,7 @@ class GameLRPaddleMinJogMultiplierSetting : public Setting<float> {
         }
 
         const float getMinValue() const override {
-            return 0.01;
+            return 0.1;
         }
 
         const bool hasMaxValue() const override {
@@ -51,7 +56,7 @@ class GameLRPaddleMinJogMultiplierSetting : public Setting<float> {
         }
 
         const float getMaxValue() const override {
-            return 0.8;
+            return 10.0;
         }
 
         const bool hasChangeStep() const override {

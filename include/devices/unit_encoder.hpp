@@ -6,8 +6,7 @@
  * @version  V0.0.2
  * @date  2022-07-11
  */
-#ifndef _UNIT_ENCODER_H_
-#define _UNIT_ENCODER_H_
+#pragma once
 
 #include "Arduino.h"
 #include "Wire.h"
@@ -34,5 +33,3 @@ class UnitEncoder {
     bool isButtonPressed();
     void setLEDColor(uint8_t index, uint32_t color);
 };
-
-#endif

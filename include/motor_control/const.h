@@ -1,5 +1,4 @@
-#ifndef __MOTOR_CONTROL_CONST_H__
-#define __MOTOR_CONTROL_CONST_H__
+#pragma once
 
 #define MS_PER_SECOND (1000)
 #define US_PER_MS (1000)
@@ -8,5 +7,3 @@
 #define MOTOR_MAX_CONTROL (10000)
 
 #define SERVO_LOG_NUM_VALUES 9
-
-#endif

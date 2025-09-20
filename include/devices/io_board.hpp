@@ -1,5 +1,4 @@
-#ifndef __IO_BOARD_HPP__
-#define __IO_BOARD_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include "utils/logger.hpp"
@@ -141,5 +140,3 @@ private:
     */
     bool receiveData(const char* data_type, String& data, unsigned long timeout_ms);
 };
-
-#endif

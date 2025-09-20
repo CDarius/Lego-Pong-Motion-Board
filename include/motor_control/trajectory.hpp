@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2018-2020 The Pybricks Authors
 
-#ifndef _PBIO_TRAJECTORY_H_
-#define _PBIO_TRAJECTORY_H_
+#pragma once
 
 #include <Arduino.h>
 #include "motor_control/extra_math.h"
@@ -64,5 +63,3 @@ void pbio_trajectory_get_reference(pbio_trajectory_t *traject, int32_t time_ref,
 pbio_error_t pbio_trajectory_make_time_based_patched(pbio_trajectory_t *ref, int32_t t0, int32_t t3, int32_t wt, int32_t wmax, int32_t a, int32_t amax);
 
 pbio_error_t pbio_trajectory_make_angle_based_patched(pbio_trajectory_t *ref, int32_t t0, int32_t th3, int32_t wt, int32_t wmax, int32_t a, int32_t amax);
-
-#endif // _PBIO_TRAJECTORY_H_

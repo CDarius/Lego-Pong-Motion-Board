@@ -1,5 +1,4 @@
-#ifndef __MOTOR_CONTROL_MOTOR_HPP_
-#define __MOTOR_CONTROL_MOTOR_HPP_
+#pragma once
 
 #include <Arduino.h>
 #include "config.h"
@@ -94,5 +93,3 @@ class Motor {
             _swLimitP = value;
         }
 };
-
-#endif

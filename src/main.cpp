@@ -213,7 +213,6 @@ void setup() {
     pinMode(LED_OUTPUT, OUTPUT);
     rgb_led.begin();
     rgb_led.setColor(RGB_COLOR_WHITE);
-    delay(5000);
 
     // Configure two I2C busses
     Wire.begin(I2C_BUS_1_SDA, I2C_BUS_1_SCL, 400000);
@@ -225,7 +224,7 @@ void setup() {
     x_motor.begin("X", X_AXIS_ENC_PIN_1, X_AXIS_ENC_PIN_2, X_AXIS_PWM_PIN_1, X_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 30.0, &settings_servo_ev3_large, log_motor_errors);
     y_motor.begin("Y", Y_AXIS_ENC_PIN_1, Y_AXIS_ENC_PIN_2, Y_AXIS_PWM_PIN_1, Y_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 1138.0/31.0, &settings_servo_ev3_medium, log_motor_errors);
     l_motor.begin("L", L_AXIS_ENC_PIN_1, L_AXIS_ENC_PIN_2, L_AXIS_PWM_PIN_1, L_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 30.0, &settings_servo_ev3_large, log_motor_errors);
-    r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_CLOCKWISE, 30.0, &settings_servo_ev3_large, log_motor_errors);
+    r_motor.begin("R", R_AXIS_ENC_PIN_1, R_AXIS_ENC_PIN_2, R_AXIS_PWM_PIN_1, R_AXIS_PWM_PIN_2, PBIO_DIRECTION_COUNTERCLOCKWISE, 30.0, &settings_servo_ev3_large, log_motor_errors);
 
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
@@ -251,6 +250,7 @@ void setup() {
     // Restart the I/O board
     rgb_led.setColor(RGB_COLOR_MAGENTA);
     io_board.sendInit(start_web_server);
+    delay(200);
 
     // Wait for the I/O board to be ready
     if (!io_board.testConnection(10000)) {
@@ -310,8 +310,7 @@ void setup() {
                 Logger::instance().logI("Connecting to WiFi...");
             }
             Logger::instance().logI("Connected to WiFi!");
-            Logger::instance().logI("IP Address: " + String(WiFi.localIP()));
-    
+            Logger::instance().logI("IP Address: " + WiFi.localIP().toString());            
             server.begin(&game_settings, &web_functions);
         } 
         else {

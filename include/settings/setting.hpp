@@ -1,5 +1,4 @@
-#ifndef __GAME_SETTING_HPP__
-#define __GAME_SETTING_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include "utils/logger.hpp"
@@ -95,5 +94,3 @@ public:
         return 1;
     }
 };
-
-#endif

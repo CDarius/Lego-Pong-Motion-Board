@@ -1,5 +1,4 @@
-#ifndef __ENUMS_HPP_
-#define __ENUMS_HPP_
+#pragma once
 
 typedef enum {
     PBIO_DIRECTION_CLOCKWISE,         /**< Positive means clockwise */
@@ -12,5 +11,3 @@ typedef enum {
     PBIO_ACTUATION_HOLD,       /**< Actively hold the motor in place */
     PBIO_ACTUATION_DUTY,
 } pbio_actuation_t;
-
-#endif

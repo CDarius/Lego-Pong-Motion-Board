@@ -1,5 +1,4 @@
-#ifndef __TACHO_HPP__
-#define __TACHO_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include <FunctionalInterrupt.h>
@@ -42,5 +41,3 @@ class Tacho {
     
         void ISR_read_encoder();
 };
-
-#endif

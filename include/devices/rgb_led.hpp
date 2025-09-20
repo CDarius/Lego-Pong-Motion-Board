@@ -1,5 +1,4 @@
-#ifndef __RGB_LED_HPP__
-#define __RGB_LED_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include <FastLED.h>
@@ -26,5 +25,3 @@ public:
 private:
     CRGB leds[1];
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __GAME_SETTINGS_GROUP_HPP__
-#define __GAME_SETTINGS_GROUP_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include "settings/setting.hpp"
@@ -14,5 +13,3 @@ class SettingsGroup {
 
         ISetting* getSetting(const char* name);
 };
-
-#endif

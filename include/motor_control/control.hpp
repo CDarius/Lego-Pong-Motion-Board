@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2018-2020 The Pybricks Authors
 
-#ifndef _PBIO_CONTROL_H_
-#define _PBIO_CONTROL_H_
+#pragma once
 
 #include <Arduino.h>
 #include "config.h"
@@ -82,5 +81,3 @@ int32_t pbio_control_settings_get_actuation_limit(const pbio_control_settings_t 
 pbio_error_t pbio_control_settings_set_speed_limit(pbio_control_settings_t *s, float speed);
 pbio_error_t pbio_control_settings_set_acceleration_limit(pbio_control_settings_t *s, float acceleration);
 pbio_error_t pbio_control_settings_set_actuation_limit(pbio_control_settings_t *s, int32_t actuation);
-
-#endif // _PBIO_CONTROL_H_

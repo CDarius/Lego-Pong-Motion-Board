@@ -1,5 +1,4 @@
-#ifndef __MESSAGE_LOGGER_HPP__
-#define __MESSAGE_LOGGER_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include <functional>
@@ -45,5 +44,3 @@ private:
 
     std::function<void(LogLevel, const char*)> outputFunc;
 };
-
-#endif

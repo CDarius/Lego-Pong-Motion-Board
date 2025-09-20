@@ -1,5 +1,4 @@
-#ifndef __CONTROL_SETTINGS_H_
-#define __CONTROL_SETTINGS_H_
+#pragma once
 
 #include <Arduino.h>
 #include "const.h"
@@ -58,5 +57,3 @@ static pbio_control_settings_t settings_servo_ev3_large = {
     .integral_range = 45,
     .integral_rate = 10,
 };
-
-#endif

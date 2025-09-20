@@ -1,5 +1,4 @@
-#ifndef __CANCEL_TOKEN_HPP__
-#define __CANCEL_TOKEN_HPP__
+#pragma once
 
 #include <vector>
 #include <algorithm>
@@ -32,5 +31,3 @@ public:
 
     static void cancelAll();
 };
-
-#endif

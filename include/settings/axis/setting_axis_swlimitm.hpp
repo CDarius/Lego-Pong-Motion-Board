@@ -1,5 +1,4 @@
-#ifndef __SETTING_AXIS_SWLIMITM_HPP__
-#define __SETTING_AXIS_SWLIMITM_HPP__
+#pragma once
 
 #include "motor_control\motor.hpp"
 #include "settings\setting.hpp"
@@ -63,5 +62,3 @@ class AxisSwLimitMSetting : public Setting<float> {
             return 0.1;
         }
     };
-
-#endif

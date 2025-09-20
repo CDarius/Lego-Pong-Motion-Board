@@ -1,5 +1,4 @@
-#ifndef __I2C_UTILS_HPP__
-#define __I2C_UTILS_HPP__
+#pragma once
 
 #include <Arduino.h>
 #include <Wire.h>
@@ -24,5 +23,3 @@ void scanI2CDevices(TwoWire* wire);
  * @return true if the device exists, false otherwise.
  */
 bool testI2CDeviceExist(TwoWire* wire, uint8_t address, const char* device_name);
-
-#endif

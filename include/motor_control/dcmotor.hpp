@@ -1,5 +1,4 @@
-#ifndef __DCMOTOR_HPP_
-#define __DCMOTOR_HPP_
+#pragma once
 
 #include <Arduino.h>
 #include <driver/ledc.h>
@@ -30,5 +29,3 @@ class DCMotor {
         pbio_direction_t _direction;
         pbio_passivity_t _state;
 };
-
-#endif

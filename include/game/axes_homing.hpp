@@ -8,6 +8,7 @@
 #include "devices/io_board.hpp"
 #include "encodermultijog.hpp"
 #include "motor_control/error.hpp"
+#include "game_buttons.hpp"
 
 pbio_error_t homeAllAxes(
     IMotorHoming& xMotor,
@@ -16,5 +17,4 @@ pbio_error_t homeAllAxes(
     IMotorHoming& rMotor,
     IOBoard& ioBoard,
     EncoderMultiJog& lEncoderJog,
-    EncoderMultiJog& rEncoderJog,
-    uint8_t startButtonPin);
+    EncoderMultiJog& rEncoderJog);

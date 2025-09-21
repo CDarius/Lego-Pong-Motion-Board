@@ -55,7 +55,7 @@ pbio_error_t MotorWithStallReference::run_axis_homing(CancelToken& cancel_token)
     });
 
     // Move away from the switch to the final position
-    PBIO_RETURN_ON_ERROR(run_target(backward_final_speed, _config.axis_position_after_home, PBIO_ACTUATION_COAST, true, &cancel_token));
+    PBIO_RETURN_ON_ERROR(run_target(backward_final_speed, _config.axis_position_after_home, PBIO_ACTUATION_HOLD, true, &cancel_token));
 
     _referenced = true;
     

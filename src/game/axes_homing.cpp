@@ -8,8 +8,7 @@ pbio_error_t homeAllAxes(
     IMotorHoming& rMotor,
     IOBoard& ioBoard,
     EncoderMultiJog& lEncoderJog,
-    EncoderMultiJog& rEncoderJog,
-    uint8_t startButtonPin) {
+    EncoderMultiJog& rEncoderJog) {
 
     Button startButton;
 
@@ -25,8 +24,8 @@ pbio_error_t homeAllAxes(
 
         // Wait for the user to press the start button
         // and meanwhile allow the user to jog the axes
-        while (!startButton.wasClicked()) {
-            startButton.setRawState(millis(), digitalRead(startButtonPin) == LOW);
+        while (!startButton.wasClicked() || STOP_BUTTON_PRESSED) {
+            startButton.setRawState(millis(), START_BUTTON_PRESSED);
 
             // Update the encoder joggers to allow user to move the axes
             lEncoderJog.update();

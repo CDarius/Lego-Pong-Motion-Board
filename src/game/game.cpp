@@ -100,6 +100,13 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
                 // The ball has reached the paddle on X-axis. Now test if it is within the paddle's Y-axis range or not
                 // If it is, the ball bounce, otherwise the player misses (other player score)
                 if (!bounceOnPaddle()) {
+                    // Keep Y position but limited on software limits
+                    float targetY = _ballY;
+                    if (targetY > _yMotor.getSwLimitPlus())
+                        targetY = _yMotor.getSwLimitPlus();
+                    if (targetY < _yMotor.getSwLimitMinus())
+                        targetY = _yMotor.getSwLimitMinus();
+
                     // The ball wasn't in front of the paddle, player misses
                     GamePlayer scoringPlayer = _speedX > 0 ? GamePlayer::L : GamePlayer::R;
                     if (scoringPlayer == GamePlayer::L) {
@@ -108,7 +115,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
                         _rEncoderJog.stop();
                         _rMotor.track_target(_paddleR);
                         // Move ball past the right paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitPlus(), _ballY, cancelToken, _xMotor.speed(), _yMotor.speed());
+                        moveBallCloseLoop(_xMotor.getSwLimitPlus(), targetY, cancelToken, _xMotor.speed(), _yMotor.speed());
                         // Increment the score
                         _scoreL++;
                     } else {
@@ -117,7 +124,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
                         _lEncoderJog.stop();
                         _lMotor.track_target(_paddleL);
                         // Move ball past the left paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitMinus(), _ballY, cancelToken, _xMotor.speed(), _yMotor.speed());
+                        moveBallCloseLoop(_xMotor.getSwLimitMinus(), targetY, cancelToken, _xMotor.speed(), _yMotor.speed());
                         // Increment the score
                         _scoreR++;
                     }
@@ -131,7 +138,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
         }
 
         // Test for game end
-        if (_scoreL > GAME_WIN_SCORE || _scoreR > GAME_WIN_SCORE)
+        if (_scoreL >= GAME_WIN_SCORE || _scoreR >= GAME_WIN_SCORE)
             break;
 
         // Game continue, display the scrore
@@ -151,27 +158,29 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
     return PBIO_SUCCESS;
 }
 
+void Game::resetDisplay() {
+    _ioBoard.showScore(0, 0);
+}
+
 pbio_error_t Game::moveBallToPaddle(GamePlayer player, CancelToken& cancelToken) {
     float ballX, ballY;
     if (player == GamePlayer::L) {
         float xSwLimitM = _xMotor.getSwLimitMinus();
-        ballX = _lMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
-        ballY = xSwLimitM + GAME_PADDLE_W + _settings.xAxis.ballPaddleDistance;
+        ballY = _lMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
+        ballX = xSwLimitM + GAME_PADDLE_W + _settings.xAxis.ballPaddleDistance;
     } else {
         float xSwLimitP = _xMotor.getSwLimitPlus();
-        ballX = _rMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
-        ballY = xSwLimitP - GAME_PADDLE_W - GAME_BALL_L - _settings.xAxis.ballPaddleDistance;
+        ballY = _rMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
+        ballX = xSwLimitP - GAME_BALL_L - _settings.xAxis.ballPaddleDistance;
     }
 
     if (isBallOnThePaddleColumn(player)) {
         // Make the C movement to return the ball in front of the player's paddle
         float x1;
         if (player == GamePlayer::L) {
-            float xSwLimitM = _xMotor.getSwLimitMinus();
-            x1 = xSwLimitM + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN;
+            x1 = ballX + GAME_PADDLE_BALL_X_DIST_COLUMN;
         } else {
-            float xSwLimitP = _xMotor.getSwLimitPlus();
-            x1 = xSwLimitP - - GAME_PADDLE_W - GAME_BALL_L - GAME_PADDLE_BALL_X_DIST_COLUMN;
+            x1 = ballX - GAME_PADDLE_BALL_X_DIST_COLUMN;
         }
 
         // Move the ball on X past the paddle
@@ -208,7 +217,7 @@ pbio_error_t Game::moveBallToPaddle(GamePlayer player, CancelToken& cancelToken)
             if (otherPlayer == GamePlayer::L) {
                 x = _xMotor.getSwLimitMinus() + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN;
             } else {
-                x = _xMotor.getSwLimitPlus() - GAME_PADDLE_W - GAME_BALL_L - GAME_PADDLE_BALL_X_DIST_COLUMN;
+                x = _xMotor.getSwLimitPlus() - GAME_BALL_L - GAME_PADDLE_BALL_X_DIST_COLUMN;
             }
 
             PBIO_RETURN_ON_ERROR(_xMotor.run_target(
@@ -372,12 +381,15 @@ pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken
 }
 
 void Game::throwBall(GamePlayer player) {
+    float maxYSpeed = _settings.yAxis.bounceSpeedMax - (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin) * 0.6f;
     _speedX = ((float)_settings.xAxis.startBallGameSpeed) * ((player == GamePlayer::L) ? 1.0f : -1.0f);
-    _speedY = ((float)random(-10000, 10001) / 10000.0f) * (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin);
+    _speedY = ((float)random(-10000, 10001) / 10000.0f) * (maxYSpeed - _settings.yAxis.bounceSpeedMin);
     _speedY += (float)(_speedY > 0.0f ? _settings.yAxis.bounceSpeedMin : -_settings.yAxis.bounceSpeedMin);
     _overshootX = getXInversionOvershoot(_speedX);
     _overshootY = getYInversionOvershoot(_speedY);
     _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
+    _xMotor.dc(_speedX);
+    _yMotor.dc(_speedY);
 }
 
 void Game::bounceBallTopBottom() {
@@ -409,7 +421,7 @@ bool Game::isBallAtPaddleBounceLimit() const {
         return (_ballX + _overshootX) > border;
     } else {
         // Going left
-        float border = _xMotor.getSwLimitMinus() - _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
+        float border = _xMotor.getSwLimitMinus() + _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
 
         return (_ballX - _overshootX) < border;
     }
@@ -484,15 +496,17 @@ void Game::aiPlayer(GamePlayer player) {
 
 float Game::getYInversionOvershoot(float speed) const {
     float absSpeed = fabs(speed);
+    float result;
 
     float thresholds[] = Y_AXIS_BOUNCE_INVERSIONS_SPEEDS;
     for (int i = 0; i < Y_AXIS_BOUNCE_INVERSIONS_COUNT; i++) {
         if (absSpeed < thresholds[i]) {
-            return _settings.yAxis.bounceInversionOvershootAtSpeed[i];
+            result = _settings.yAxis.bounceInversionOvershootAtSpeed[i];
         }
     }
 
-    return _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
+    result = _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
+    return result * 0.75f;
 }
 
 float Game::getXInversionOvershoot(float speed) const {

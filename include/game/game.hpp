@@ -101,5 +101,9 @@ class Game {
             return &_settings;
         }
 
+        // Start and run a new game
         pbio_error_t run(GamePlayer startPlayer, GameMode mode);
+
+        // Reset game display
+        void resetDisplay();
 };

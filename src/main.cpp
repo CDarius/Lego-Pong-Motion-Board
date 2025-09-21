@@ -17,6 +17,7 @@
 #include "game/game.hpp"
 #include "game/encodermultijog.hpp"
 #include "game/axes_homing.hpp"
+#include "game/game_buttons.hpp"
 #include "utils/i2c_utils.hpp"
 #include "utils/logger.hpp"
 #include "utils/cancel_token.hpp"
@@ -56,9 +57,6 @@
 
 #define I2C_BUS_2_SDA           41
 #define I2C_BUS_2_SCL           42
-
-#define START_BUTTON_PIN        43 // Grove port 1
-#define STOP_BUTTON_PIN         44 // Grove port 1
 
 #define Y_AXIS_HOME_SWITCH_PIN   45 // Grove port 2
 
@@ -139,7 +137,7 @@ void motor_loop_task(void *parameter) {
         uint32_t millis = (uint32_t)(start_time / US_PER_MS);
 
         // Update stop buttons status
-        stop_button.setRawState(millis, digitalRead(STOP_BUTTON_PIN) == LOW);
+        stop_button.setRawState(millis, STOP_BUTTON_PRESSED);
 
         // Stop game and all motors if the stop button was clicked
         if (stop_button.wasClicked()) {
@@ -229,7 +227,7 @@ void setup() {
     // Restore game and axes settings from NVS
     game_settings.restoreFromNVS();
     
-    service_mode = digitalRead(START_BUTTON_PIN) == LOW && digitalRead(STOP_BUTTON_PIN) == LOW;
+    service_mode = START_BUTTON_PRESSED && STOP_BUTTON_PRESSED;
     bool start_web_server = service_mode;
 #if defined(DEVEL_NO_HARDWARE) || defined(FORCE_SERVICE_MODE)
     service_mode = true;
@@ -242,7 +240,7 @@ void setup() {
 #ifndef DEVEL_NO_HARDWARE
     // Test connection with the I/O board (also waits for the board to be ready)
     rgb_led.setColor(RGB_COLOR_YELLOW);
-    if (!io_board.testConnection(5000)) {
+    if (!io_board.testConnection(10000)) {
         Serial.println("Failed to connect to the I/O board. Please check the connection.");
         rgb_led.unrecoverableError();
     }
@@ -324,12 +322,22 @@ void setup() {
 
     if (!service_mode) {
         // Home all axes
-        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog, START_BUTTON_PIN);
+        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
         if (err != PBIO_SUCCESS) {
             Logger::instance().logE("Failed to home all axes.");
             rgb_led.unrecoverableError();
         }
         Logger::instance().logI("Axes homed successfully");
+
+        // Reset game display to score 0-0 and beep three times
+        game.resetDisplay();
+        for (int i = 0; i < 3; i++) {
+            io_board.playSound(IO_BOARD_SOUND_BEEP);
+            delay(300);
+        }
+    }
+    else {
+        io_board.showScrollingText("Service mode", SCROLLING_TEXT_ANIM_DELAY, true);
     }
 }
 
@@ -337,10 +345,10 @@ void loop() {
     if (!service_mode) {
         Button startButton;
 
-        // Wait for the start button press
-        while (!startButton.wasClicked())
+        // Wait for the start button press and no STOP button pressed
+        while (!startButton.wasClicked() || STOP_BUTTON_PRESSED)
         {
-            startButton.setRawState(millis(), digitalRead(START_BUTTON_PIN) == LOW);
+            startButton.setRawState(millis(), START_BUTTON_PRESSED);
             delay(100);
         }
 

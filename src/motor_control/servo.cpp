@@ -110,12 +110,12 @@ static pbio_error_t pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, i
     memset(buf, 0, sizeof(buf));
     
     // Log the physical state of the motor
-    buf[1] = count_now;
-    buf[2] = rate_now;
+    buf[1] = count_now; // (count)
+    buf[2] = rate_now;  // (count/s)
 
     // Log the applied control signal
-    buf[3] = actuation;
-    buf[4] = control;
+    buf[3] = actuation; // (pbio_actuation_t)
+    buf[4] = control;   // (duty steps)
 
     // If control is active, log additional data about the maneuver
     if (srv->control.type != PBIO_CONTROL_NONE) {
@@ -123,7 +123,7 @@ static pbio_error_t pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, i
         // Get the time of reference evaluation
         int32_t time_ref = pbio_control_get_ref_time(&srv->control, time_now);
 
-        // Log the time since start of control trajectory
+        // Log the time since start of control trajectory (ms)
         buf[0] = (time_ref - srv->control.trajectory.t0) / 1000;
 
         // Log reference signals. These values are only meaningful for time based commands
@@ -137,10 +137,10 @@ static pbio_error_t pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, i
             pbio_rate_integrator_get_errors(&srv->control.rate_integrator, rate_now, rate_ref, count_now, count_ref, &err, &err_integral);
         }
 
-        buf[5] = count_ref;
-        buf[6] = rate_ref;
-        buf[7] = err; // count err for angle control, rate err for timed control
-        buf[8] = err_integral;
+        buf[5] = count_ref; // (count)
+        buf[6] = rate_ref; // (count/s)
+        buf[7] = err; // Instantaneous error: count error for angle control, rate error for timed control
+        buf[8] = err_integral; // Accumulated error (count)
     }
 
     return pbio_logger_update(&srv->log, buf);

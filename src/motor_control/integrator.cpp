@@ -77,8 +77,8 @@ Compute the speed instantaneus and integral error
 :param rate_ref: Speed setpoint value (count/s)
 :param count: Encoder count actual value (count)
 :param count_ref: Encoder expected count (count)
-:param rate_err: Return istantaneus speed error
-:param rate_err_integral: Return accumulated speed error (integral)
+:param rate_err: Return istantaneus speed error (count/s)
+:param rate_err_integral: Return accumulated speed error (count)
  */
 void pbio_rate_integrator_get_errors(pbio_rate_integrator_t *itg,
                                 int32_t rate,

@@ -22,9 +22,13 @@ String ApiRestServer::uriParam(const String& uri, uint8_t position) {
     return ""; // Return empty string if position is out of bounds
 }
 
-void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions) {
+void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor* xMotor, Motor* yMotor, Motor* lMotor, Motor* rMotor) {
     _settings = settings;
     _webFunctions = webFunctions;
+    _XMotor = xMotor;
+    _YMotor = yMotor;
+    _LMotor = lMotor;
+    _RMotor = rMotor;
 
     // Configure the webserver
     _server.listen(5000);
@@ -41,4 +45,17 @@ void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions) {
 
     setupSettingController();
     setupWebFunctionController();
+}
+
+Motor* ApiRestServer::getMotorByName(const char* name) {
+    if (strcmp(name, "X") == 0)
+        return this->_XMotor;
+    else if (strcmp(name, "Y") == 0)
+        return this->_YMotor;
+    else if (strcmp(name, "L") == 0)
+        return this->_LMotor;
+    else if (strcmp(name, "R") == 0)
+        return this->_RMotor;
+    else
+        return nullptr;
 }

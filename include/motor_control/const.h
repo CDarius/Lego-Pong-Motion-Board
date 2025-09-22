@@ -7,6 +7,7 @@
 
 #define MOTOR_MAX_CONTROL (10000)
 
+// Log
 #define SERVO_LOG_NUM_VALUES 9
 
 #endif

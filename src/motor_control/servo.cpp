@@ -12,6 +12,9 @@ void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float c
 
     // For a servo, counts per output unit is counts per degree at the gear train output
     srv->control.settings.counts_per_unit = counts_per_unit;
+
+    // Configure the logs for a servo
+    srv->log.num_values = SERVO_LOG_NUM_VALUES;
 }
 
 /** 
@@ -101,7 +104,7 @@ Log motor data for a motor that is being actively controlled
 :param actuation: Current servo actuation (pbio_actuation_t)
 :param control: Current actualtion value (duty steps)
 */
-static void pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, int32_t count_now, int32_t rate_now, pbio_actuation_t actuation, int32_t control) {
+static pbio_error_t pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, int32_t count_now, int32_t rate_now, pbio_actuation_t actuation, int32_t control) {
 
     int32_t buf[SERVO_LOG_NUM_VALUES];
     memset(buf, 0, sizeof(buf));
@@ -139,6 +142,8 @@ static void pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, int32_t c
         buf[7] = err; // count err for angle control, rate err for timed control
         buf[8] = err_integral;
     }
+
+    return pbio_logger_update(&srv->log, buf);
 }
 
 /**
@@ -175,8 +180,7 @@ pbio_error_t pbio_servo_control_update(pbio_servo_t *srv) {
                 actuation = PBIO_ACTUATION_DUTY;
                 break;
         };
-        pbio_servo_log_update(srv, time_now, count_now, rate_now, actuation, control);
-        return PBIO_SUCCESS;
+        return pbio_servo_log_update(srv, time_now, count_now, rate_now, actuation, control);
     }
 
     // Calculate control signal
@@ -186,9 +190,7 @@ pbio_error_t pbio_servo_control_update(pbio_servo_t *srv) {
     pbio_servo_actuate(srv, actuation, control);
 
     // Log data if logger enabled
-    pbio_servo_log_update(srv, time_now, count_now, rate_now, actuation, control);
-
-    return PBIO_SUCCESS;
+    return pbio_servo_log_update(srv, time_now, count_now, rate_now, actuation, control);
 }
 
 /**

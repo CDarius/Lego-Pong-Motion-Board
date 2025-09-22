@@ -308,8 +308,9 @@ void setup() {
                 Logger::instance().logI("Connecting to WiFi...");
             }
             Logger::instance().logI("Connected to WiFi!");
-            Logger::instance().logI("IP Address: " + WiFi.localIP().toString());            
-            server.begin(&game_settings, &web_functions);
+            Logger::instance().logI("IP Address: " + WiFi.localIP().toString());
+            
+            server.begin(&game_settings, &web_functions, &x_motor, &y_motor, &l_motor, &r_motor);
         } 
         else {
             Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");

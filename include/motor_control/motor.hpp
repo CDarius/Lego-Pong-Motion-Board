@@ -92,4 +92,8 @@ class Motor {
         void setSwLimitPlus(float value) {
             _swLimitP = value;
         }
+
+        pbio_log_t* get_log() {
+            return &(_servo.log);
+        }
 };

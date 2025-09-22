@@ -16,6 +16,9 @@
 
 #define ENCODER_COUNTS_PER_DEGREE (2)
 
+// Log
+#define MAX_LOG_MEM_KB 8*1024 // 8 MB on ESP32-S3-WROOM-1-N16R8
+
 // Task configuration
 #define MOTION_TASK_CORE            (0)
 #define OTHER_TASK_CORE             (1)

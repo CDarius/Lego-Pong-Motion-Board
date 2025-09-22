@@ -12,11 +12,13 @@
 #include "motor_control/tacho.hpp"
 #include "motor_control/dcmotor.hpp"
 #include "motor_control/control.hpp"
+#include "motor_control/logger.hpp"
 
 typedef struct _pbio_servo_t {
     DCMotor *dcmotor;
     Tacho *tacho;
     pbio_control_t control;
+    pbio_log_t log;
 } pbio_servo_t;
 
 void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float counts_per_unit, pbio_control_settings_t *settings);

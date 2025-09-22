@@ -8,8 +8,8 @@
 typedef struct _pbio_rate_integrator_t {
     bool running; // Whether the integrator is running (1) or paused (0)
     int32_t time_pause_begin; // Time at which we began pausing, stopping integration (ms)
-    int32_t count_resumed; // Count at which rate integration resumed again
-    int32_t count_ref_resumed; // Idealized reference count at restart
+    int32_t count_resumed; // Count at which rate integration resumed again (count)
+    int32_t count_ref_resumed; // Idealized reference count at restart (count)
     int32_t rate_err_integral_paused; // Total integrated state up to previous pause.
 } pbio_rate_integrator_t;
 

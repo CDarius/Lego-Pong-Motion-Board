@@ -24,6 +24,7 @@ class ApiRestServer {
         void setupSettingController();
         void setupWebFunctionController();
         void setupAxisLogController();
+        void setupAxisInfoController();
 
         Motor* getMotorByName(const char* name);
 

@@ -64,9 +64,10 @@ class Motor {
 
         void update();
 
-        float get_speed_limit();
-        float get_acceleration_limit();
-        uint8_t get_actuation_limit();
+        float get_counts_per_unit() const;
+        float get_speed_limit() const;
+        float get_acceleration_limit() const;
+        uint8_t get_actuation_limit() const;
         pbio_error_t set_speed_limit(float speed);
         pbio_error_t set_acceleration_limit(float acceleration);
         pbio_error_t set_actuation_limit(uint8_t actuation);        

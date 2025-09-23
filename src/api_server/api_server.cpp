@@ -54,6 +54,7 @@ void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor*
     setupSettingController();
     setupWebFunctionController();
     setupAxisLogController();
+    setupAxisInfoController();
 }
 
 Motor* ApiRestServer::getMotorByName(const char* name) {

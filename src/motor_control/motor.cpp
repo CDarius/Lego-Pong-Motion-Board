@@ -398,12 +398,22 @@ bool Motor::is_completion() {
     return completed;
 }
 
+float Motor::get_counts_per_unit() const {
+    uint32_t counts_per_unit;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        counts_per_unit = (uint32_t)_servo.control.settings.counts_per_unit;
+        xSemaphoreGive(_xMutex);
+    }
+
+    return counts_per_unit;
+}
+
 /**
 Return max speed control limit in user units
 
 :return: Return max speed (user unit/s)
 */
-float Motor::get_speed_limit() {
+float Motor::get_speed_limit() const {
     float _speed;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         _speed = pbio_control_settings_get_speed_limit(&_servo.control.settings);
@@ -418,7 +428,7 @@ Return max acceleration control limit in user units
 
 :return: Return max acceleration (user unit/s^2)
 */
-float Motor::get_acceleration_limit() {
+float Motor::get_acceleration_limit() const {
     float _acceleration;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         _acceleration = pbio_control_settings_get_acceleration_limit(&_servo.control.settings);
@@ -433,7 +443,7 @@ Return actuation control limit in user units
 
 :return: Return max actuation percentage (0-100%)
  */
-uint8_t Motor::get_actuation_limit() {
+uint8_t Motor::get_actuation_limit() const {
     int32_t _actuation;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         _actuation = pbio_control_settings_get_actuation_limit(&_servo.control.settings);

@@ -34,10 +34,6 @@ class SettingJogUpdateInterval : public SettingUInt16 {
             return "ms";
         }
 
-        SettingType getType() const {
-            return SettingType::UInt16;
-        }
-
         const uint16_t getMinValue() const override {
             return 1;
         }

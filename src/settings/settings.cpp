@@ -46,6 +46,12 @@ void storeGroupInNVS(Preferences& preferences, SettingsGroup& group) {
             Setting<uint16_t>* usetting = (Setting<uint16_t>*)setting;
             preferences.putUShort(setting->getName(), usetting->getValue());
             break;
+        }        
+        case SettingType::Bool:
+        {
+            Setting<bool>* bsetting = (Setting<bool>*)setting;
+            preferences.putBool(setting->getName(), bsetting->getValue());
+            break;
         }
         
         default:
@@ -104,7 +110,13 @@ void readGroupFromNVS(Preferences& preferences, SettingsGroup& group) {
             usetting->setValue(preferences.getUShort(setting->getName(), usetting->getValue()));            
             break;
         }
-        
+        case SettingType::Bool:
+        {
+            Setting<bool>* bsetting = (Setting<bool>*)setting;
+            bsetting->setValue(preferences.getBool(setting->getName(), bsetting->getValue()));            
+            break;
+        }
+                
         default:
             String errorMsg = "Failed to read a setting of type " + String((int)setting->getType()) + " to NVS storage. Unknown type";
             Logger::instance().logW(errorMsg.c_str());

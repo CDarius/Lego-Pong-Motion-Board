@@ -7,6 +7,7 @@ enum class SettingType {
     Float,
     UInt8,
     UInt16,
+    Bool
 };
 
 class ISetting {
@@ -99,5 +100,36 @@ public:
 
     const uint16_t getChangeStep() const override {
         return 1;
+    }
+};
+
+class SettingBool : public Setting<bool> {
+public:
+    SettingType getType() const {
+        return SettingType::Bool;
+    }
+
+    const char* getUnit() const override {
+        return ""; // No unit for boolean settings
+    }
+
+    const bool hasMinValue() const override {
+        return true;
+    }
+
+    const bool hasMaxValue() const override {
+        return true;
+    }
+
+    const bool hasChangeStep() const override {
+        return false;
+    }
+
+    const bool getMinValue() const override {
+        return false;
+    }
+
+    const bool getMaxValue() const override {
+        return true;
     }
 };

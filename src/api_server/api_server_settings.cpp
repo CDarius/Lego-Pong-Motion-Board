@@ -21,6 +21,12 @@ void ISettingToJsonValue(JsonDocument& doc, const char* key, ISetting& setting) 
         doc[key] = usetting.getValue();
         break;
     }
+    case SettingType::Bool:
+    {
+        Setting<bool>& bsetting = (Setting<bool>&)setting;
+        doc[key] = bsetting.getValue();
+        break;
+    }
     
     default:
         doc[key] = nullptr;
@@ -56,6 +62,15 @@ bool jsonValueToISetting(JsonVariant& value, ISetting& setting) {
 
         Setting<uint16_t>& usetting = (Setting<uint16_t>&)setting;
         usetting.setValue((uint16_t)value.as<int>());
+        return true;
+    }
+    case SettingType::Bool:
+    {
+        if (!value.is<bool>())
+            return false;
+
+        Setting<bool>& bsetting = (Setting<bool>&)setting;
+        bsetting.setValue(value.as<bool>());
         return true;
     }
     default:
@@ -132,6 +147,9 @@ void ApiRestServer::setupSettingController() {
                         if (setting->hasChangeStep())
                             jsetting["stepChange"] = usetting->getChangeStep();    
                     }
+                    break;
+                case SettingType::Bool:
+                    jsetting["type"] = "bool";
                     break;
 
                 default:

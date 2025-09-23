@@ -28,14 +28,18 @@ typedef struct _pbio_log_t {
     uint8_t num_values;
     int32_t *data;
     uint32_t sample_div;
+    char **col_names;
+    char **col_units;
 } pbio_log_t;
 
-pbio_error_t pbio_logger_start(pbio_log_t *log, int32_t duration, int32_t div);
+pbio_error_t pbio_logger_start(pbio_log_t *log, uint32_t duration, uint32_t div);
 pbio_error_t pbio_logger_read(pbio_log_t *log, int32_t sample_index, int32_t *buf);
 pbio_error_t pbio_logger_read(pbio_log_t *log, uint32_t start_sample, uint32_t num_samples, int32_t *buf);
 pbio_error_t pbio_logger_update(pbio_log_t *log, int32_t *buf);
 uint32_t pbio_logger_rows(pbio_log_t *log);
 uint32_t pbio_logger_cols(pbio_log_t *log);
+const char* pbio_logger_col_name(pbio_log_t *log, uint8_t col);
+const char* pbio_logger_col_unit(pbio_log_t *log, uint8_t col);
 void pbio_logger_stop(pbio_log_t *log);
 
 #endif // _PBIO_LOGGER_H_

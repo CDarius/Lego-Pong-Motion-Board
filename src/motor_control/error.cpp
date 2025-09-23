@@ -37,5 +37,5 @@ const char *pbio_error_str(pbio_error_t err) {
         return "Home switch sequence error";
     }
 
-    return NULL;
+    return nullptr;
 }

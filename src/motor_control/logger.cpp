@@ -9,7 +9,7 @@ static void pbio_logger_delete(pbio_log_t *log) {
     // Free log if any
     if (log->len > 0) {
         free(log->data);
-        log->data = NULL;
+        log->data = nullptr;
     }
     log->sampled = 0;
     log->skipped = 0;
@@ -17,7 +17,7 @@ static void pbio_logger_delete(pbio_log_t *log) {
     log->active = false;
 }
 
-pbio_error_t pbio_logger_start(pbio_log_t *log, int32_t duration, int32_t div) {
+pbio_error_t pbio_logger_start(pbio_log_t *log, uint32_t duration, uint32_t div) {
     // Free any existing log
     pbio_logger_delete(log);
 
@@ -34,7 +34,7 @@ pbio_error_t pbio_logger_start(pbio_log_t *log, int32_t duration, int32_t div) {
 
     // Allocate memory for the logs
     log->data = (int32_t*)heap_caps_malloc(len * NUM_LOGGER_COLS(log) * sizeof(int32_t), MALLOC_CAP_SPIRAM);
-    if (log->data == NULL) {
+    if (log->data == nullptr) {
         return PBIO_ERROR_FAILED;
     }
 
@@ -142,4 +142,36 @@ pbio_error_t pbio_logger_read(pbio_log_t *log, uint32_t start_sample, uint32_t n
     }
 
     return PBIO_SUCCESS;
+}
+
+const char* pbio_logger_col_name(pbio_log_t *log, uint8_t col) {
+    if (col >= 0 && col < NUM_DEFAULT_LOG_VALUES) {
+        // Default columns
+        switch (col) {
+            case 0:
+                return "Time";
+            default:
+                return nullptr;
+        }
+    }
+    if ((col - NUM_DEFAULT_LOG_VALUES) < log->num_values) {
+        return log->col_names[col - NUM_DEFAULT_LOG_VALUES];
+    }
+    return nullptr;
+}
+
+const char* pbio_logger_col_unit(pbio_log_t *log, uint8_t col) {
+    if (col >= 0 && col < NUM_DEFAULT_LOG_VALUES) {
+        // Default columns
+        switch (col) {
+            case 0:
+                return "ms";
+            default:
+                return nullptr;
+        }
+    }
+    if ((col - NUM_DEFAULT_LOG_VALUES) < log->num_values) {
+        return log->col_units[col - NUM_DEFAULT_LOG_VALUES];
+    }
+    return nullptr;
 }

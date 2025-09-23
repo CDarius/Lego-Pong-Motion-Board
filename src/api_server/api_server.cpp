@@ -1,5 +1,13 @@
 #include "api_server/api_server.hpp"
 
+String RemoveQueryString(const String& uri) {
+    int queryIndex = uri.indexOf('?');
+    if (queryIndex != -1) {
+        return uri.substring(0, queryIndex);
+    }
+    return uri;
+}
+
 String ApiRestServer::uriParam(const String& uri, uint8_t position) {
     uint8_t count = 0;
     int start = (uri[0] == '/') ? 1 : 0; // Skip leading '/'
@@ -7,7 +15,7 @@ String ApiRestServer::uriParam(const String& uri, uint8_t position) {
     
     while (end != -1) {
         if (count == position) {
-            return uri.substring(start, end);
+            return RemoveQueryString(uri.substring(start, end));
         }
         count++;
         start = end + 1;
@@ -16,7 +24,7 @@ String ApiRestServer::uriParam(const String& uri, uint8_t position) {
     
     // Last segment (or only segment if no '/'
     if (count == position) {
-        return uri.substring(start);
+        return RemoveQueryString(uri.substring(start));
     }
     
     return ""; // Return empty string if position is out of bounds
@@ -45,6 +53,7 @@ void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor*
 
     setupSettingController();
     setupWebFunctionController();
+    setupAxisLogController();
 }
 
 Motor* ApiRestServer::getMotorByName(const char* name) {

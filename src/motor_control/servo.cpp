@@ -15,6 +15,30 @@ void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float c
 
     // Configure the logs for a servo
     srv->log.num_values = SERVO_LOG_NUM_VALUES;
+    static char *servo_col_names[] {
+        (char *)"Time since start of maneuver",
+        (char *)"Current position",
+        (char *)"Current speed",
+        (char *)"Current actuation type",
+        (char *)"Current actuation value",
+        (char *)"Position setpoint",
+        (char *)"Speed setpoint",
+        (char *)"Error: position for angle maneuver or else speed",
+        (char *)"Accumulated position error"
+    };
+    srv->log.col_names = servo_col_names;
+    static char *servo_col_units[] {
+        (char *)"ms",
+        (char *)"count",
+        (char *)"count/s",
+        (char *)"pbio_actuation_t",
+        (char *)"duty steps",
+        (char *)"count",
+        (char *)"count/s",
+        (char *)"count or count/s",
+        (char *)"count"
+    };
+    srv->log.col_units = servo_col_units;
 }
 
 /** 

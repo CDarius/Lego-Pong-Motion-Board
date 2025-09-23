@@ -3,7 +3,7 @@
 #include "motor_control\motorhoming.hpp"
 #include "settings\setting.hpp"
 
-class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
+class AxisStallHomingHomeObstaclePosSetting : public SettingFloat {
     private:
         base_homing_config_t& _config;
 
@@ -32,10 +32,6 @@ class AxisStallHomingHomeObstaclePosSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

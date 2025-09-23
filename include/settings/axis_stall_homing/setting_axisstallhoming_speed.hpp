@@ -3,7 +3,7 @@
 #include "motor_control\motorwithstallreference.hpp"
 #include "settings\setting.hpp"
 
-class AxisStallHomingSpeedSetting : public Setting<float> {
+class AxisStallHomingSpeedSetting : public SettingFloat {
     private:
         stall_homing_config_t& _config;
 
@@ -32,10 +32,6 @@ class AxisStallHomingSpeedSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/s";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

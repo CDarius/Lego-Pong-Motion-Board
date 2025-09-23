@@ -3,7 +3,7 @@
 #include "motor_control\motor.hpp"
 #include "settings\setting.hpp"
 
-class AxisSwLimitMSetting : public Setting<float> {
+class AxisSwLimitMSetting : public SettingFloat {
     private:
         Motor& _motor;
 
@@ -32,10 +32,6 @@ class AxisSwLimitMSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

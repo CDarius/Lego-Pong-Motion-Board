@@ -3,7 +3,7 @@
 #include "motor_control\motorwithreferenceswitch.hpp"
 #include "settings\setting.hpp"
 
-class AxisSwitchHomingMinimumTravelSetting : public Setting<float> {
+class AxisSwitchHomingMinimumTravelSetting : public SettingFloat {
     private:
         switch_homing_config_t& _config;
 
@@ -32,10 +32,6 @@ class AxisSwitchHomingMinimumTravelSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

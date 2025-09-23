@@ -2,7 +2,7 @@
 
 #include "settings\setting.hpp"
 
-class GameMinSpeedSetting : public Setting<float> {
+class GameMinSpeedSetting : public SettingFloat {
     private:
         float& _speed;
 
@@ -31,10 +31,6 @@ class GameMinSpeedSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/s";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

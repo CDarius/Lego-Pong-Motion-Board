@@ -3,7 +3,7 @@
 #include "game/game_settings.hpp"
 #include "settings/setting.hpp"
 
-class GameLRPaddleJogMultiplierDecrementSetting : public Setting<float> {
+class GameLRPaddleJogMultiplierDecrementSetting : public SettingFloat {
     private:
         GameLRAxisSettings& _settings;
 
@@ -32,10 +32,6 @@ class GameLRPaddleJogMultiplierDecrementSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/count";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

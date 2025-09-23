@@ -3,7 +3,7 @@
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
-class GameXBallBounceInversionOvershootSetting : public Setting<float> {
+class GameXBallBounceInversionOvershootSetting : public SettingFloat {
     private:
         GameXAxisSettings& _settings;
         uint8_t _index;
@@ -27,10 +27,6 @@ class GameXBallBounceInversionOvershootSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

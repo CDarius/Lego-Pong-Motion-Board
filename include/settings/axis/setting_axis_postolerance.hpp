@@ -3,7 +3,7 @@
 #include "motor_control\motor.hpp"
 #include "settings\setting.hpp"
 
-class AxisPosToleranceSetting : public Setting<float> {
+class AxisPosToleranceSetting : public SettingFloat {
     private:
         Motor& _motor;
 
@@ -37,10 +37,6 @@ class AxisPosToleranceSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

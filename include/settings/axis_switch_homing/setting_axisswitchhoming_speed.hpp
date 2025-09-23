@@ -3,7 +3,7 @@
 #include "motor_control\motorwithreferenceswitch.hpp"
 #include "settings\setting.hpp"
 
-class AxisSwitchHomingSpeedSetting : public Setting<float> {
+class AxisSwitchHomingSpeedSetting : public SettingFloat {
     private:
         switch_homing_config_t& _config;
 
@@ -32,10 +32,6 @@ class AxisSwitchHomingSpeedSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/s";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

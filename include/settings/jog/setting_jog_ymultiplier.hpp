@@ -3,7 +3,7 @@
 #include "settings/setting.hpp"
 #include "game/encodermultijog.hpp"
 
-class SettingJogYMultiplier : public Setting<float> {
+class SettingJogYMultiplier : public SettingFloat {
     private:
         encoder_multi_jog_config_t& _config;
 
@@ -32,10 +32,6 @@ class SettingJogYMultiplier : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/count";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

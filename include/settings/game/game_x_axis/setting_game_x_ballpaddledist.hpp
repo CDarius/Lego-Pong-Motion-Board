@@ -3,7 +3,7 @@
 #include "game/game_settings.hpp"
 #include "settings/setting.hpp"
 
-class GameXBallPaddleDistSetting : public Setting<float> {
+class GameXBallPaddleDistSetting : public SettingFloat {
     private:
         GameXAxisSettings& _settings;
 
@@ -32,10 +32,6 @@ class GameXBallPaddleDistSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

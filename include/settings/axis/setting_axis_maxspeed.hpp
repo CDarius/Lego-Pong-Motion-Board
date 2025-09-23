@@ -3,7 +3,7 @@
 #include "motor_control\motor.hpp"
 #include "settings\setting.hpp"
 
-class AxisMaxSpeedSetting : public Setting<float> {
+class AxisMaxSpeedSetting : public SettingFloat {
     private:
         Motor& _motor;
 
@@ -32,10 +32,6 @@ class AxisMaxSpeedSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/s";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

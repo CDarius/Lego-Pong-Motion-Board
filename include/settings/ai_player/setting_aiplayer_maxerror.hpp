@@ -3,7 +3,7 @@
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
 
-class AIPlayerMaxErrorSetting : public Setting<float> {
+class AIPlayerMaxErrorSetting : public SettingFloat {
     private:
         GameAIPlayerSettings& _settings;
 
@@ -32,10 +32,6 @@ class AIPlayerMaxErrorSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

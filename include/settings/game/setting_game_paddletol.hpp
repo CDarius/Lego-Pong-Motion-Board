@@ -2,7 +2,7 @@
 
 #include "settings\setting.hpp"
 
-class GamePaddleCollisionToleranceSetting : public Setting<float> {
+class GamePaddleCollisionToleranceSetting : public SettingFloat {
     private:
         float& _tolerance;
 
@@ -31,10 +31,6 @@ class GamePaddleCollisionToleranceSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

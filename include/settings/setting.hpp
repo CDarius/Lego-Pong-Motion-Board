@@ -33,6 +33,13 @@ public:
     virtual const T getChangeStep() const = 0;
 };
 
+class SettingFloat : public Setting<float> {
+public:
+    SettingType getType() const {
+        return SettingType::FloatType;
+    }
+};
+
 class SettingUInt8 : public Setting<uint8_t> {
 public:
     SettingType getType() const {

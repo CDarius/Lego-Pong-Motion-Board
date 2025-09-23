@@ -3,7 +3,7 @@
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
 
-class AIPlayerMaxSpeedSetting : public Setting<float> {
+class AIPlayerMaxSpeedSetting : public SettingFloat {
     private:
         GameAIPlayerSettings& _settings;
 
@@ -32,10 +32,6 @@ class AIPlayerMaxSpeedSetting : public Setting<float> {
 
         const char* getUnit() const override {
             return "stud/s";
-        }
-
-        SettingType getType() const {
-            return SettingType::FloatType;
         }
 
         const bool hasMinValue() const override {

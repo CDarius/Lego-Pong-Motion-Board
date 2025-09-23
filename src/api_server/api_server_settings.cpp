@@ -3,7 +3,7 @@
 void ISettingToJsonValue(JsonDocument& doc, const char* key, ISetting& setting) {
     switch (setting.getType())
     {
-    case SettingType::FloatType:
+    case SettingType::Float:
     {
         Setting<float>& fsetting = (Setting<float>&)setting;
         doc[key] = fsetting.getValue();
@@ -31,7 +31,7 @@ void ISettingToJsonValue(JsonDocument& doc, const char* key, ISetting& setting) 
 bool jsonValueToISetting(JsonVariant& value, ISetting& setting) {
     switch (setting.getType())
     {
-    case SettingType::FloatType:
+    case SettingType::Float:
     {
         if (!value.is<float>())
             return false;
@@ -97,7 +97,7 @@ void ApiRestServer::setupSettingController() {
                     jsetting["minValue"] = nullptr;
                 switch (setting->getType())
                 {
-                case SettingType::FloatType:
+                case SettingType::Float:
                     jsetting["type"] = "float"; 
                     {
                         Setting<float>* fsetting = (Setting<float>*)setting;

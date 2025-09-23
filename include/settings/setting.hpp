@@ -4,7 +4,7 @@
 #include "utils/logger.hpp"
 
 enum class SettingType {
-    FloatType,
+    Float,
     UInt8,
     UInt16,
 };
@@ -36,7 +36,7 @@ public:
 class SettingFloat : public Setting<float> {
 public:
     SettingType getType() const {
-        return SettingType::FloatType;
+        return SettingType::Float;
     }
 };
 

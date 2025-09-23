@@ -29,7 +29,7 @@ void storeGroupInNVS(Preferences& preferences, SettingsGroup& group) {
 
         switch (setting->getType())
         {
-        case SettingType::FloatType:
+        case SettingType::Float:
         {
             Setting<float>* fsetting = (Setting<float>*)setting;
             preferences.putFloat(setting->getName(), fsetting->getValue());
@@ -86,7 +86,7 @@ void readGroupFromNVS(Preferences& preferences, SettingsGroup& group) {
 
         switch (setting->getType())
         {
-        case SettingType::FloatType:
+        case SettingType::Float:
         {
             Setting<float>* fsetting = (Setting<float>*)setting;
             fsetting->setValue(preferences.getFloat(setting->getName(), fsetting->getValue()));            

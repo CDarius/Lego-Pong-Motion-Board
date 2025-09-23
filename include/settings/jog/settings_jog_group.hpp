@@ -7,6 +7,8 @@
 #include "setting_jog_xmultiplier.hpp"
 #include "setting_jog_ymultiplier.hpp"
 #include "setting_jog_lrmultiplier.hpp"
+#include "setting_jog_linvert.hpp"
+#include "setting_jog_rinvert.hpp"
 
 class SettingsJogGroup : public SettingsGroup {
     private:
@@ -16,12 +18,16 @@ class SettingsJogGroup : public SettingsGroup {
         SettingJogXMultiplier _settingJogXMultiplier = SettingJogXMultiplier(_config);
         SettingJogYMultiplier _settingJogYMultiplier = SettingJogYMultiplier(_config);
         SettingJogLRMultiplier _settingJogLRMultiplier = SettingJogLRMultiplier(_config);
+        SettingJogLInvertEncoder _settingJogLInvertEncoder = SettingJogLInvertEncoder(_config);
+        SettingJogRInvertEncoder _settingJogRInvertEncoder = SettingJogRInvertEncoder(_config);
 
-        ISetting* _settings[4] = {
+        ISetting* _settings[6] = {
             &_settingJogUpdateInterval,
             &_settingJogXMultiplier,
             &_settingJogYMultiplier,
-            &_settingJogLRMultiplier
+            &_settingJogLRMultiplier,
+            &_settingJogLInvertEncoder,
+            &_settingJogRInvertEncoder
         };
         
     public:

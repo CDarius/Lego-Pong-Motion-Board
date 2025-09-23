@@ -18,6 +18,14 @@ void EncoderJog::setEncoderMultiplier(float multiplier) {
     encoder_multiplier = multiplier;
 }
 
+bool EncoderJog::getEncoderInvert() const {
+    return invert_encoder;
+}
+
+void EncoderJog::setEncoderInvert(bool invert) {
+    invert_encoder = invert;
+}
+
 UnitEncoder* EncoderJog::getEncoder() const {
     return &encoder;
 }
@@ -55,6 +63,8 @@ void EncoderJog::update() {
 
     // Detect a change in jog encoder value
     int16_t encoder_value = encoder.getValue();
+    if (invert_encoder)
+        encoder_value = -encoder_value;        
     int16_t new_step = encoder_value - last_encoder_value;
         
     if (new_step == 0) {

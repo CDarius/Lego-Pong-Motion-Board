@@ -11,6 +11,8 @@ struct encoder_multi_jog_config_t  {
     float x_encoder_multiplier; // X-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
     float y_encoder_multiplier; // Y-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
     float l_r_encoder_multiplier; // L-Axis and R-Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
+    bool l_encoder_invert; // L-Axis encoder direction invert
+    bool r_encoder_invert; // R-Axis encoder direction invert
 };
 
 class EncoderMultiJog {

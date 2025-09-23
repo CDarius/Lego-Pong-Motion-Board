@@ -340,6 +340,22 @@ void setup() {
     else {
         io_board.showScrollingText("Service mode", SCROLLING_TEXT_ANIM_DELAY, true);
     }
+
+    uint16_t kp;
+    uint16_t ki;
+    uint16_t kd;
+    float integral_deadzone;
+    float integral_rate;
+    r_motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate);
+    Serial.printf("PID: %i, %i, %i\n", kp, ki, kd);
+    Serial.printf("Integral deadzone: %f, rate %f\n", integral_deadzone, integral_rate);
+
+    // Orginal params PID: 400,  1200, 5
+    ki = 1000;
+    kd = 30;
+    l_motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate);
+    r_motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate);
+    Serial.printf("New PID: %i, %i, %i\n", kp, ki, kd);
 }
 
 void loop() {

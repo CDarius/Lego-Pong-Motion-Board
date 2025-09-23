@@ -132,4 +132,8 @@ public:
     const bool getMaxValue() const override {
         return true;
     }
+
+    const bool getChangeStep() const override {
+        return 0; // Not applicable for boolean settings
+    }
 };

@@ -12,6 +12,8 @@ private:
     float encoder_multiplier;
     // Position setpoint for the axis
     float pos_setpoint = 0.0f;
+    // Direction
+    bool invert_encoder;
     // Last jog wheel value
     int16_t last_encoder_value = 0;
     IMotorHoming* motor = nullptr;
@@ -31,6 +33,11 @@ public:
     float getEncoderMultiplier() const;
     // Set the encoder multiplier to convert encoder units to motor position units
     void setEncoderMultiplier(float multiplier);
+
+    // Get the encoder invert status
+    bool getEncoderInvert() const;
+    // Set the axis position update interval in milliseconds
+    void setEncoderInvert(bool invert);
 
     // Get the encoder reference for jog control
     UnitEncoder* getEncoder() const;

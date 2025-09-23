@@ -19,6 +19,7 @@ void EncoderMultiJog::setEncoderMultiplier(float multiplier) {
 void EncoderMultiJog::start(Axes axis) {
     IMotorHoming* targetAxis = nullptr;
     float multiplier = 1.0f;
+    bool invert = false;
 
     // Get the new axis and its multiplier
     switch (axis) {
@@ -33,10 +34,12 @@ void EncoderMultiJog::start(Axes axis) {
         case Axes::L:
             targetAxis = &_lAxis;
             multiplier = _config.l_r_encoder_multiplier;
+            invert = _config.l_encoder_invert;
             break;
         case Axes::R:
             targetAxis = &_rAxis;
             multiplier = _config.l_r_encoder_multiplier;
+            invert = _config.r_encoder_invert;
             break;
     }
 
@@ -53,6 +56,7 @@ void EncoderMultiJog::start(Axes axis) {
     if (targetAxis) {
         _encoderJog.setUpdateIntervalMs(_config.update_interval_ms);
         _encoderJog.setEncoderMultiplier(multiplier);
+        _encoderJog.setEncoderInvert(invert);
         _encoderJog.start(*targetAxis);
     }
 }

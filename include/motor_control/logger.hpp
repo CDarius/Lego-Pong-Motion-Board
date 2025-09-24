@@ -5,7 +5,6 @@
 #define _PBIO_LOGGER_H_
 
 #include <Arduino.h>
-#include "config.h"
 #include "error.hpp"
 
 // Number of values logged by the logger itself, such as time of call to logger

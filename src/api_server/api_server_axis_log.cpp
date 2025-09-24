@@ -133,7 +133,7 @@ void ApiRestServer::setupAxisLogController() {
         for (uint32_t r = 0; r < rows; r++) {
             response.print("[");
             for (uint32_t c = 0; c < cols; c++) {
-                uint32_t value = motor->get_log()->data[log_array_index++];
+                int32_t value = motor->get_log()->data[log_array_index++];
                 response.print(value);
                 if (c < cols - 1) {
                     response.print(",");

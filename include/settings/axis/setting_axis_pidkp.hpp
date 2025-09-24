@@ -50,7 +50,7 @@ class AxisPidKpSetting : public SettingUInt16 {
         }
 
         const uint16_t getMinValue() const override {
-            return 10;
+            return 0;
         }
 
         const uint16_t getMaxValue() const override {

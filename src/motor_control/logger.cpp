@@ -2,6 +2,8 @@
 // Copyright (c) 2018-2020 The Pybricks Authors
 
 #include "motor_control/logger.hpp"
+#include "config.h"
+#include "motor_control/const.h"
 #include "monotonic.h"
 #include "esp_heap_caps.h"
 
@@ -17,6 +19,13 @@ static void pbio_logger_delete(pbio_log_t *log) {
     log->active = false;
 }
 
+/*
+ * Start the logger for a specific duration and sample division
+ * log: Pointer to the logger to start
+ * duration: Desired logging duration in ms
+ * div: Number of calls to the logger per sample actually logged (1 = log every call, 2 = log every other call, etc.)
+ * Returns ::PBIO_SUCCESS on success, or an error code if the logger could not be started
+*/
 pbio_error_t pbio_logger_start(pbio_log_t *log, uint32_t duration, uint32_t div) {
     // Free any existing log
     pbio_logger_delete(log);
@@ -87,7 +96,7 @@ pbio_error_t pbio_logger_update(pbio_log_t *log, int32_t *buf) {
 
     // Write time of logging (ms)
     uint32_t start_index = log->sampled * NUM_LOGGER_COLS(log);
-    log->data[start_index] = (int32_t)((monotonic_us() - log->start)/1000);
+    log->data[start_index] = (int32_t)((monotonic_us() - log->start)/US_PER_MS);
 
     // Write the data
     for (uint8_t i = 0; i < log->num_values; i++) {

@@ -131,7 +131,6 @@ void motor_loop_task(void *parameter) {
     int32_t counter = 0;
     bool led = false;
 
-    uint32_t delay_ms;
     while (true) {
         uint64_t start_time = monotonic_us();
         uint32_t millis = (uint32_t)(start_time / US_PER_MS);
@@ -167,12 +166,7 @@ void motor_loop_task(void *parameter) {
         }
 
         // Run the task every 3ms
-        uint64_t delta_time = monotonic_us() - start_time;
-        delay_ms = (uint32_t)((PBIO_CONFIG_SERVO_PERIOD_MS*US_PER_MS - delta_time) / 1000);
-        if (delay_ms == 0 || delay_ms > PBIO_CONFIG_SERVO_PERIOD_MS)
-            delay(0);
-        else
-            delay(delay_ms);
+        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
     }
 }
 
@@ -340,22 +334,6 @@ void setup() {
     else {
         io_board.showScrollingText("Service mode", SCROLLING_TEXT_ANIM_DELAY, true);
     }
-
-    uint16_t kp;
-    uint16_t ki;
-    uint16_t kd;
-    float integral_deadzone;
-    float integral_rate;
-    r_motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate);
-    Serial.printf("PID: %i, %i, %i\n", kp, ki, kd);
-    Serial.printf("Integral deadzone: %f, rate %f\n", integral_deadzone, integral_rate);
-
-    // Orginal params PID: 400,  1200, 5
-    ki = 1000;
-    kd = 30;
-    l_motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate);
-    r_motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate);
-    Serial.printf("New PID: %i, %i, %i\n", kp, ki, kd);
 }
 
 void loop() {

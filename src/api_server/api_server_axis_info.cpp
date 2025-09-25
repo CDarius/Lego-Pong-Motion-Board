@@ -16,9 +16,14 @@ void ApiRestServer::setupAxisInfoController() {
                 case 3: motor = _RMotor; break;
             }
             if (motor) {
+                float axis_speed_tolerance, axis_position_tolerance;
+                motor->get_target_tolerances(&axis_speed_tolerance, &axis_position_tolerance);
+
                 JsonObject jAxis = jAxes.add<JsonObject>();
                 jAxis["name"] = motor->name();
-                jAxis["counts_per_unit"] = motor->get_counts_per_unit();
+                jAxis["counts_per_unit"] = motor->get_counts_per_unit();      
+                jAxis["standstill_speed"] = axis_speed_tolerance;
+                jAxis["position_tolerance"] = axis_position_tolerance;    
                 jAxis["speed_limit"] = motor->get_speed_limit();
                 jAxis["acceleration_limit"] = motor->get_acceleration_limit();
                 jAxis["actuation_limit"] = motor->get_actuation_limit();

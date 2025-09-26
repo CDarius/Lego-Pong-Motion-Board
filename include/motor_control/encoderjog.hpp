@@ -6,8 +6,8 @@
 // EncoderJog provides jog control for a motor using an external encoder as input.
 class EncoderJog {
 private:
-    // Axis position update interval in microseconds
-    int update_interval_us;
+    // Axis position update interval in milliseconds
+    int update_interval_ms;
     // Multiplier for encoder value to convert from encoder units to motor position units
     float encoder_multiplier;
     // Position setpoint for the axis
@@ -18,11 +18,11 @@ private:
     int16_t last_encoder_value = 0;
     IMotorHoming* motor = nullptr;
     UnitEncoder& encoder;
-    uint64_t last_update_us = 0;
+    uint32_t last_update_ms = 0;
 
 public:
     EncoderJog(UnitEncoder& encoder, int interval_ms = 200, float multiplier = 1.0f)
-        : encoder(encoder), update_interval_us(interval_ms * 1000), encoder_multiplier(multiplier) {}
+        : encoder(encoder), update_interval_ms(interval_ms), encoder_multiplier(multiplier) {}
 
     // Get the axis position update interval in milliseconds
     int getUpdateIntervalMs() const;
@@ -36,7 +36,7 @@ public:
 
     // Get the encoder invert status
     bool getEncoderInvert() const;
-    // Set the axis position update interval in milliseconds
+    // Set the encoder invert status
     void setEncoderInvert(bool invert);
 
     // Get the encoder reference for jog control

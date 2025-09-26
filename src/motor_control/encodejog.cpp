@@ -3,11 +3,11 @@
 #include "monotonic.h"
 
 int EncoderJog::getUpdateIntervalMs() const {
-    return update_interval_us / 1000;
+    return update_interval_ms;
 }
 
 void EncoderJog::setUpdateIntervalMs(int interval_ms) {
-    update_interval_us = interval_ms * 1000;
+    update_interval_ms = interval_ms;
 }
 
 float EncoderJog::getEncoderMultiplier() const {
@@ -31,7 +31,7 @@ void EncoderJog::start(IMotorHoming& motor) {
     pos_setpoint = this->motor->angle();
     last_encoder_value = 0;
     encoder.clearValue();
-    last_update_us = monotonic_us();
+    last_update_ms = millis();
 }
 
 void EncoderJog::stop() {
@@ -46,12 +46,12 @@ void EncoderJog::update() {
         return;
     }
 
-    // Run only every update_interval_us
-    uint64_t now_us = monotonic_us();
-    if (now_us - last_update_us < update_interval_us) {
+    // Run only every update_interval_ms
+    uint32_t now_ms = millis();
+    if (now_ms - last_update_ms < update_interval_ms) {
         return;
     }
-    last_update_us = now_us;
+    last_update_ms = now_ms;
 
     // Detect a change in jog encoder value
     int16_t encoder_value = encoder.getValue();

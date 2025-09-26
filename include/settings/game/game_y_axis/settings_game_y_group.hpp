@@ -4,7 +4,7 @@
 #include "settings/settings_group.hpp"
 #include "game/game_settings.hpp"
 #include "setting_game_y_ballbounceinverson.hpp"
-#include "setting_game_y_ballbounceminspeed.hpp"
+#include "setting_game_y_ballservemaxspeed.hpp"
 #include "setting_game_y_ballbouncemaxspeed.hpp"
 #include "settings/game/setting_axis_minspeed.hpp"
 #include "settings/game/setting_game_paddletol.hpp"
@@ -13,7 +13,7 @@ class SettingsGameAxisYGroup : public SettingsGroup {
     private:
         GameYAxisSettings& _gameSettings;
 
-        GameYBallBounceMinSpeedSetting _gameBallBounceMinSpeed = GameYBallBounceMinSpeedSetting(_gameSettings);
+        GameYBallServeMaxSpeedSetting _gameBallServeMaxSpeed = GameYBallServeMaxSpeedSetting(_gameSettings);
         GameYBallBounceMaxSpeedSetting _gameBallBounceMaxSpeed = GameYBallBounceMaxSpeedSetting(_gameSettings);
         GameMinSpeedSetting _gameMinSpeedY = GameMinSpeedSetting(_gameSettings.minCloseLoopSpeed);
         GamePaddleCollisionToleranceSetting _gamePaddleCollisionToleranceY = GamePaddleCollisionToleranceSetting(_gameSettings.paddleCollisionTolerance);
@@ -24,7 +24,7 @@ class SettingsGameAxisYGroup : public SettingsGroup {
         GameYBallBounceInversionOvershootSetting _gameBallBounceInvOvershoot100 = GameYBallBounceInversionOvershootSetting(_gameSettings, 4);
 
         ISetting* _settings[9] = {
-            &_gameBallBounceMinSpeed, &_gameBallBounceMaxSpeed,
+            &_gameBallServeMaxSpeed, &_gameBallBounceMaxSpeed,
             &_gameMinSpeedY, &_gamePaddleCollisionToleranceY,
             &_gameBallBounceInvOvershoot60, &_gameBallBounceInvOvershoot70,
             &_gameBallBounceInvOvershoot80, &_gameBallBounceInvOvershoot90,

@@ -3,31 +3,31 @@
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
-class GameXBallStartSpeedSetting : public SettingFloat {
+class GameXBallBounceMaxSpeedSetting : public SettingFloat {
     private:
         GameXAxisSettings& _settings;
 
     public:
-        GameXBallStartSpeedSetting(GameXAxisSettings& settings) : _settings(settings) {}
+        GameXBallBounceMaxSpeedSetting(GameXAxisSettings& settings) : _settings(settings) {}
 
         float getValue() const override {
-            return _settings.startBallGameSpeed;
+            return _settings.ballBounceMaxSpeed;
         }
 
         void setValue(const float value) override {
-            _settings.startBallGameSpeed = value;
+            _settings.ballBounceMaxSpeed = value;
         }
 
         const char* getName() const override {
-            return "ball_x_start_sp";
+            return "ball_x_bnc_max";
         }
 
         const char* getTitle() const override {
-            return "Ball start speed on X-Axis";
+            return "Ball maximum bounce speed";
         }
 
         const char* getDescription() const override {
-            return "Ball X-Axis speed when a new game start or after a goal";
+            return "Ball X-Axis maximum bounce speed";
         }
 
         const char* getUnit() const override {
@@ -39,7 +39,7 @@ class GameXBallStartSpeedSetting : public SettingFloat {
         }
 
         const float getMinValue() const override {
-            return 2.0f;
+            return 10.0f;
         }
 
         const bool hasMaxValue() const override {
@@ -47,13 +47,13 @@ class GameXBallStartSpeedSetting : public SettingFloat {
         }
 
         const float getMaxValue() const override {
-            return 20.0f;
+            return 60.0f;
         }
 
         const bool hasChangeStep() const override {
             return true;
         }
-
+        
         const float getChangeStep() const override {
             return 1.0f;
         }

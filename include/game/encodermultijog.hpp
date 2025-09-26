@@ -30,10 +30,24 @@ class EncoderMultiJog {
             : _unitEncoder(unitEncoder), _config(config), _xAxis(xAxis), _yAxis(yAxis), _lAxis(lAxis), _rAxis(rAxis) {}
 
         // Get the encoder reference for jog control
-        UnitEncoder* getEncoder() const;
+        UnitEncoder* getEncoder() const {
+            return &_unitEncoder;
+        }
 
         // Get the current jogged motor
-        IMotorHoming* getMotor() const;
+        IMotorHoming* getMotor() const {
+            return _encoderJog.getMotor();
+        }
+
+        // Get the current axis position setpoint
+        float getPosSetpoint() const {
+            return _encoderJog.getPosSetpoint();
+        }
+
+        // Override current axis jog position setpoint
+        void overridePosSetpoint(float pos) {
+            _encoderJog.overridePosSetpoint(pos);
+        }
 
         // Get the current encoder multiplier to convert encoder units to motor position units
         float getEncoderMultiplier() const;

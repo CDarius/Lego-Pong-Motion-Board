@@ -22,7 +22,18 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
 
     _lPlayerIsAI = playerIsAI(GamePlayer::L, mode);
     _rPlayerIsAI = playerIsAI(GamePlayer::R, mode);
+    _AIPlayerMaxMoveStep = _settings.aiPlayer.paddleMaxSpeed * ((float)GAME_LOOP_PERIOD_MS / 1000.0f);
 
+    // Get axes software limits
+    _xSwLimitM = _xMotor.getSwLimitMinus();
+    _xSwLimitP = _xMotor.getSwLimitPlus();
+    _ySwLimitM = _yMotor.getSwLimitMinus();
+    _ySwLimitP = _yMotor.getSwLimitPlus();
+    _lSwLimitM = _lMotor.getSwLimitMinus();
+    _lSwLimitP = _lMotor.getSwLimitPlus();
+    _rSwLimitM = _rMotor.getSwLimitMinus();
+    _rSwLimitP = _rMotor.getSwLimitPlus();
+    
     // Game loop
     while (true) {
         // Move the ball in front of the serving player paddle
@@ -63,6 +74,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
         throwBall(servingPlayer);
 
         // Bounce the ball until a player scores
+        _lastBallUpdateTime = millis() - GAME_LOOP_PERIOD_MS;
         while (true) {
             IF_CANCELLED(cancelToken, {
                 _lEncoderJog.stop();
@@ -80,6 +92,13 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             _paddleL = _lMotor.angle();
             _paddleR = _rMotor.angle();
 
+            // Calculate new ball position
+            unsigned long now = millis();
+            _deltaTimeS = ((float)(now - _lastBallUpdateTime)) / 1000.0f;
+            _lastBallUpdateTime = now;
+            _targetBallX += _speedX * _deltaTimeS;
+            _targetBallY += _speedY * _deltaTimeS;
+
             // Jog the paddles for non AI players
             if (!_lPlayerIsAI)
                 _lEncoderJog.update();
@@ -95,46 +114,69 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             // Bounce the ball on top or bottom border
             bounceBallTopBottom();
 
-            // Bounce the ball on paddle or score
-            if (isBallAtPaddleBounceLimit()) {
-                // The ball has reached the paddle on X-axis. Now test if it is within the paddle's Y-axis range or not
-                // If it is, the ball bounce, otherwise the player misses (other player score)
-                if (!bounceOnPaddle()) {
-                    // Keep Y position but limited on software limits
-                    float targetY = _ballY;
-                    if (targetY > _yMotor.getSwLimitPlus())
-                        targetY = _yMotor.getSwLimitPlus();
-                    if (targetY < _yMotor.getSwLimitMinus())
-                        targetY = _yMotor.getSwLimitMinus();
-
-                    // The ball wasn't in front of the paddle, player misses
-                    GamePlayer scoringPlayer = _speedX > 0 ? GamePlayer::L : GamePlayer::R;
-                    if (scoringPlayer == GamePlayer::L) {
-                        servingPlayer = GamePlayer::R;
-                        // Block right paddle
-                        _rEncoderJog.stop();
-                        _rMotor.track_target(_paddleR);
-                        // Move ball past the right paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitPlus(), targetY, cancelToken, _xMotor.speed(), _yMotor.speed());
-                        // Increment the score
-                        _scoreL++;
-                    } else {
-                        servingPlayer = GamePlayer::L;
-                        // Block left paddle
-                        _lEncoderJog.stop();
-                        _lMotor.track_target(_paddleL);
-                        // Move ball past the left paddle
-                        moveBallCloseLoop(_xMotor.getSwLimitMinus(), targetY, cancelToken, _xMotor.speed(), _yMotor.speed());
-                        // Increment the score
-                        _scoreR++;
-                    }
-
+            // Bounce the ball on paddles
+            bool isBallAtPaddleBounceLimitL = isBallAtPaddleBounceLimit(GamePlayer::L);
+            bool isBallAtPaddleBounceLimitR = isBallAtPaddleBounceLimit(GamePlayer::R);
+            if (isBallAtPaddleBounceLimitL) {
+                bounceOnPaddle(GamePlayer::L);
+            } else if (isBallAtPaddleBounceLimitR) {
+                bounceOnPaddle(GamePlayer::R);
+            }
+            
+            // Test for player miss and score
+            if (_speedX > 0) {
+                float scroreX = _xSwLimitP - _overshootX;
+                if (_ballX >= scroreX) {
+                    // Player R missed the ball
+                    _rEncoderJog.stop(); // Block R player encoder
+                    _scoreL++;
+                    servingPlayer = GamePlayer::R;
                     // Exit the bounce loop
                     break;
-                }                
+                }
+            } else {
+                float scroreX = _xSwLimitM + _overshootX;
+                if (_ballX <= scroreX) {
+                    // Player L missed the ball
+                    _lEncoderJog.stop(); // Block L player encoder
+                    _scoreR++;
+                    servingPlayer = GamePlayer::L;
+                    // Exit the bounce loop
+                    break;
+                }
             }
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+            // Limit _targetBallX and _targetBallY to max 2 studs difference from _ballX and _ballY
+            float maxTargetBallX = _ballX + 2.0f;
+            float minTargetBallX = _ballX - 2.0f;
+            float maxTargetBallY = _ballY + 2.0f;
+            float minTargetBallY = _ballY - 2.0f;
+            if (_targetBallX > maxTargetBallX) _targetBallX = maxTargetBallX;
+            if (_targetBallX < minTargetBallX) _targetBallX = minTargetBallX;
+            if (_targetBallY > maxTargetBallY) _targetBallY = maxTargetBallY;
+            if (_targetBallY < minTargetBallY) _targetBallY = minTargetBallY;
+
+            // Final limit to avid ball and paddle clash
+            if (isBallAtPaddleBounceLimitL)
+                limitPaddleOrBallToAvoidCollision(GamePlayer::L);
+            if (isBallAtPaddleBounceLimitR)
+                limitPaddleOrBallToAvoidCollision(GamePlayer::R);
+
+            // Limit _targetBall x and y to software limits
+            if (_targetBallX > _xSwLimitP) 
+                _targetBallX = _xSwLimitP;
+            if (_targetBallX < _xSwLimitM)
+                _targetBallX = _xSwLimitM;
+            if (_targetBallY > _ySwLimitP)
+                _targetBallY = _ySwLimitP;
+            if (_targetBallY < _ySwLimitM)
+                _targetBallY = _ySwLimitM;
+
+            // Move the ball to the target position
+            _xMotor.track_target(_targetBallX);
+            _yMotor.track_target(_targetBallY);
+
+            delay(GAME_LOOP_PERIOD_MS);
         }
 
         // Test for game end
@@ -162,22 +204,20 @@ void Game::resetDisplay() {
     _ioBoard.showScore(0, 0);
 }
 
-pbio_error_t Game::moveBallToPaddle(GamePlayer player, CancelToken& cancelToken) {
+pbio_error_t Game::moveBallToPaddle(GamePlayer paddle, CancelToken& cancelToken) {
     float ballX, ballY;
-    if (player == GamePlayer::L) {
-        float xSwLimitM = _xMotor.getSwLimitMinus();
+    if (paddle == GamePlayer::L) {
         ballY = _lMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
-        ballX = xSwLimitM + GAME_PADDLE_W + _settings.xAxis.ballPaddleDistance;
+        ballX = _xSwLimitM + GAME_PADDLE_W + _settings.xAxis.ballPaddleDistance;
     } else {
-        float xSwLimitP = _xMotor.getSwLimitPlus();
         ballY = _rMotor.angle() + GAME_PADDLE_H / 2.0 - GAME_BALL_L / 2.0;
-        ballX = xSwLimitP - GAME_BALL_L - _settings.xAxis.ballPaddleDistance;
+        ballX = _xSwLimitP - GAME_BALL_L - _settings.xAxis.ballPaddleDistance;
     }
 
-    if (isBallOnThePaddleColumn(player)) {
+    if (isBallOnThePaddleColumn(paddle)) {
         // Make the C movement to return the ball in front of the player's paddle
         float x1;
-        if (player == GamePlayer::L) {
+        if (paddle == GamePlayer::L) {
             x1 = ballX + GAME_PADDLE_BALL_X_DIST_COLUMN;
         } else {
             x1 = ballX - GAME_PADDLE_BALL_X_DIST_COLUMN;
@@ -210,14 +250,14 @@ pbio_error_t Game::moveBallToPaddle(GamePlayer player, CancelToken& cancelToken)
             &cancelToken
         ));
     } else {
-        GamePlayer otherPlayer = OTHER_GAME_PLAYER(player);
+        GamePlayer otherPlayer = OTHER_GAME_PLAYER(paddle);
         if (isBallOnThePaddleColumn(otherPlayer)) {
             // Move the ball outside the other paddle column
             float x;
             if (otherPlayer == GamePlayer::L) {
-                x = _xMotor.getSwLimitMinus() + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN;
+                x = _xSwLimitM + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN / 2.0f;
             } else {
-                x = _xMotor.getSwLimitPlus() - GAME_BALL_L - GAME_PADDLE_BALL_X_DIST_COLUMN;
+                x = _xSwLimitP - GAME_PADDLE_W - GAME_PADDLE_BALL_X_DIST_COLUMN / 2.0f;
             }
 
             PBIO_RETURN_ON_ERROR(_xMotor.run_target(
@@ -241,11 +281,11 @@ void Game::ballTrackPaddle(IMotorHoming& axis) {
     _yMotor.track_target(ballY);
 }
 
-bool Game::isBallOnThePaddleColumn(GamePlayer player) const {
-    if (player == GamePlayer::L) {
-        return _xMotor.angle() < (_xMotor.getSwLimitMinus() + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN);
+bool Game::isBallOnThePaddleColumn(GamePlayer paddle) const {
+    if (paddle == GamePlayer::L) {
+        return _xMotor.angle() < (_xSwLimitM + GAME_PADDLE_W + GAME_PADDLE_BALL_X_DIST_COLUMN);
     } else {
-        return _xMotor.angle() > (_xMotor.getSwLimitPlus() - GAME_PADDLE_W - GAME_BALL_L - GAME_PADDLE_BALL_X_DIST_COLUMN);
+        return _xMotor.angle() > (_xSwLimitP - GAME_PADDLE_W - GAME_PADDLE_BALL_X_DIST_COLUMN);
     }
 }
 
@@ -339,7 +379,7 @@ pbio_error_t Game::humanPlayerServeBall(GamePlayer player, CancelToken& cancelTo
 
         encoderButton.setRawState(millis(), servingEncoder->getEncoder()->isButtonPressed());
 
-        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+        delay(GAME_LOOP_PERIOD_MS);
     }
 
     return PBIO_SUCCESS;
@@ -348,10 +388,26 @@ pbio_error_t Game::humanPlayerServeBall(GamePlayer player, CancelToken& cancelTo
 pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken) {
     IMotorHoming* servingMotor = (player == GamePlayer::L) ? &(_lMotor) : &(_rMotor);
 
+    // Little delay before moving the paddle
+    unsigned long startTime = millis();
+    while ((millis() - startTime) < 1000) {
+        IF_CANCELLED(cancelToken, {
+            return PBIO_ERROR_CANCELED;
+        });
+
+        // Both players move the paddles with their encoders if they are not AI
+        if (!_lPlayerIsAI)
+            _lEncoderJog.update();
+        if (!_rPlayerIsAI)
+            _rEncoderJog.update();
+
+        delay(GAME_LOOP_PERIOD_MS);
+    }
+
     // Move the paddle to a random position
     float paddlePos = servingMotor->getSwLimitMinus() + (float)random(0, 10001) / 10000.0f * (servingMotor->getSwLimitPlus() - servingMotor->getSwLimitMinus() - GAME_PADDLE_H);
     PBIO_RETURN_ON_ERROR(servingMotor->run_target(
-        _settings.aiPlayer.paddleMaxSpeed * 0.85f,
+        servingMotor->get_speed_limit() * 0.5f,
         paddlePos,
         PBIO_ACTUATION_HOLD,
         false,
@@ -377,124 +433,302 @@ pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken
         delay(PBIO_CONFIG_SERVO_PERIOD_MS);
     }
 
+    if (player == GamePlayer::L) {
+        _lAIPlayerActualYSetpoint = paddlePos;
+        _lAIPlayerTargetY = paddlePos;
+    } else {
+        _rAIPlayerActualYSetpoint = paddlePos;
+        _rAIPlayerTargetY = paddlePos;
+    }
+
     return PBIO_SUCCESS;
 }
 
 void Game::throwBall(GamePlayer player) {
-    float maxYSpeed = _settings.yAxis.bounceSpeedMax - (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin) * 0.6f;
-    _speedX = ((float)_settings.xAxis.startBallGameSpeed) * ((player == GamePlayer::L) ? 1.0f : -1.0f);
-    _speedY = ((float)random(-10000, 10001) / 10000.0f) * (maxYSpeed - _settings.yAxis.bounceSpeedMin);
-    _speedY += (float)(_speedY > 0.0f ? _settings.yAxis.bounceSpeedMin : -_settings.yAxis.bounceSpeedMin);
+    _speedX = _settings.xAxis.startBallGameSpeed * ((player == GamePlayer::L) ? 1.0f : -1.0f);
+    _speedY = ((float)random(-10000, 10001) / 10000.0f) * _settings.yAxis.ballServeSpeedMax;
+
     _overshootX = getXInversionOvershoot(_speedX);
     _overshootY = getYInversionOvershoot(_speedY);
     _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
-    _xMotor.dc(_speedX);
-    _yMotor.dc(_speedY);
 }
 
 void Game::bounceBallTopBottom() {
     bool invert;
     if (_speedY > 0.0f) {
         // Going down
-        float border = _yMotor.getSwLimitPlus();
+        float border = _ySwLimitP - _overshootY;
 
-        invert = (_ballY + _overshootY) > border;
+        if (_targetBallY > border) {
+            invert = true;
+            _targetBallY = border - (_targetBallY - border);
+        }
     } else {
         // Going up
-        float border = _yMotor.getSwLimitMinus();
+        float border = _ySwLimitM + _overshootY;
 
-        invert = (_ballY - _overshootY) < border;
+        if (_targetBallY < border) {
+            invert = true;
+            _targetBallY = border + (border - _targetBallY);
+        }
     }
 
     if (invert) {
         _speedY = -(_speedY);
-        _yMotor.dc(_speedY);
         _ioBoard.playSound(IO_BOARD_SOUND_WALL);
     }
 }
 
-bool Game::isBallAtPaddleBounceLimit() const {
-    if (_speedX > 0.0f) {
-        // Going right
-        float border = _xMotor.getSwLimitPlus() - _settings.xAxis.paddleCollisionTolerance - GAME_PADDLE_W;
+bool Game::isBallAtPaddleBounceLimit(GamePlayer paddle) const {
+    if (paddle == GamePlayer::R) {
+        // Right paddle
+        float border = _xSwLimitP - _settings.xAxis.paddleCollisionTolerance - GAME_PADDLE_W;
 
         return (_ballX + _overshootX) > border;
     } else {
-        // Going left
-        float border = _xMotor.getSwLimitMinus() + _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
+        // Left paddle
+        float border = _xSwLimitM + _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
 
         return (_ballX - _overshootX) < border;
     }
 }
 
-bool Game::bounceOnPaddle() {
-    float paddleY = (_speedX > 0.0f) ? _paddleR : _paddleL;
-
+void Game::bounceOnPaddle(GamePlayer paddle) {
+    float paddleY = (paddle == GamePlayer::R) ? _paddleR : _paddleL;
+    
     float yMin = paddleY - _settings.yAxis.paddleCollisionTolerance - GAME_BALL_L;
     float yMax = paddleY + _settings.yAxis.paddleCollisionTolerance + GAME_PADDLE_H;
-        
+    
     bool inRange = (_ballY >= yMin && _ballY <= yMax);
     if (inRange) {
         // The ball is in front of the paddle, bounce
+        bool towardPaddleX = paddle == GamePlayer::R ? (_speedX > 0.0f) : (_speedX < 0.0f);
+        if (towardPaddleX) {
+            // The ball is going toward the paddle, bounce inverting X-Axis speed
 
-        // Invert and increment X-Axis speed
-        _speedX = -(_speedX + _settings.xAxis.ballBounceSpeedIncrement * (_speedX > 0.0f ? 1.0f : -1.0f));
-        if (_speedX > 100.0f) _speedX = 100.0f;
-        if (_speedX < -100.0f) _speedX = -100.0f;
-        _xMotor.dc(_speedX);
-        _overshootX = getXInversionOvershoot(_speedX);
+            // Invert and increment X-Axis speed
+            if (_speedX > 0.0f) {
+                _speedX += _settings.xAxis.ballBounceSpeedIncrement;
+                if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
+                    _speedX = _settings.xAxis.ballBounceMaxSpeed;
+                _speedX = -_speedX;
+            } else {
+                _speedX = (-_speedX) + _settings.xAxis.ballBounceSpeedIncrement;
+                if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
+                    _speedX = _settings.xAxis.ballBounceMaxSpeed;
+            }
+            _overshootX = getXInversionOvershoot(_speedX);
 
-        // Calculate the new Y-Axis speed based on the position relative to paddle
-        float relativePosition = 2.0f * (_ballY - yMin) / (yMax - yMin) - 1.0f;
-        _speedY = relativePosition * (_settings.yAxis.bounceSpeedMax - _settings.yAxis.bounceSpeedMin);
-        _speedY += (float)(_speedY > 0.0f ? _settings.yAxis.bounceSpeedMin : -_settings.yAxis.bounceSpeedMin);
-        _yMotor.dc(_speedY);
-        _overshootY = getYInversionOvershoot(_speedY);
+            // Calculate the new Y-Axis speed based on the position relative to paddle
+            float relativePosition = 2.0f * (_ballY - yMin) / (yMax - yMin) - 1.0f;
+            _speedY = relativePosition * _settings.yAxis.ballBounceSpeedMax;
+            _overshootY = getYInversionOvershoot(_speedY);
 
-        _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
-        
-        if (fabs(_speedX) == 100.0f) {
+            _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
+
+            // Update the target ball positon
+            _targetBallX = _ballX + _speedX * _deltaTimeS;
+            _targetBallY = _ballY + _speedY * _deltaTimeS;
+
             // When the X-Axis speed is at maximum, also increment the L/R-Axes jog speed
-            float jogMultiplier = _lEncoderJog.getEncoderMultiplier();
-            if (jogMultiplier > _settings.lrAxis.minJogEncoderMultiplier) {
-                jogMultiplier -= _settings.lrAxis.jogMultiplierDecrement;
-                if (jogMultiplier < _settings.lrAxis.minJogEncoderMultiplier) {
-                    jogMultiplier = _settings.lrAxis.minJogEncoderMultiplier;
+            if (fabs(_speedX) == _settings.xAxis.ballBounceMaxSpeed) {
+                float jogMultiplier = _lEncoderJog.getEncoderMultiplier();
+                if (jogMultiplier > _settings.lrAxis.minJogEncoderMultiplier) {
+                    jogMultiplier -= _settings.lrAxis.jogMultiplierDecrement;
+                    if (jogMultiplier < _settings.lrAxis.minJogEncoderMultiplier) {
+                        jogMultiplier = _settings.lrAxis.minJogEncoderMultiplier;
+                    }
+                    _lEncoderJog.setEncoderMultiplier(jogMultiplier);
+                    _rEncoderJog.setEncoderMultiplier(jogMultiplier);
                 }
-                _lEncoderJog.setEncoderMultiplier(jogMultiplier);
-                _rEncoderJog.setEncoderMultiplier(jogMultiplier);
+            }
+        } else {
+            // The ball isn’t going toward the paddle
+            // Test if the ball is on the shoulder of the paddle
+            bool onShoulder = paddle == GamePlayer::R ? 
+                (_ballX >= (_xSwLimitP - GAME_PADDLE_W)) 
+                : (_ballX <= (_xSwLimitM + GAME_PADDLE_W));
+
+            if (onShoulder) {
+                // Test is goinge toward the paddle
+                bool ballIsBelowPaddle = _ballY > (paddleY + GAME_PADDLE_H / 2.0f - GAME_BALL_L / 2.0f);
+                bool towardPaddle = _speedY > 0.0f ? !ballIsBelowPaddle : ballIsBelowPaddle;
+                if (towardPaddle) {
+                    // The ball is going toward the paddle, bounce inverting Y-Axis speed
+                    _speedY = -(_speedY);
+                    _targetBallY = _ballY + _speedY * _deltaTimeS;
+                }
+            }
+        }     
+    }
+}
+
+void Game::limitPaddleOrBallToAvoidCollision(GamePlayer paddle) {
+    float paddleY = (paddle == GamePlayer::L) ? _paddleL : _paddleR;
+    bool ballIsBelowPaddle = _ballY > (paddleY + GAME_PADDLE_H / 2.0f - GAME_BALL_L / 2.0f);
+    if (ballIsBelowPaddle) {
+        if (_speedY > 0.0f) {
+            // Ball is below the paddle and going down, limit the paddle max position
+            float maxPaddleY = _ballY - GAME_PADDLE_H;
+            float paddleTargetY = getPaddleTargetY(paddle);
+            if (paddleTargetY > maxPaddleY) {
+                // Limit the paddle position
+                movePlayerPaddleToY(paddle, maxPaddleY);
+            }
+        } else {
+            // Ball is below the paddle and going up, limit the ball min position
+            float minBallY = paddleY + GAME_PADDLE_H;
+            if (_targetBallY < minBallY) {
+                _targetBallY = minBallY;
             }
         }
-    }
 
-    return inRange;
+        // Last test to avoid the ball pushed in the corner by the paddle
+        if (_targetBallY > _ySwLimitP) {
+            _targetBallY = _ySwLimitP;
+            float maxPaddleY = _targetBallY - GAME_PADDLE_H;
+            float paddleTargetY = getPaddleTargetY(paddle);
+            if (paddleTargetY > maxPaddleY) {
+                // Limit the paddle position
+                movePlayerPaddleToY(paddle, maxPaddleY);
+            }            
+        }
+    } else {
+        if (_speedY < 0.0f) {
+            // Ball is above the paddle and going up, limit the paddle min position
+            float minPaddleY = _ballY + GAME_BALL_L;
+            float paddleTargetY = getPaddleTargetY(paddle);
+            if (paddleTargetY < minPaddleY) {
+                // Limit the paddle position
+                movePlayerPaddleToY(paddle, minPaddleY);
+            }
+        } else {
+            // Ball is above the paddle and going down, limit the ball max position
+            float maxBallY = paddleY - GAME_BALL_L;
+            if (_targetBallY > maxBallY) {
+                _targetBallY = maxBallY;
+            }
+        }
+
+        // Last test to avoid the ball pushed in the corner by the paddle
+        if (_targetBallY < _ySwLimitM) {
+            _targetBallY = _ySwLimitM;
+            float minPaddleY = _targetBallY + GAME_BALL_L;
+            float paddleTargetY = getPaddleTargetY(paddle);
+            if (paddleTargetY < minPaddleY) {
+                // Limit the paddle position
+                movePlayerPaddleToY(paddle, minPaddleY);
+            }            
+        }
+    }
+}
+
+float Game::getPaddleTargetY(GamePlayer player) const {
+    if (player == GamePlayer::L) {
+        if (_lPlayerIsAI) {
+            return _lAIPlayerTargetY;
+        } else {
+            return _lEncoderJog.getPosSetpoint();
+        }
+    } else {
+        if (_rPlayerIsAI) {
+            return _rAIPlayerTargetY;
+        } else {
+            return _rEncoderJog.getPosSetpoint();
+        }
+    }
+}
+
+void Game::movePlayerPaddleToY(GamePlayer player, float y) {
+    if (player == GamePlayer::L) {
+        if (_lPlayerIsAI) {
+            _lAIPlayerTargetY = y;
+            _lMotor.track_target(y);
+        } else {
+            _lEncoderJog.overridePosSetpoint(y);
+        }
+    } else {
+        if (_rPlayerIsAI) {
+            _rAIPlayerTargetY = y;
+            _rMotor.track_target(y);
+        } else {
+            _rEncoderJog.overridePosSetpoint(y);
+        }
+    }
 }
 
 void Game::aiPlayer(GamePlayer player) {
     unsigned long now = millis();
-    if ((now - _lastAIUpdateTime) < _settings.aiPlayer.playerUpdateTimeMs) {
-        return;
-    }
+    uint16_t deltaTime = now - _lastAIUpdateTime;
+    bool calcNewPosition = deltaTime < _settings.aiPlayer.playerUpdateTimeMs;
     _lastAIUpdateTime = now;
 
-    // Ideal tracking position
-    float paddleTargetPos = _ballY + GAME_BALL_L / 2.0f - GAME_PADDLE_H / 2.0f;
-    // Add some random error
-    paddleTargetPos += ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
+    if (calcNewPosition) {
+        // Ideal tracking position
+        float paddleTargetPos = _ballY + GAME_BALL_L / 2.0f - GAME_PADDLE_H / 2.0f;
+        // Add some random error
+        paddleTargetPos += ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
 
-    // Limit target pos on software limits
-    if (paddleTargetPos < _rMotor.getSwLimitMinus()) {
-        paddleTargetPos = _rMotor.getSwLimitMinus();
-    } else if (paddleTargetPos > _rMotor.getSwLimitPlus()) {
-        paddleTargetPos = _rMotor.getSwLimitPlus();
+        // Limit target pos on software limits
+        if (paddleTargetPos < _rSwLimitM) {
+            paddleTargetPos = _rSwLimitM;
+        } else if (paddleTargetPos > _rSwLimitP) {
+            paddleTargetPos = _rSwLimitP;
+        }
+
+        // Set the new target position
+        if (player == GamePlayer::L) {
+            _lAIPlayerTargetY = paddleTargetPos;
+        } else {
+            _rAIPlayerTargetY = paddleTargetPos;
+        }
+    }
+
+    // Get paddle target position and actual setpoint
+    float targetY, yActualSetpoint;
+    IMotorHoming* playerMotor;
+    if (player == GamePlayer::L) {
+        targetY = _lAIPlayerTargetY;
+        yActualSetpoint = _lAIPlayerActualYSetpoint;
+        playerMotor = &(_lMotor);
+    } else {
+        targetY = _rAIPlayerTargetY;
+        yActualSetpoint = _rAIPlayerActualYSetpoint;
+        playerMotor = &(_rMotor);
+    }
+
+    if (yActualSetpoint == targetY) {
+        // Already at target
+        return;
     }
 
     // Move the paddle
-    IMotorHoming* playerMotor = (player == GamePlayer::L) ? &_lMotor : &_rMotor;
-    playerMotor->run_target(_settings.aiPlayer.paddleMaxSpeed, paddleTargetPos, PBIO_ACTUATION_HOLD, false);
+    if (targetY > yActualSetpoint) {
+        // Need to go down
+        yActualSetpoint += _AIPlayerMaxMoveStep;
+        if (yActualSetpoint > targetY) {
+            yActualSetpoint = targetY;
+        }
+    } else {
+        // Need to go up
+        yActualSetpoint -= _AIPlayerMaxMoveStep;
+        if (yActualSetpoint < targetY) {
+            yActualSetpoint = targetY;
+        }
+    }
+
+    playerMotor->track_target(yActualSetpoint);
+
+    // Save new AI player status
+    if (player == GamePlayer::L) {
+        _lAIPlayerActualYSetpoint = yActualSetpoint;
+    } else {
+        _rAIPlayerActualYSetpoint = yActualSetpoint;
+    }
 }
 
 float Game::getYInversionOvershoot(float speed) const {
+    /*
     float absSpeed = fabs(speed);
     float result;
 
@@ -507,9 +741,12 @@ float Game::getYInversionOvershoot(float speed) const {
 
     result = _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
     return result * 0.75f;
+    */
+   return 0.5f;
 }
 
 float Game::getXInversionOvershoot(float speed) const {
+    /*
     float absSpeed = fabs(speed);
 
     float thresholds[] = X_AXIS_BOUNCE_INVERSIONS_SPEEDS;
@@ -520,4 +757,6 @@ float Game::getXInversionOvershoot(float speed) const {
     }
 
     return _settings.xAxis.bounceInversionOvershootAtSpeed[X_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
+    */
+    return 0.0f;
 }

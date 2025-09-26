@@ -3,18 +3,18 @@
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
-class GameXBallSpeedBounceIncrementSetting : public SettingUInt8 {
+class GameXBallSpeedBounceIncrementSetting : public SettingFloat {
     private:
         GameXAxisSettings& _settings;
 
     public:
         GameXBallSpeedBounceIncrementSetting(GameXAxisSettings& settings) : _settings(settings) {}
 
-        uint8_t getValue() const override {
+        float getValue() const override {
             return _settings.ballBounceSpeedIncrement;
         }
 
-        void setValue(const uint8_t value) override {
+        void setValue(const float value) override {
             _settings.ballBounceSpeedIncrement = value;
         }
 
@@ -31,14 +31,30 @@ class GameXBallSpeedBounceIncrementSetting : public SettingUInt8 {
         }
 
         const char* getUnit() const override {
-            return "%";
+            return "stud/s";
         }
 
-        const uint8_t getMinValue() const override {
-            return 1;
+        const bool hasMinValue() const override {
+            return true;
         }
 
-        const uint8_t getMaxValue() const override {
-            return 20;
+        const float getMinValue() const override {
+            return 1.0f;
+        }
+
+        const bool hasMaxValue() const override {
+            return true;
+        }
+
+        const float getMaxValue() const override {
+            return 20.0f;
+        }
+
+        const bool hasChangeStep() const override {
+            return true;
+        }
+
+        const float getChangeStep() const override {
+            return 1.0f;
         }
     };

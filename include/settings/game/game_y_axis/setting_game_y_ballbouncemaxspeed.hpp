@@ -3,23 +3,23 @@
 #include "game\game_settings.hpp"
 #include "settings\setting.hpp"
 
-class GameYBallBounceMaxSpeedSetting : public SettingUInt8 {
+class GameYBallBounceMaxSpeedSetting : public SettingFloat {
     private:
         GameYAxisSettings& _settings;
 
     public:
         GameYBallBounceMaxSpeedSetting(GameYAxisSettings& settings) : _settings(settings) {}
 
-        uint8_t getValue() const override {
-            return _settings.bounceSpeedMax;
+        float getValue() const override {
+            return _settings.ballBounceSpeedMax;
         }
 
-        void setValue(const uint8_t value) override {
-            _settings.bounceSpeedMax = value;
+        void setValue(const float value) override {
+            _settings.ballBounceSpeedMax = value;
         }
 
         const char* getName() const override {
-            return "ball_y_spd_max";
+            return "ball_y_bnc_max";
         }
 
         const char* getTitle() const override {
@@ -27,22 +27,34 @@ class GameYBallBounceMaxSpeedSetting : public SettingUInt8 {
         }
 
         const char* getDescription() const override {
-            return "Ball Y-Axis maximum speed for serve or bounce";
+            return "Ball Y-Axis maximum bounce speed";
         }
 
         const char* getUnit() const override {
-            return "%";
+            return "stud/second";
         }
 
-        const uint8_t getMinValue() const override {
-            return 40;
+        const bool hasMinValue() const override {
+            return true;
         }
 
-        const uint8_t getMaxValue() const override {
-            return 60;
+        const float getMinValue() const override {
+            return 10.0f;
         }
 
-        const uint8_t getChangeStep() const override {
-            return 5;
+        const bool hasMaxValue() const override {
+            return true;
+        }
+
+        const float getMaxValue() const override {
+            return 60.0f;
+        }
+
+        const bool hasChangeStep() const override {
+            return true;
+        }
+        
+        const float getChangeStep() const override {
+            return 1.0f;
         }
     };

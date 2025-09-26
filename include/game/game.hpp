@@ -30,6 +30,8 @@ enum class GameMode {
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)
 #define GAME_WIN_SCORE (3)
 
+#define GAME_LOOP_PERIOD_MS     PBIO_CONFIG_SERVO_PERIOD_MS
+
 class Game {
     private:
         GameSettings _settings;
@@ -45,26 +47,41 @@ class Game {
         uint8_t _scoreR = 0;
 
         // Game motion state
+        float _deltaTimeS = 0.0;
         float _ballX = 0.0f;
         float _ballY = 0.0f;
         float _paddleL = 0.0f;
         float _paddleR = 0.0f;
         float _speedX = 0.0f;
         float _speedY = 0.0f;
+        float _targetBallX = 0.0f;
+        float _targetBallY = 0.0f;
         float _overshootX = 0.0f;
         float _overshootY = 0.0f;
+        unsigned long _lastBallUpdateTime;
+
+        // Axes software limits 
+        float _xSwLimitM, _xSwLimitP;
+        float _ySwLimitM, _ySwLimitP;
+        float _lSwLimitM, _lSwLimitP;
+        float _rSwLimitM, _rSwLimitP;
 
         // AI player state
         unsigned long _lastAIUpdateTime = 0;
         bool _lPlayerIsAI;
         bool _rPlayerIsAI;
+        float _lAIPlayerTargetY;
+        float _rAIPlayerTargetY;
+        float _lAIPlayerActualYSetpoint;
+        float _rAIPlayerActualYSetpoint;
+        float _AIPlayerMaxMoveStep;
         
         // Move the ball in front of the player paddle
-        pbio_error_t moveBallToPaddle(GamePlayer player, CancelToken& cancelToken);
+        pbio_error_t moveBallToPaddle(GamePlayer paddle, CancelToken& cancelToken);
         // Make ball track the paddle vertical position
         void ballTrackPaddle(IMotorHoming& axis);
         // Return true if the ball is on the specified player's paddle column (ball X is near the paddle)
-        bool isBallOnThePaddleColumn(GamePlayer player) const;
+        bool isBallOnThePaddleColumn(GamePlayer paddle) const;
         // Make a ball close loop interpolated movement
         pbio_error_t moveBallCloseLoop(float x, float y, CancelToken& cancelToken, float speedX = NAN, float speedY = NAN);
         // Human player serve the ball from the paddle
@@ -76,9 +93,15 @@ class Game {
         // Bounce the ball on top or bottom border
         void bounceBallTopBottom();
         // Test if the ball has reached the paddle on X axis. When return true we must then check the Y axis to understand if the ball is also at the paddle height
-        bool isBallAtPaddleBounceLimit() const;
+        bool isBallAtPaddleBounceLimit(GamePlayer paddle) const;
         // Test if the ball is within the paddle's Y-axis range and if it is bounce
-        bool bounceOnPaddle();
+        void bounceOnPaddle(GamePlayer paddle);
+        // Limit paddle or ball to avoid collision
+        void limitPaddleOrBallToAvoidCollision(GamePlayer paddle);
+        // Get paddle target Y position for a human or an AI player
+        float getPaddleTargetY(GamePlayer player) const;
+        // Move human or AI player paddle to a provided Y position
+        void movePlayerPaddleToY(GamePlayer player, float y);
         // Calculate the travel overshoot when the ball speed X is inverted
         float getXInversionOvershoot(float speed) const;
         // Calculate the travel overshoot when the ball speed Y is inverted

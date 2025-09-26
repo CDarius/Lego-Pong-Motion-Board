@@ -1,13 +1,5 @@
 #include "game/encodermultijog.hpp"
 
-UnitEncoder* EncoderMultiJog::getEncoder() const {
-    return &_unitEncoder;
-}
-
-IMotorHoming* EncoderMultiJog::getMotor() const {
-    return _encoderJog.getMotor();
-}
-
 float EncoderMultiJog::getEncoderMultiplier() const {
     return _encoderJog.getEncoderMultiplier();
 }

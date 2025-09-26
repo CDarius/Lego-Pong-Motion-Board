@@ -40,10 +40,22 @@ public:
     void setEncoderInvert(bool invert);
 
     // Get the encoder reference for jog control
-    UnitEncoder* getEncoder() const;
+    UnitEncoder* getEncoder() const {
+        return &encoder;
+    }
 
     // Get the current jogged motor
-    IMotorHoming* getMotor() const;
+    IMotorHoming* getMotor() const {
+        return motor;
+    }
+
+    // Get the current axis position setpoint
+    float getPosSetpoint() const {
+        return pos_setpoint;
+    }
+
+    // Override current axis jog position setpoint
+    void overridePosSetpoint(float pos);
 
     // Start jog control with the given motor
     void start(IMotorHoming& motor);

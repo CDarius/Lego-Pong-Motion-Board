@@ -26,14 +26,6 @@ void EncoderJog::setEncoderInvert(bool invert) {
     invert_encoder = invert;
 }
 
-UnitEncoder* EncoderJog::getEncoder() const {
-    return &encoder;
-}
-
-IMotorHoming* EncoderJog::getMotor() const {
-    return motor;
-}
-
 void EncoderJog::start(IMotorHoming& motor) {
     this->motor = &motor;
     pos_setpoint = this->motor->angle();
@@ -86,4 +78,9 @@ void EncoderJog::update() {
     motor->track_target(new_position);
     pos_setpoint = new_position;
     last_encoder_value = encoder_value;
+}
+
+void EncoderJog::overridePosSetpoint(float pos) {
+    pos_setpoint = pos;
+    motor->track_target(pos);
 }

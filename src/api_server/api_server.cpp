@@ -30,13 +30,14 @@ String ApiRestServer::uriParam(const String& uri, uint8_t position) {
     return ""; // Return empty string if position is out of bounds
 }
 
-void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor* xMotor, Motor* yMotor, Motor* lMotor, Motor* rMotor) {
+void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor* xMotor, Motor* yMotor, Motor* lMotor, Motor* rMotor, GameLogger* gameLogger) {
     _settings = settings;
     _webFunctions = webFunctions;
     _XMotor = xMotor;
     _YMotor = yMotor;
     _LMotor = lMotor;
     _RMotor = rMotor;
+    _gameLogger = gameLogger;
 
     // Configure the webserver
     _server.listen(5000);
@@ -55,6 +56,7 @@ void ApiRestServer::begin(Settings* settings, WebFunctions* webFunctions, Motor*
     setupWebFunctionController();
     setupAxisLogController();
     setupAxisInfoController();
+    setupGameLogController();
 }
 
 Motor* ApiRestServer::getMotorByName(const char* name) {

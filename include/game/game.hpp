@@ -3,6 +3,7 @@
 #include "config.h"
 #include "axes.hpp"
 #include "game_settings.hpp"
+#include "game_logger.hpp"
 #include "motor_control/motorhoming.hpp"
 #include "motor_control/error.hpp"
 #include "devices/io_board.hpp"
@@ -10,11 +11,28 @@
 #include "encodermultijog.hpp"
 #include "utils/cancel_token.hpp"
 
+#define GAME_LOOP_PERIOD_MS     PBIO_CONFIG_SERVO_PERIOD_MS
+
+#define GAME_LOG_NEW_CYCLE(ballX, ballY, paddleL, paddleR) \
+    if (logGame) \
+        _logger.logNewCycle(ballX, ballY, paddleL, paddleR);
+
+#define GAME_LOG_SUB_CYCLE \
+    if (logGame) \
+        _logger.logSubCycle(_targetBallX, _targetBallY, getPaddleTargetY(GamePlayer::L), getPaddleTargetY(GamePlayer::R));
+
+#define GAME_WIN_SCORE (3)
+
 #define GAME_PADDLE_H   3.0
 #define GAME_PADDLE_W   2.0
 #define GAME_BALL_L     2.0
 
 #define GAME_PADDLE_BALL_X_DIST_COLUMN   2.0
+
+#define GAME_NUM_LOG_SUB_CYCLE 7
+#define GAME_LOG_TIME_MS 10 * 1000
+#define GAME_LOG_MAX_ENTRIES (GAME_LOG_TIME_MS / GAME_LOOP_PERIOD_MS * (GAME_NUM_LOG_SUB_CYCLE + 1))
+
 
 enum class GamePlayer {
     L,
@@ -28,9 +46,7 @@ enum class GameMode {
 };
 
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)
-#define GAME_WIN_SCORE (3)
 
-#define GAME_LOOP_PERIOD_MS     PBIO_CONFIG_SERVO_PERIOD_MS
 
 class Game {
     private:
@@ -42,6 +58,8 @@ class Game {
         IOBoard& _ioBoard;
         EncoderMultiJog _lEncoderJog;
         EncoderMultiJog _rEncoderJog;
+
+        GameLogger _logger;
 
         uint8_t _scoreL = 0;
         uint8_t _scoreR = 0;
@@ -125,8 +143,13 @@ class Game {
         }
 
         // Start and run a new game
-        pbio_error_t run(GamePlayer startPlayer, GameMode mode);
+        pbio_error_t run(GamePlayer startPlayer, GameMode mode, CancelToken& cancelToken, bool logGame = false);
 
         // Reset game display
         void resetDisplay();
+
+        // Get the game logger
+        GameLogger* getLogger() {
+            return &_logger;
+        }
 };

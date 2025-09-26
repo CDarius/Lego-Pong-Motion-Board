@@ -11,8 +11,12 @@ bool playerIsAI(GamePlayer player, GameMode mode) {
     return false;
 }
 
-pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
-    CancelToken cancelToken;
+pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cancelToken, bool logGame) {
+    // Init logger
+    if (logGame)
+        _logger.start(GAME_LOG_MAX_ENTRIES);
+    else
+        _logger.deleteLog();
 
     // Init game
     _scoreL = 0;
@@ -92,12 +96,16 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             _paddleL = _lMotor.angle();
             _paddleR = _rMotor.angle();
 
+            GAME_LOG_NEW_CYCLE(_ballX, _ballY, _paddleL, _paddleR);
+
             // Calculate new ball position
             unsigned long now = millis();
             _deltaTimeS = ((float)(now - _lastBallUpdateTime)) / 1000.0f;
             _lastBallUpdateTime = now;
             _targetBallX += _speedX * _deltaTimeS;
             _targetBallY += _speedY * _deltaTimeS;
+
+            GAME_NUM_LOG_SUB_CYCLE;
 
             // Jog the paddles for non AI players
             if (!_lPlayerIsAI)
@@ -111,8 +119,12 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             if (_rPlayerIsAI)
                 aiPlayer(GamePlayer::R);
 
+            GAME_NUM_LOG_SUB_CYCLE;
+
             // Bounce the ball on top or bottom border
             bounceBallTopBottom();
+
+            GAME_NUM_LOG_SUB_CYCLE;
 
             // Bounce the ball on paddles
             bool isBallAtPaddleBounceLimitL = isBallAtPaddleBounceLimit(GamePlayer::L);
@@ -122,6 +134,8 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             } else if (isBallAtPaddleBounceLimitR) {
                 bounceOnPaddle(GamePlayer::R);
             }
+
+            GAME_NUM_LOG_SUB_CYCLE;
             
             // Test for player miss and score
             if (_speedX > 0) {
@@ -156,11 +170,15 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
             if (_targetBallY > maxTargetBallY) _targetBallY = maxTargetBallY;
             if (_targetBallY < minTargetBallY) _targetBallY = minTargetBallY;
 
+            GAME_NUM_LOG_SUB_CYCLE;
+
             // Final limit to avid ball and paddle clash
             if (isBallAtPaddleBounceLimitL)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::L);
             if (isBallAtPaddleBounceLimitR)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::R);
+
+            GAME_NUM_LOG_SUB_CYCLE;
 
             // Limit _targetBall x and y to software limits
             if (_targetBallX > _xSwLimitP) 
@@ -171,6 +189,8 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode) {
                 _targetBallY = _ySwLimitP;
             if (_targetBallY < _ySwLimitM)
                 _targetBallY = _ySwLimitM;
+
+            GAME_NUM_LOG_SUB_CYCLE;
 
             // Move the ball to the target position
             _xMotor.track_target(_targetBallX);

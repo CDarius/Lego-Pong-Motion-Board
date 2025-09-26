@@ -118,7 +118,7 @@ EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l
 Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(io_board, l_encoder_jog, *game.getSettings(),  x_motor, y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, l_encoder_jog, game,  x_motor, y_motor, l_motor, r_motor);
 
 bool service_mode;
 
@@ -304,7 +304,10 @@ void setup() {
             Logger::instance().logI("Connected to WiFi!");
             Logger::instance().logI("IP Address: " + WiFi.localIP().toString());
             
-            server.begin(&game_settings, &web_functions, &x_motor, &y_motor, &l_motor, &r_motor);
+            server.begin(
+                &game_settings, &web_functions, 
+                &x_motor, &y_motor, &l_motor, &r_motor,
+                game.getLogger());
         } 
         else {
             Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");
@@ -349,7 +352,8 @@ void loop() {
 
         // Run one match with a random player
         GamePlayer player = (esp_random() & 1) ? GamePlayer::L : GamePlayer::R;
-        game.run(player, GameMode::PLAYER_VS_PLAYER);
+        CancelToken cancelToken;
+        game.run(player, GameMode::PLAYER_VS_PLAYER, cancelToken);
     }
     else {
         // Service mode, nothing to do here

@@ -17,4 +17,5 @@ pbio_error_t homeAllAxes(
     IMotorHoming& rMotor,
     IOBoard& ioBoard,
     EncoderMultiJog& lEncoderJog,
-    EncoderMultiJog& rEncoderJog);
+    EncoderMultiJog& rEncoderJog,
+    CancelToken& cancelToken);

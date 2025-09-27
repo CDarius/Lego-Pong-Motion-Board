@@ -118,7 +118,7 @@ EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l
 Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(io_board, l_encoder_jog, game,  x_motor, y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, l_encoder_jog, r_encoder_jog, game,  x_motor, y_motor, l_motor, r_motor);
 
 bool service_mode;
 
@@ -320,7 +320,8 @@ void setup() {
 
     if (!service_mode) {
         // Home all axes
-        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
+        CancelToken cancelToken;
+        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog, cancelToken);
         if (err != PBIO_SUCCESS) {
             Logger::instance().logE("Failed to home all axes.");
             rgb_led.unrecoverableError();

@@ -3,6 +3,7 @@
 #include "setting_axis_swlimitm.hpp"
 #include "setting_axis_swlimitp.hpp"
 #include "setting_axis_maxspeed.hpp"
+#include "setting_axis_maxacc.hpp"
 #include "setting_axis_postolerance.hpp"
 #include "settings/axis/setting_axis_pidkp.hpp"
 #include "settings/axis/setting_axis_pidki.hpp"
@@ -20,6 +21,7 @@ class SettingsAxisGroup : public SettingsGroup {
         AxisSwLimitMSetting _swLimitM = AxisSwLimitMSetting(_motor);
         AxisSwLimitPSetting _swLimitP = AxisSwLimitPSetting(_motor);
         AxisMaxSpeedSetting _maxSpeed = AxisMaxSpeedSetting(_motor);
+        AxisMaxAccelerationSetting _maxAcc = AxisMaxAccelerationSetting(_motor);
         AxisPosToleranceSetting _posTolerance = AxisPosToleranceSetting(_motor);
         AxisPidKpSetting _pidKp = AxisPidKpSetting(_motor);
         AxisPidKiSetting _pidKi = AxisPidKiSetting(_motor);
@@ -27,9 +29,9 @@ class SettingsAxisGroup : public SettingsGroup {
         AxisIntegralRangeSetting _integralRange = AxisIntegralRangeSetting(_motor);
         AxisIntegralRateSetting _integralRate = AxisIntegralRateSetting(_motor);
 
-        ISetting* _settings[9] = {
+        ISetting* _settings[10] = {
             &_swLimitM, &_swLimitP, 
-            &_maxSpeed, &_posTolerance, 
+            &_maxSpeed, &_maxAcc, &_posTolerance, 
             &_pidKp, &_pidKi, &_pidKd,
             &_integralRange, &_integralRate
         };

@@ -150,4 +150,27 @@ void ApiRestServer::setupAxisLogController() {
 
         return response.endSend();
     });
+
+    // Start logging
+    _server.on("/axislog/running/*", [this](PsychicRequest *request) {
+        // Extract parameters from the URL
+        String uri = request->uri();
+        String axis = uriParam(uri, 2);
+
+        // Validate mandatory "axis" parameter
+        axis.toUpperCase();
+        Motor* motor = getMotorByName(axis.c_str());
+        if (!motor)
+            return request->reply(400);
+        
+        // Prepare the answer
+        JsonDocument doc;
+        doc["axis"] = axis;
+        doc["running"] = motor->get_log()->active;
+
+        String jsonResponse;
+        serializeJson(doc, jsonResponse);
+
+        return request->reply(200, "application/json", jsonResponse.c_str());
+    });
 }

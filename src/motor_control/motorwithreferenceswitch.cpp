@@ -53,7 +53,7 @@ pbio_error_t MotorWithReferenceSwitch::run_axis_homing(CancelToken& cancel_token
             // Retract and try again
             canRetry = false; // Prevent further retries
             Logger::instance().logI(name() + String("-axis hit home switch too early. Retract and try again"));
-            PBIO_RETURN_ON_ERROR(run_angle(backward_speed, _config.minimum_travel * 1.05, PBIO_ACTUATION_HOLD, true, &cancel_token));
+            PBIO_RETURN_ON_ERROR(run_angle(backward_speed, _config.minimum_travel * 1.2, PBIO_ACTUATION_HOLD, true, &cancel_token));
             start_position = angle();
             // Test if the switch is released
             if (digitalRead(_config.home_switch_pin) == _config.switch_pressed_value) {

@@ -3,36 +3,36 @@
 #include "settings/setting.hpp"
 #include "game/encodermultijog.hpp"
 
-class SettingJogYMultiplier : public SettingFloat {
+class SettingJogMediumSpeedFactor : public SettingFloat {
     private:
         encoder_multi_jog_config_t& _config;
 
     public:
-        SettingJogYMultiplier(encoder_multi_jog_config_t& config) : _config(config) {}
+        SettingJogMediumSpeedFactor(encoder_multi_jog_config_t& config) : _config(config) {}
 
         float getValue() const override {
-            return _config.y_encoder_multiplier;
+            return _config.medium_speed_multiplier_factor;
         }
 
         void setValue(float value) override {
-            _config.y_encoder_multiplier = value;
+            _config.medium_speed_multiplier_factor = value;
             _config.update_counter++;
         }
 
         const char* getName() const override {
-            return "y_multiplier";
+            return "med_spd_factor";
         }
 
         const char* getTitle() const override {
-            return "Y-Axis multiplier";
+            return "Medium speed factor";
         }
 
         const char* getDescription() const override {
-            return "Y-Axis multiplier from encoder encoder counts to axis position";
+            return "Multiplier factor to apply to encoder_multiplier when reach medium speed";
         }
 
         const char* getUnit() const override {
-            return "stud/count";
+            return "";
         }
 
         const bool hasMinValue() const override {
@@ -40,7 +40,7 @@ class SettingJogYMultiplier : public SettingFloat {
         }
 
         const float getMinValue() const override {
-            return 0.01;
+            return 1.0;
         }
 
         const bool hasMaxValue() const override {
@@ -48,7 +48,7 @@ class SettingJogYMultiplier : public SettingFloat {
         }
 
         const float getMaxValue() const override {
-            return 2.0;
+            return 10.0;
         }
 
         const bool hasChangeStep() const override {

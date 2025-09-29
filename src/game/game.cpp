@@ -48,11 +48,16 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
         if (!servingPlayerIsAI) {
             // Ensure that serving player is not pushing the encoder
             EncoderMultiJog* servingEncoder = (servingPlayer == GamePlayer::L) ? &_lEncoderJog : &_rEncoderJog;
-            while (servingEncoder->getEncoder()->isButtonPressed())
+            bool buttonPressed = true;
+            servingEncoder->getEncoder()->isButtonPressed(buttonPressed);
+            while (buttonPressed)
             {
                 IF_CANCELLED(cancelToken, {
                     return PBIO_ERROR_CANCELED;
                 });
+
+                servingEncoder->getEncoder()->isButtonPressed(buttonPressed);
+
                 delay(100);
             }
         }
@@ -397,7 +402,9 @@ pbio_error_t Game::humanPlayerServeBall(GamePlayer player, CancelToken& cancelTo
         // Ball track the serving player paddle
         ballTrackPaddle(*(servingEncoder->getMotor()));
 
-        encoderButton.setRawState(millis(), servingEncoder->getEncoder()->isButtonPressed());
+        bool rawButtonPressed;
+        servingEncoder->getEncoder()->isButtonPressed(rawButtonPressed);
+        encoderButton.setRawState(millis(), rawButtonPressed);
 
         delay(GAME_LOOP_PERIOD_MS);
     }

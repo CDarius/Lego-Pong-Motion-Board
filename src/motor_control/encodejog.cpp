@@ -2,85 +2,104 @@
 #include "motor_control/encoderjog.hpp"
 #include "monotonic.h"
 
-int EncoderJog::getUpdateIntervalMs() const {
-    return update_interval_ms;
-}
-
-void EncoderJog::setUpdateIntervalMs(int interval_ms) {
-    update_interval_ms = interval_ms;
-}
-
-float EncoderJog::getEncoderMultiplier() const {
-    return encoder_multiplier;
-}
-
-void EncoderJog::setEncoderMultiplier(float multiplier) {
-    encoder_multiplier = multiplier;
-}
-
-bool EncoderJog::getEncoderInvert() const {
-    return invert_encoder;
-}
-
-void EncoderJog::setEncoderInvert(bool invert) {
-    invert_encoder = invert;
-}
-
 void EncoderJog::start(IMotorHoming& motor) {
-    this->motor = &motor;
-    pos_setpoint = this->motor->angle();
-    last_encoder_value = 0;
-    encoder.clearValue();
-    last_update_ms = millis();
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        this->motor = nullptr;
+        pos_setpoint = motor.angle();
+        last_encoder_value = 0;
+        while (!encoder.clearValue()) {
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+        }
+        last_update_ms = millis();
+        this->motor = &motor;
+        xSemaphoreGive(_xMutex);
+    }
 }
 
 void EncoderJog::stop() {
-    if (motor) {
-        motor->stop();
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        if (motor) {
+            motor->stop();
+        }
+        motor = nullptr;
+        xSemaphoreGive(_xMutex);
     }
-    motor = nullptr;
 }
 
 void EncoderJog::update() {
-    if (!motor) {
-        return;
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        if (!motor) {
+            xSemaphoreGive(_xMutex);
+            return;
+        }
+
+        // Run only every update_interval_ms
+        uint32_t now_ms = millis();
+        if (now_ms - last_update_ms < _config.update_interval_ms) {
+            xSemaphoreGive(_xMutex);
+            return;
+        }
+        last_update_ms = now_ms;
+
+        // Read actual jog encoder value
+        int16_t encoder_value;
+        bool readSuccess = encoder.getValue(encoder_value);
+        if (!readSuccess) {
+            xSemaphoreGive(_xMutex);
+
+            // Failed to read the encoder
+            return;
+        }
+        if (_config.encoder_invert)
+            encoder_value = -encoder_value;        
+
+        // Detect a change in jog encoder value
+        int16_t new_step = encoder_value - last_encoder_value;            
+        if (new_step == 0) {
+            xSemaphoreGive(_xMutex);
+
+            // No movement requested
+            return;
+        }
+
+        // Calculate the encoder wheel speed multiplier factor
+        float enc_speed_multiplier = 1.0f;
+        if (abs(new_step) >= _config.high_enc_speed_count) {
+            enc_speed_multiplier = _config.high_speed_multiplier_factor;
+        } else if (abs(new_step) >= _config.medium_enc_speed_count) {
+            enc_speed_multiplier = _config.medium_speed_multiplier_factor;
+        }
+
+        // Calculate the new target position
+        float new_position = pos_setpoint + ((float)new_step) * _config.encoder_multiplier * enc_speed_multiplier;
+
+        // Clamp the new position to the motor's software limits if referenced
+        if (motor->referenced()) {
+            if (new_position < motor->getSwLimitMinus())
+                new_position = motor->getSwLimitMinus();
+            else if (new_position > motor->getSwLimitPlus())
+                new_position = motor->getSwLimitPlus();
+        }
+
+        // Move the axis
+        if (_config.use_track) {
+            motor->track_target(new_position);
+        } else {
+            motor->run_target(motor->get_speed_limit(), new_position, PBIO_ACTUATION_HOLD, false);
+        }
+
+        // Save the new position and encoder value
+        pos_setpoint = new_position;
+        last_encoder_value = encoder_value;
+
+        xSemaphoreGive(_xMutex);
     }
-
-    // Run only every update_interval_ms
-    uint32_t now_ms = millis();
-    if (now_ms - last_update_ms < update_interval_ms) {
-        return;
-    }
-    last_update_ms = now_ms;
-
-    // Detect a change in jog encoder value
-    int16_t encoder_value = encoder.getValue();
-    if (invert_encoder)
-        encoder_value = -encoder_value;        
-    int16_t new_step = encoder_value - last_encoder_value;
-        
-    if (new_step == 0) {
-        // No movement requested
-        return;
-    }
-
-    float new_position = pos_setpoint + ((float)new_step) * encoder_multiplier;;
-
-    // Clamp the new position to the motor's software limits if referenced
-    if (motor->referenced()) {
-        if (new_position < motor->getSwLimitMinus())
-            new_position = motor->getSwLimitMinus();
-        else if (new_position > motor->getSwLimitPlus())
-            new_position = motor->getSwLimitPlus();
-    }
-
-    // Track the target position
-    motor->track_target(new_position);
-    pos_setpoint = new_position;
-    last_encoder_value = encoder_value;
 }
 
 void EncoderJog::overridePosSetpoint(float pos) {
-    pos_setpoint = pos;
-    motor->track_target(pos);
+     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        pos_setpoint = pos;
+        motor->track_target(pos);
+        xSemaphoreGive(_xMutex);
+    }
 }

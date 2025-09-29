@@ -22,14 +22,14 @@ class UnitEncoder {
    private:
     uint8_t _addr;
     TwoWire* _wire;
-    void writeBytes(uint8_t addr, uint8_t reg, uint8_t* buffer, uint8_t length);
-    void readBytes(uint8_t addr, uint8_t reg, uint8_t* buffer, uint8_t length);
+    bool writeBytes(uint8_t addr, uint8_t reg, uint8_t* buffer, uint8_t length);
+    bool readBytes(uint8_t addr, uint8_t reg, uint8_t* buffer, uint8_t length);
 
    public:
     void begin(TwoWire* wire = &Wire, uint8_t addr = UNIT_ENC_ENCODER_ADDR);
-    int16_t getValue();
-    void setValue(int16_t value);
-    void clearValue();
-    bool isButtonPressed();
-    void setLEDColor(uint8_t index, uint32_t color);
+    bool getValue(int16_t &value);
+    bool setValue(int16_t value);
+    bool clearValue();
+    bool isButtonPressed(bool &isPressed);
+    bool setLEDColor(uint8_t index, uint32_t color);
 };

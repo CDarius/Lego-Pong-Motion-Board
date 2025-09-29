@@ -32,7 +32,7 @@ pbio_error_t homeAllAxes(
             lEncoderJog.update();
             rEncoderJog.update();
 
-            delay(10);
+            delay(3 * PBIO_CONFIG_SERVO_PERIOD_MS);
         }
 
         lEncoderJog.stop();

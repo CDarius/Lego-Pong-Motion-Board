@@ -3,31 +3,31 @@
 #include "settings/setting.hpp"
 #include "game/encodermultijog.hpp"
 
-class SettingJogRInvertEncoder : public SettingBool {
+class SettingJogLRUseTrack : public SettingBool {
     private:
         encoder_multi_jog_config_t& _config;
 
     public:
-        SettingJogRInvertEncoder(encoder_multi_jog_config_t& config) : _config(config) {}
+        SettingJogLRUseTrack(encoder_multi_jog_config_t& config) : _config(config) {}
 
         bool getValue() const override {
-            return _config.r_encoder_invert;
+            return _config.l_r_use_track;
         }
 
         void setValue(bool value) override {
-            _config.r_encoder_invert = value;
+            _config.l_r_use_track = value;
             _config.update_counter++;
         }
 
         const char* getName() const override {
-            return "r_enc_invert";
+            return "l_r_use_track";
         }
 
         const char* getTitle() const override {
-            return "R-Axis jog inversion";
+            return "L/R-Axis jog move mode";
         }
 
         const char* getDescription() const override {
-            return "Invert the jog direction for R-Axis";
+            return "Use track (true) or run_target (false) to jog L/R-Axis";
         }
 };

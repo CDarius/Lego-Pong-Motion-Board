@@ -28,7 +28,6 @@ void ApiRestServer::setupAxisLogController() {
             if (div < 1)
                 return request->reply(400);
         }
-        Serial.printf("Starting log on axis %s for %u ms with div %u\n", axis.c_str(), duration, div);
 
         // Start the log
         pbio_error_t err = pbio_logger_start(motor->get_log(), duration, div);

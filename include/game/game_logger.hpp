@@ -3,13 +3,37 @@
 #include <Arduino.h>
 #include "esp_heap_caps.h"
 
-struct GameLogEntry {
-    uint32_t cycle;
-    uint32_t subCycle;
+struct GameLogBaseEntry {
+    uint16_t cycle;
+    uint16_t subCycle;
+};
+
+struct GameLogFirstEntry {
+    uint16_t cycle;
+    uint16_t subCycle;
     float ballX;
     float ballY;
     float paddleL;
     float paddleR;
+    uint32_t timestampMs;
+    uint32_t reserved;
+};
+
+struct GameLogSubEntry {
+    uint16_t cycle;
+    uint16_t subCycle;
+    float targetX;
+    float targetY;
+    float targetPaddleL;
+    float targetPaddleR;
+    float speedX;
+    float speedY;
+};
+
+union GameLogEntry {
+    GameLogBaseEntry baseEntry;
+    GameLogFirstEntry firstEntry;
+    GameLogSubEntry subEntry;
 };
 
 class GameLogger {
@@ -19,6 +43,7 @@ class GameLogger {
         uint32_t _cycle = 0;
         uint32_t _subCycle = 0;
         bool _isLogging = false;
+
     uint32_t _writeIndex = 0;
     uint32_t _entryCount = 0;
 
@@ -26,7 +51,7 @@ class GameLogger {
         /*
         * Add a new entry to the log
         */
-        void addEntryToLog(float ballX, float ballY, float paddleL, float paddleR);
+        void incrementWriteIndex();
 
     public:
         ~GameLogger() {
@@ -58,14 +83,7 @@ class GameLogger {
         * paddleL: Left paddle position
         * paddleR: Right paddle position
         */
-        void logNewCycle(float ballX, float ballY, float paddleL, float paddleR) {
-            if (!_isLogging)
-                return;
-            
-            _cycle++;
-            _subCycle = 0;
-            addEntryToLog(ballX, ballY, paddleL, paddleR);
-        }
+        void logNewCycle(float ballX, float ballY, float paddleL, float paddleR);
 
         /*
         * Log a new sub-cycle
@@ -74,13 +92,7 @@ class GameLogger {
         * targetPaddleL: Target Left paddle position
         * targetPaddleR: Target Right paddle position
         */
-        void logSubCycle(float targetBallX, float targetBallY, float targetPaddleL, float targetPaddleR)  {
-            if (!_isLogging)
-                return;
-            
-            _subCycle++;
-            addEntryToLog(targetBallX, targetBallY, targetPaddleL, targetPaddleR);
-        }
+        void logSubCycle(float targetBallX, float targetBallY, float targetPaddleL, float targetPaddleR, float speedX, float speedY);
 
         /*
         * Get the current log length
@@ -97,4 +109,9 @@ class GameLogger {
             uint32_t realIndex = (_writeIndex + _bufferSize - _entryCount + index) % _bufferSize;
             return &_buffer[realIndex];
         }
+
+        /*
+        * Check if logging is active
+        */
+       bool isLoggingActive() const { return _isLogging; }
 };

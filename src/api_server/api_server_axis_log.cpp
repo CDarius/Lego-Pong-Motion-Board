@@ -150,7 +150,7 @@ void ApiRestServer::setupAxisLogController() {
         return response.endSend();
     });
 
-    // Start logging
+    // Return log running status
     _server.on("/axislog/running/*", [this](PsychicRequest *request) {
         // Extract parameters from the URL
         String uri = request->uri();

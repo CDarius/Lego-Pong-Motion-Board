@@ -1,7 +1,7 @@
 #include "api_server/api_server.hpp"
 
 void ApiRestServer::setupGameLogController() {
-    _server.on("/game/log", [this](PsychicRequest *request) {
+    _server.on("/gamelog/read", [this](PsychicRequest *request) {
         // Check if a log exist
         uint32_t logLen = _gameLogger->getLogLen();
         if (logLen == 0)
@@ -21,25 +21,49 @@ void ApiRestServer::setupGameLogController() {
         // Write log entries
         for(uint32_t i = 0; i < logLen; i++) {
             GameLogEntry& entry = *_gameLogger->getLogEntry(i);
-            if (skipFirstNotCompledtedCycle && entry.subCycle != 0) {
+            if (skipFirstNotCompledtedCycle && entry.baseEntry.subCycle != 0) {
                 // Skip the first not completed cycle
                 continue;
             }
             skipFirstNotCompledtedCycle = false;
 
-            response.print("[");
-            response.print(String(entry.cycle));
-            response.print(",");
-            response.print(String(entry.subCycle));
-            response.print(",");
-            response.print(String(entry.ballX, 4));
-            response.print(",");
-            response.print(String(entry.ballY, 4));
-            response.print(",");
-            response.print(String(entry.paddleL, 4));
-            response.print(",");
-            response.print(String(entry.paddleR, 4));
-            response.print("]");
+            if (entry.baseEntry.subCycle == 0) {
+                // GameLogFirstEntry
+                response.print("[");
+                response.print(String(entry.firstEntry.cycle));
+                response.print(",");
+                response.print(String(entry.firstEntry.subCycle));
+                response.print(",");
+                response.print(String(entry.firstEntry.ballX, 4));
+                response.print(",");
+                response.print(String(entry.firstEntry.ballY, 4));
+                response.print(",");
+                response.print(String(entry.firstEntry.paddleL, 4));
+                response.print(",");
+                response.print(String(entry.firstEntry.paddleR, 4));
+                response.print(",");
+                response.print(String(entry.firstEntry.timestampMs));
+                response.print("]");
+            } else {
+                response.print("[");
+                response.print(String(entry.subEntry.cycle));
+                response.print(",");
+                response.print(String(entry.subEntry.subCycle));
+                response.print(",");
+                response.print(String(entry.subEntry.targetX, 4));
+                response.print(",");
+                response.print(String(entry.subEntry.targetY, 4));
+                response.print(",");
+                response.print(String(entry.subEntry.targetPaddleL, 4));
+                response.print(",");
+                response.print(String(entry.subEntry.targetPaddleR, 4));
+                response.print(",");
+                response.print(String(entry.subEntry.speedX, 4));
+                response.print(",");
+                response.print(String(entry.subEntry.speedY, 4));
+                response.print("]");
+            }
+
             if (i < logLen - 1) {
                 response.print(",");
             }
@@ -49,5 +73,17 @@ void ApiRestServer::setupGameLogController() {
         response.print("]}");
         return response.endSend();
         
+    });
+
+    // Return log running status
+    _server.on("/gamelog/running", [this](PsychicRequest *request) {
+        // Prepare the answer
+        JsonDocument doc;
+        doc["running"] = _gameLogger->isLoggingActive();
+
+        String jsonResponse;
+        serializeJson(doc, jsonResponse);
+
+        return request->reply(200, "application/json", jsonResponse.c_str());
     });
 }

@@ -110,7 +110,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             _targetBallX += _speedX * _deltaTimeS;
             _targetBallY += _speedY * _deltaTimeS;
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Jog the paddles for non AI players
             if (!_lPlayerIsAI)
@@ -124,12 +124,12 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_rPlayerIsAI)
                 aiPlayer(GamePlayer::R);
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Bounce the ball on top or bottom border
             bounceBallTopBottom();
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Bounce the ball on paddles
             bool isBallAtPaddleBounceLimitL = isBallAtPaddleBounceLimit(GamePlayer::L);
@@ -140,7 +140,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
                 bounceOnPaddle(GamePlayer::R);
             }
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
             
             // Test for player miss and score
             if (_speedX > 0) {
@@ -175,7 +175,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_targetBallY > maxTargetBallY) _targetBallY = maxTargetBallY;
             if (_targetBallY < minTargetBallY) _targetBallY = minTargetBallY;
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Final limit to avid ball and paddle clash
             if (isBallAtPaddleBounceLimitL)
@@ -183,7 +183,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (isBallAtPaddleBounceLimitR)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::R);
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Limit _targetBall x and y to software limits
             if (_targetBallX > _xSwLimitP) 
@@ -195,7 +195,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_targetBallY < _ySwLimitM)
                 _targetBallY = _ySwLimitM;
 
-            GAME_NUM_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE;
 
             // Move the ball to the target position
             _xMotor.track_target(_targetBallX);
@@ -474,6 +474,7 @@ pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken
 void Game::throwBall(GamePlayer player) {
     _speedX = _settings.xAxis.startBallGameSpeed * ((player == GamePlayer::L) ? 1.0f : -1.0f);
     _speedY = ((float)random(-10000, 10001) / 10000.0f) * _settings.yAxis.ballServeSpeedMax;
+    Serial.println(String("Throw ball speedX: ") + String(_speedX) + String(" speedY: ") + String(_speedY));
 
     _overshootX = getXInversionOvershoot(_speedX);
     _overshootY = getYInversionOvershoot(_speedY);

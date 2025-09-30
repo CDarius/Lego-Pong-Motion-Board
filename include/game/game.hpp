@@ -19,7 +19,7 @@
 
 #define GAME_LOG_SUB_CYCLE \
     if (logGame) \
-        _logger.logSubCycle(_targetBallX, _targetBallY, getPaddleTargetY(GamePlayer::L), getPaddleTargetY(GamePlayer::R));
+        _logger.logSubCycle(_targetBallX, _targetBallY, getPaddleTargetY(GamePlayer::L), getPaddleTargetY(GamePlayer::R), _speedX, _speedY);
 
 #define GAME_WIN_SCORE (3)
 

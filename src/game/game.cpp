@@ -137,13 +137,12 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             // Bounce the ball on paddles
             bool isBallAtPaddleBounceLimitL = isBallAtPaddleBounceLimit(GamePlayer::L);
             bool isBallAtPaddleBounceLimitR = isBallAtPaddleBounceLimit(GamePlayer::R);
-            /*
+            
             if (isBallAtPaddleBounceLimitL) {
                 bounceOnPaddle(GamePlayer::L);
             } else if (isBallAtPaddleBounceLimitR) {
                 bounceOnPaddle(GamePlayer::R);
             }
-                */
 
             GAME_LOG_SUB_CYCLE; // Sub-cycle #4
             
@@ -762,35 +761,31 @@ void Game::aiPlayer(GamePlayer player) {
 }
 
 float Game::getYInversionOvershoot(float speed) const {
-    /*
     float absSpeed = fabs(speed);
-    float result;
+    float result = _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
 
     float thresholds[] = Y_AXIS_BOUNCE_INVERSIONS_SPEEDS;
     for (int i = 0; i < Y_AXIS_BOUNCE_INVERSIONS_COUNT; i++) {
-        if (absSpeed < thresholds[i]) {
+        if (absSpeed <= thresholds[i]) {
             result = _settings.yAxis.bounceInversionOvershootAtSpeed[i];
+            break;
         }
     }
 
-    result = _settings.yAxis.bounceInversionOvershootAtSpeed[Y_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
-    return result * 0.75f;
-    */
-   return 0.5f;
+    return result * 1.10f; // Add a 10% margin
 }
 
 float Game::getXInversionOvershoot(float speed) const {
-    /*
     float absSpeed = fabs(speed);
+    float result = _settings.xAxis.bounceInversionOvershootAtSpeed[X_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
 
     float thresholds[] = X_AXIS_BOUNCE_INVERSIONS_SPEEDS;
     for (int i = 0; i < X_AXIS_BOUNCE_INVERSIONS_COUNT; i++) {
-        if (absSpeed < thresholds[i]) {
-            return _settings.xAxis.bounceInversionOvershootAtSpeed[i];
+        if (absSpeed <= thresholds[i]) {
+            result = _settings.xAxis.bounceInversionOvershootAtSpeed[i];
+            break;
         }
     }
 
-    return _settings.xAxis.bounceInversionOvershootAtSpeed[X_AXIS_BOUNCE_INVERSIONS_COUNT - 1];
-    */
-    return 0.0f;
+    return result * 1.10f; // Add a 10% margin
 }

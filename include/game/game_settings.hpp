@@ -2,10 +2,10 @@
 
 #include <Arduino.h>
 
-#define X_AXIS_BOUNCE_INVERSIONS_COUNT 4
-#define X_AXIS_BOUNCE_INVERSIONS_SPEEDS {70.0f, 80.0f, 90.0f, 100.0f}
-#define Y_AXIS_BOUNCE_INVERSIONS_COUNT 5
-#define Y_AXIS_BOUNCE_INVERSIONS_SPEEDS {60.0f, 70.0f, 80.0f, 90.0f, 100.0f}
+#define X_AXIS_BOUNCE_INVERSIONS_COUNT 5
+#define X_AXIS_BOUNCE_INVERSIONS_SPEEDS {10.0f, 15.0f, 20.0f, 25.0f, 30.0f}
+#define Y_AXIS_BOUNCE_INVERSIONS_COUNT 8
+#define Y_AXIS_BOUNCE_INVERSIONS_SPEEDS {5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f}
 
 struct GameXAxisSettings {
     float startBallGameSpeed = 6.0f;            // Game start ball speed on X axis (stud/second)

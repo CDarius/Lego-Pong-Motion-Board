@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.h"
+#include "macros.h"
 #include "axes.hpp"
 #include "game_settings.hpp"
 #include "game_logger.hpp"

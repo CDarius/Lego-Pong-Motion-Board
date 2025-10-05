@@ -82,6 +82,9 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
         // Throw the ball
         throwBall(servingPlayer);
 
+        _targetBallX = _xMotor.angle();
+        _targetBallY = _yMotor.angle();
+
         // Bounce the ball until a player scores
         _lastBallUpdateTime = millis() - GAME_LOOP_PERIOD_MS;
         while (true) {
@@ -110,7 +113,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             _targetBallX += _speedX * _deltaTimeS;
             _targetBallY += _speedY * _deltaTimeS;
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #1
 
             // Jog the paddles for non AI players
             if (!_lPlayerIsAI)
@@ -124,28 +127,30 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_rPlayerIsAI)
                 aiPlayer(GamePlayer::R);
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #2
 
             // Bounce the ball on top or bottom border
             bounceBallTopBottom();
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #3
 
             // Bounce the ball on paddles
             bool isBallAtPaddleBounceLimitL = isBallAtPaddleBounceLimit(GamePlayer::L);
             bool isBallAtPaddleBounceLimitR = isBallAtPaddleBounceLimit(GamePlayer::R);
+            /*
             if (isBallAtPaddleBounceLimitL) {
                 bounceOnPaddle(GamePlayer::L);
             } else if (isBallAtPaddleBounceLimitR) {
                 bounceOnPaddle(GamePlayer::R);
             }
+                */
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #4
             
             // Test for player miss and score
             if (_speedX > 0) {
                 float scroreX = _xSwLimitP - _overshootX;
-                if (_ballX >= scroreX) {
+                if (MAX(_ballX, _targetBallX) >= scroreX) {
                     // Player R missed the ball
                     _rEncoderJog.stop(); // Block R player encoder
                     _scoreL++;
@@ -155,7 +160,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
                 }
             } else {
                 float scroreX = _xSwLimitM + _overshootX;
-                if (_ballX <= scroreX) {
+                if (MIN(_ballX, _targetBallX) <= scroreX) {
                     // Player L missed the ball
                     _lEncoderJog.stop(); // Block L player encoder
                     _scoreR++;
@@ -175,15 +180,16 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_targetBallY > maxTargetBallY) _targetBallY = maxTargetBallY;
             if (_targetBallY < minTargetBallY) _targetBallY = minTargetBallY;
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #5
 
+            /*
             // Final limit to avid ball and paddle clash
             if (isBallAtPaddleBounceLimitL)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::L);
             if (isBallAtPaddleBounceLimitR)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::R);
-
-            GAME_LOG_SUB_CYCLE;
+            */
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #6
 
             // Limit _targetBall x and y to software limits
             if (_targetBallX > _xSwLimitP) 
@@ -195,7 +201,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             if (_targetBallY < _ySwLimitM)
                 _targetBallY = _ySwLimitM;
 
-            GAME_LOG_SUB_CYCLE;
+            GAME_LOG_SUB_CYCLE; // Sub-cycle #7
 
             // Move the ball to the target position
             _xMotor.track_target(_targetBallX);
@@ -482,7 +488,7 @@ void Game::throwBall(GamePlayer player) {
 }
 
 void Game::bounceBallTopBottom() {
-    bool invert;
+    bool invert = false;
     if (_speedY > 0.0f) {
         // Going down
         float border = _ySwLimitP - _overshootY;

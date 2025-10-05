@@ -42,6 +42,7 @@ class GameLogger {
         uint32_t _bufferSize = 0;
         uint32_t _cycle = 0;
         uint32_t _subCycle = 0;
+        uint32_t _startTimeMs = 0;
         bool _isLogging = false;
 
     uint32_t _writeIndex = 0;

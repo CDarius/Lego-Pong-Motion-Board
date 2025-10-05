@@ -10,12 +10,13 @@ void GameLogger::incrementWriteIndex() {
 void GameLogger::start(uint32_t maxEntries) {
     deleteLog();
     
-    _cycle = 0;
+    _cycle = -1;
     _subCycle = 0;
     _writeIndex = 0;
     _entryCount = 0;
     _bufferSize = maxEntries;
     _buffer = (GameLogEntry*)heap_caps_malloc(maxEntries * sizeof(GameLogEntry), MALLOC_CAP_SPIRAM);
+    _startTimeMs = millis();
     _isLogging = true;
 }
 
@@ -44,7 +45,7 @@ void GameLogger::logNewCycle(float ballX, float ballY, float paddleL, float padd
     entry.ballY = ballY;
     entry.paddleL = paddleL;
     entry.paddleR = paddleR;
-    entry.timestampMs = millis();
+    entry.timestampMs = millis() - _startTimeMs;
 
     _buffer[_writeIndex].firstEntry = entry;
     incrementWriteIndex();

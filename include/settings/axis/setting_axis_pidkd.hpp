@@ -16,8 +16,9 @@ class AxisPidKdSetting : public SettingUInt16 {
             uint16_t kd;
             float integral_deadzone;
             float integral_rate;
+            float max_windup_factor;
 
-            _motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate);
+            _motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate, &max_windup_factor);
             return kd;
         }
 
@@ -27,10 +28,11 @@ class AxisPidKdSetting : public SettingUInt16 {
             uint16_t kd;
             float integral_deadzone;
             float integral_rate;
+            float max_windup_factor;
 
-            _motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate);
+            _motor.get_pid(&kp, &ki, &kd, &integral_deadzone, &integral_rate, &max_windup_factor);
             kd = value;
-            _motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate);
+            _motor.set_pid(kp, ki, kd, integral_deadzone, integral_rate, max_windup_factor);
         }
 
         const char* getName() const override {

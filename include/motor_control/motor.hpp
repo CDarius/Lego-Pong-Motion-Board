@@ -71,8 +71,8 @@ class Motor {
         pbio_error_t set_speed_limit(float speed);
         pbio_error_t set_acceleration_limit(float acceleration);
         pbio_error_t set_actuation_limit(uint8_t actuation);        
-        void get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate) const;
-        pbio_error_t set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integral_deadzone, float integral_rate);
+        void get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate, float *max_windup_factor) const;
+        pbio_error_t set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integral_deadzone, float integral_rate, float max_windup_factor);
         void get_target_tolerances(float *speed, float *position) const;
         pbio_error_t set_target_tolerances(float speed, float position);
         void get_stall_tolerances(float *speed, uint32_t *time_ms) const;

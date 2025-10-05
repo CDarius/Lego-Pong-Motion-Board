@@ -10,6 +10,7 @@
 #include "settings/axis/setting_axis_pidkd.hpp"
 #include "settings/axis/setting_axis_integralrange.hpp"
 #include "settings/axis/setting_axis_integralrate.hpp"
+#include "settings/axis/setting_axis_maxwindupfactor.hpp"
 #include "motor_control\motor.hpp"
 
 class SettingsAxisGroup : public SettingsGroup {
@@ -28,12 +29,14 @@ class SettingsAxisGroup : public SettingsGroup {
         AxisPidKdSetting _pidKd = AxisPidKdSetting(_motor);
         AxisIntegralRangeSetting _integralRange = AxisIntegralRangeSetting(_motor);
         AxisIntegralRateSetting _integralRate = AxisIntegralRateSetting(_motor);
+        AxisMaxWindupFactorSetting _maxWindupFactor = AxisMaxWindupFactorSetting(_motor);
 
-        ISetting* _settings[10] = {
+        ISetting* _settings[11] = {
             &_swLimitM, &_swLimitP, 
             &_maxSpeed, &_maxAcc, &_posTolerance, 
             &_pidKp, &_pidKi, &_pidKd,
-            &_integralRange, &_integralRate
+            &_integralRange, &_integralRate, 
+            &_maxWindupFactor
         };
 
     public:

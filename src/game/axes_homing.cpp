@@ -28,6 +28,12 @@ pbio_error_t homeAllAxes(
         while (!startButton.wasClicked() || STOP_BUTTON_PRESSED) {
             startButton.setRawState(millis(), START_BUTTON_PRESSED);
 
+            IF_CANCELLED(cancelToken, {
+                // If the homing is canceled, stop the motor
+                Logger::instance().logI("Home all canceled by the user");
+                return PBIO_ERROR_CANCELED;
+            });
+
             // Update the encoder joggers to allow user to move the axes
             lEncoderJog.update();
             rEncoderJog.update();

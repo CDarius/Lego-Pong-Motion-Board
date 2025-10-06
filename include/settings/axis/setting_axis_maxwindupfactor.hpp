@@ -36,7 +36,7 @@ class AxisMaxWindupFactorSetting : public SettingFloat {
         }
 
         const char* getName() const override {
-            return "max_windup_factor";
+            return "max_windup_fac";
         }
 
         const char* getTitle() const override {

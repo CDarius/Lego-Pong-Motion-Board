@@ -151,7 +151,6 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
                 float scroreX = _xSwLimitP - _overshootX;
                 if (MAX(_ballX, _targetBallX) >= scroreX) {
                     // Player R missed the ball
-                    _rEncoderJog.stop(); // Block R player encoder
                     _scoreL++;
                     servingPlayer = GamePlayer::R;
                     // Exit the bounce loop
@@ -161,7 +160,6 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
                 float scroreX = _xSwLimitM + _overshootX;
                 if (MIN(_ballX, _targetBallX) <= scroreX) {
                     // Player L missed the ball
-                    _lEncoderJog.stop(); // Block L player encoder
                     _scoreR++;
                     servingPlayer = GamePlayer::L;
                     // Exit the bounce loop
@@ -209,6 +207,12 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             delay(GAME_LOOP_PERIOD_MS);
         }
 
+        // Stop the paddles
+        _lEncoderJog.stop(); // Block L player encoder
+        _rEncoderJog.stop(); // Block R player encoder
+        _rMotor.hold();
+        _lMotor.hold();
+
         // Test for game end
         if (_scoreL >= GAME_WIN_SCORE || _scoreR >= GAME_WIN_SCORE)
             break;
@@ -216,7 +220,8 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
         // Game continue, display the scrore
         _ioBoard.playSound(IO_BOARD_SOUND_SCORE);
         _ioBoard.showScore(_scoreL, _scoreR, SCROLLING_SCORE_ANIM_DELAY);
-
+        
+        delay(1500); // Little delay before next serve
     }
 
     // Game end, one player has won

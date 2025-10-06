@@ -172,7 +172,10 @@ void Tacho::resetAngle(float angle) {
         angle =-angle;
 
     int32_t counts = (int32_t)(_gear_ratio * angle);
+
+    portENTER_CRITICAL( &mux );
     _offset = counts - _last_count;
+    portEXIT_CRITICAL( &mux );
 }
 
 bool Tacho::isSequenceError() {

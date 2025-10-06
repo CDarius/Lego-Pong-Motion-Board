@@ -29,14 +29,16 @@ class Tacho {
         uint8_t _pin2;
         float _gear_ratio;
         pbio_direction_t _direction;
-        int32_t _offset = 0;
-        int32_t _last_count = 0;
-        uint8_t _status;
-        bool _sequence_error = false;
-        mutable portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
-        int32_t _ring_counts[TACHO_RING_BUF_SIZE];
-        uint64_t _ring_timestamps[TACHO_RING_BUF_SIZE];
+        mutable portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+        
+        volatile int32_t _offset = 0;
+        volatile int32_t _last_count = 0;
+        volatile uint8_t _status;
+        volatile bool _sequence_error = false;
+        
+        volatile int32_t _ring_counts[TACHO_RING_BUF_SIZE];
+        volatile uint64_t _ring_timestamps[TACHO_RING_BUF_SIZE];
         volatile uint8_t _ring_head = 0;
     
         void ISR_read_encoder();

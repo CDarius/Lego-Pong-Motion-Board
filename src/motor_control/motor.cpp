@@ -16,7 +16,9 @@ void Motor::begin(
         _dcmotor.begin(pwmPi1, pwmPi2, direction, MOTOR_MAX_CONTROL);
         _current_error_output_func = error_output_func;
 
-        pbio_servo_setup(&_servo, &_dcmotor, &_tacho, counts_per_unit, settings);
+
+        
+        pbio_servo_setup(&_servo, &_dcmotor, &_tacho, &_logger, counts_per_unit, settings);
 
         update();
 }

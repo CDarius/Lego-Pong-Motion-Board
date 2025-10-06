@@ -30,7 +30,7 @@ void ApiRestServer::setupAxisLogController() {
         }
 
         // Start the log
-        pbio_error_t err = pbio_logger_start(motor->get_log(), duration, div);
+        pbio_error_t err = motor->get_logger()->start(duration, div);
         if (err != PBIO_SUCCESS)
             return request->reply(500);
 
@@ -50,7 +50,7 @@ void ApiRestServer::setupAxisLogController() {
         if (!motor)
             return request->reply(400);
 
-        pbio_logger_stop(motor->get_log());
+        motor->get_logger()->stop();
         return request->reply(200);
     });
 
@@ -67,8 +67,8 @@ void ApiRestServer::setupAxisLogController() {
         if (!motor)
             return request->reply(400);
 
-        int32_t rows = pbio_logger_rows(motor->get_log());
-        int32_t cols = pbio_logger_cols(motor->get_log());
+        int32_t rows = motor->get_logger()->rows();
+        int32_t cols = motor->get_logger()->cols();
 
         if (rows == 0 || cols == 0)
             return request->reply(204); // No content
@@ -87,7 +87,7 @@ void ApiRestServer::setupAxisLogController() {
         // Write column names
         response.print(",\"col_names\":[");
         for (uint32_t c = 0; c < cols; c++) {
-            const char* col_name = pbio_logger_col_name(motor->get_log(), c);
+            const char* col_name = motor->get_logger()->col_name(c);
             if (col_name) {
                 response.print("\"");
                 response.print(col_name);
@@ -106,7 +106,7 @@ void ApiRestServer::setupAxisLogController() {
         // Write column units
         response.print(",\"col_units\":[");
         for (uint32_t c = 0; c < cols; c++) {
-            const char* col_unit = pbio_logger_col_unit(motor->get_log(), c);
+            const char* col_unit = motor->get_logger()->col_unit(c);
             if (col_unit) {
                 response.print("\"");
                 response.print(col_unit);
@@ -128,7 +128,7 @@ void ApiRestServer::setupAxisLogController() {
         int8_t yield_counter = 0;
         for (uint32_t r = 0; r < rows; r++) {
             // Get a log row
-            pbio_error_t result = pbio_logger_read(motor->get_log(), r, row_buffer);
+            pbio_error_t result = motor->get_logger()->read(r, row_buffer);
             if (result != PBIO_SUCCESS) {
                 response.endSend();
                 return request->reply(500);
@@ -174,7 +174,7 @@ void ApiRestServer::setupAxisLogController() {
         // Prepare the answer
         JsonDocument doc;
         doc["axis"] = axis;
-        doc["running"] = pbio_logger_is_active(motor->get_log());
+        doc["running"] = motor->get_logger()->is_active();
 
         String jsonResponse;
         serializeJson(doc, jsonResponse);

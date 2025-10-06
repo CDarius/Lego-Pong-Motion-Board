@@ -16,6 +16,7 @@ class Motor {
         const char* _name = nullptr;
         Tacho _tacho = Tacho();
         DCMotor _dcmotor = DCMotor();
+        PBIOLogger _logger = PBIOLogger();
         pbio_servo_t _servo;
         pbio_error_t _servo_status = PBIO_SUCCESS;
 
@@ -112,7 +113,7 @@ class Motor {
             }
         }
 
-        pbio_log_t* get_log() {
-            return &(_servo.log);
+        PBIOLogger* get_logger() {
+            return _servo.log;
         }
 };

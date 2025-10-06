@@ -58,7 +58,10 @@ float Motor::motor_speed() const {
 }
 
 void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) const {
-    _dcmotor.getState(state, duty_now);
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        _dcmotor.getState(state, duty_now);
+        xSemaphoreGive(_xMutex);
+    }
 }
 
 /**

@@ -67,10 +67,6 @@ void ApiRestServer::setupAxisLogController() {
         if (!motor)
             return request->reply(400);
 
-        // Check a log exists for this motor
-        if (motor->get_log()->data == nullptr)
-            return request->reply(204); // No content
-        
         int32_t rows = pbio_logger_rows(motor->get_log());
         int32_t cols = pbio_logger_cols(motor->get_log());
 
@@ -128,11 +124,20 @@ void ApiRestServer::setupAxisLogController() {
 
         // Write the data array
         response.print(",\"data\":[");
-        uint32_t log_array_index = 0;
+        int32_t row_buffer[cols];
+        int8_t yield_counter = 0;
         for (uint32_t r = 0; r < rows; r++) {
+            // Get a log row
+            pbio_error_t result = pbio_logger_read(motor->get_log(), r, row_buffer);
+            if (result != PBIO_SUCCESS) {
+                response.endSend();
+                return request->reply(500);
+            }
+
+            // Write the row as a JSON array
             response.print("[");
             for (uint32_t c = 0; c < cols; c++) {
-                int32_t value = motor->get_log()->data[log_array_index++];
+                int32_t value = row_buffer[c];
                 response.print(value);
                 if (c < cols - 1) {
                     response.print(",");
@@ -143,7 +148,11 @@ void ApiRestServer::setupAxisLogController() {
                 response.print(",");
             }
 
-            yield(); // Allow background tasks to run
+            // Yield every 10 rows to allow background tasks to run
+            if (++yield_counter >= 10) {
+                yield_counter = 0;
+                yield(); // Allow background tasks to run
+            }
         }
         response.print("]}");
 
@@ -165,7 +174,7 @@ void ApiRestServer::setupAxisLogController() {
         // Prepare the answer
         JsonDocument doc;
         doc["axis"] = axis;
-        doc["running"] = motor->get_log()->active;
+        doc["running"] = pbio_logger_is_active(motor->get_log());
 
         String jsonResponse;
         serializeJson(doc, jsonResponse);

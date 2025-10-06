@@ -29,6 +29,7 @@ typedef struct _pbio_log_t {
     uint32_t sample_div;
     char **col_names;
     char **col_units;
+    SemaphoreHandle_t _xMutex = xSemaphoreCreateMutex();
 } pbio_log_t;
 
 pbio_error_t pbio_logger_start(pbio_log_t *log, uint32_t duration, uint32_t div);
@@ -40,5 +41,6 @@ uint32_t pbio_logger_cols(pbio_log_t *log);
 const char* pbio_logger_col_name(pbio_log_t *log, uint8_t col);
 const char* pbio_logger_col_unit(pbio_log_t *log, uint8_t col);
 void pbio_logger_stop(pbio_log_t *log);
+bool pbio_logger_is_active(pbio_log_t *log);
 
 #endif // _PBIO_LOGGER_H_

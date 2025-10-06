@@ -72,7 +72,7 @@ WebFunctionExecutionStatus WebFunctionAxisStepResponse::start() {
         delay(20);
 
         // Start axis log and give a step move command towards plus sw limit
-        pbio_logger_start(self->_axis.get_log(), RUN_STEP_RESPONSE_LOG_DURATION_MS, 1);
+        self->_axis.get_logger()->start(RUN_STEP_RESPONSE_LOG_DURATION_MS, 1);
         delay(100); // Wait a bit to ensure the logger is started
         float target_position = sw_limit_plus - 4.0; // Stop 4 studs before the end of the travel
         self->_axis.track_target(target_position);
@@ -106,7 +106,7 @@ WebFunctionExecutionStatus WebFunctionAxisStepResponse::start() {
         }
 
         // Stop the log and release the axis
-        pbio_logger_stop(self->_axis.get_log());
+        self->_axis.get_logger()->stop();
         self->_axis.stop();
 
         self->_status = WebFunctionExecutionStatus::Done;

@@ -18,10 +18,10 @@ typedef struct _pbio_servo_t {
     DCMotor *dcmotor;
     Tacho *tacho;
     pbio_control_t control;
-    pbio_log_t log;
+    PBIOLogger* log;
 } pbio_servo_t;
 
-void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float counts_per_unit, pbio_control_settings_t *settings);
+void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, PBIOLogger *logger, float counts_per_unit, pbio_control_settings_t *settings);
 
 void pbio_servo_reset_angle(pbio_servo_t *srv, float reset_angle);
 pbio_error_t pbio_servo_is_stalled(pbio_servo_t *srv, bool *stalled);

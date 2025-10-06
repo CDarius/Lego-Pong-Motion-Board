@@ -16,6 +16,7 @@ class Motor {
         const char* _name = nullptr;
         Tacho _tacho = Tacho();
         DCMotor _dcmotor = DCMotor();
+        PBIOLogger _logger = PBIOLogger();
         pbio_servo_t _servo;
         pbio_error_t _servo_status = PBIO_SUCCESS;
 
@@ -79,22 +80,40 @@ class Motor {
         pbio_error_t set_stall_tolerances(float speed, uint32_t time_ms);
 
         float getSwLimitMinus() const {
-            return _swLimitM;
+            float value;
+            if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+                value = _swLimitM;
+                xSemaphoreGive(_xMutex);
+            }
+
+            return value;
         }
 
         void setSwLimitMinus(float value) {
-            _swLimitM = value;
+            if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+                _swLimitM = value;
+                xSemaphoreGive(_xMutex);
+            }
         }
 
         float getSwLimitPlus() const {
-            return _swLimitP;
+            float value;
+            if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+                value = _swLimitP;
+                xSemaphoreGive(_xMutex);
+            }
+
+            return value;
         }
 
         void setSwLimitPlus(float value) {
-            _swLimitP = value;
+            if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+                _swLimitP = value;
+                xSemaphoreGive(_xMutex);
+            }
         }
 
-        pbio_log_t* get_log() {
-            return &(_servo.log);
+        PBIOLogger* get_logger() {
+            return _servo.log;
         }
 };

@@ -111,6 +111,8 @@ class Game {
         void throwBall(GamePlayer player);
         // Bounce the ball on top or bottom border
         void bounceBallTopBottom();
+        // Execute the ball bounce on the paddle (invert X-axis speed and adjust Y-axis speed)
+        void executePaddleBounce(float ballRelativePos);
         // Test if the ball has reached the paddle on X axis. When return true we must then check the Y axis to understand if the ball is also at the paddle height
         bool isBallAtPaddleBounceLimit(GamePlayer paddle) const;
         // Test if the ball is within the paddle's Y-axis range and if it is bounce

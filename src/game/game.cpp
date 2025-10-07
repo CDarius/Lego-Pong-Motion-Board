@@ -40,6 +40,10 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
     
     // Game loop
     while (true) {
+        // Stop the jog if was active and force to reload all jog parameter at the next start
+        _lEncoderJog.stop();
+        _rEncoderJog.stop();
+
         // Move the ball in front of the serving player paddle
         PBIO_RETURN_ON_ERROR(moveBallToPaddle(servingPlayer, cancelToken));
 
@@ -62,10 +66,6 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
             }
         }
         
-        // Stop the jog to force to reload all jog parameter at the next start
-        _lEncoderJog.stop();
-        _rEncoderJog.stop();
-
         // Enable jog for non AI players
         if (!_lPlayerIsAI)
             _lEncoderJog.start(Axes::L);
@@ -179,24 +179,17 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
 
             GAME_LOG_SUB_CYCLE; // Sub-cycle #5
 
-            /*
             // Final limit to avid ball and paddle clash
             if (isBallAtPaddleBounceLimitL)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::L);
             if (isBallAtPaddleBounceLimitR)
                 limitPaddleOrBallToAvoidCollision(GamePlayer::R);
-            */
+
             GAME_LOG_SUB_CYCLE; // Sub-cycle #6
 
             // Limit _targetBall x and y to software limits
-            if (_targetBallX > _xSwLimitP) 
-                _targetBallX = _xSwLimitP;
-            if (_targetBallX < _xSwLimitM)
-                _targetBallX = _xSwLimitM;
-            if (_targetBallY > _ySwLimitP)
-                _targetBallY = _ySwLimitP;
-            if (_targetBallY < _ySwLimitM)
-                _targetBallY = _ySwLimitM;
+            _targetBallX = MIN(MAX(_targetBallX, _xSwLimitM), _xSwLimitP);
+            _targetBallY = MIN(MAX(_targetBallY, _ySwLimitM), _ySwLimitP);
 
             GAME_LOG_SUB_CYCLE; // Sub-cycle #7
 
@@ -542,44 +535,11 @@ void Game::bounceOnPaddle(GamePlayer paddle) {
         // The ball is in front of the paddle, bounce
         bool towardPaddleX = paddle == GamePlayer::R ? (_speedX > 0.0f) : (_speedX < 0.0f);
         if (towardPaddleX) {
-            // The ball is going toward the paddle, bounce inverting X-Axis speed
-
-            // Invert and increment X-Axis speed
-            if (_speedX > 0.0f) {
-                _speedX += _settings.xAxis.ballBounceSpeedIncrement;
-                if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
-                    _speedX = _settings.xAxis.ballBounceMaxSpeed;
-                _speedX = -_speedX;
-            } else {
-                _speedX = (-_speedX) + _settings.xAxis.ballBounceSpeedIncrement;
-                if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
-                    _speedX = _settings.xAxis.ballBounceMaxSpeed;
-            }
-            _overshootX = getXInversionOvershoot(_speedX);
-
-            // Calculate the new Y-Axis speed based on the position relative to paddle
+            // The ball is going toward the paddle, bounce inverting X-Axis speed and calculation a new Y-Axis speed
+            
+            // Calculate ball position relative to paddle (range -1.0f to +1.0f)
             float relativePosition = 2.0f * (_ballY - yMin) / (yMax - yMin) - 1.0f;
-            _speedY = relativePosition * _settings.yAxis.ballBounceSpeedMax;
-            _overshootY = getYInversionOvershoot(_speedY);
-
-            _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
-
-            // Update the target ball positon
-            _targetBallX = _ballX + _speedX * _deltaTimeS;
-            _targetBallY = _ballY + _speedY * _deltaTimeS;
-
-            // When the X-Axis speed is at maximum, also increment the L/R-Axes jog speed
-            if (fabs(_speedX) == _settings.xAxis.ballBounceMaxSpeed) {
-                float jogMultiplier = _lEncoderJog.getEncoderMultiplier();
-                if (jogMultiplier > _settings.lrAxis.minJogEncoderMultiplier) {
-                    jogMultiplier -= _settings.lrAxis.jogMultiplierDecrement;
-                    if (jogMultiplier < _settings.lrAxis.minJogEncoderMultiplier) {
-                        jogMultiplier = _settings.lrAxis.minJogEncoderMultiplier;
-                    }
-                    _lEncoderJog.setEncoderMultiplier(jogMultiplier);
-                    _rEncoderJog.setEncoderMultiplier(jogMultiplier);
-                }
-            }
+            executePaddleBounce(relativePosition);
         } else {
             // The ball isn’t going toward the paddle
             // Test if the ball is on the shoulder of the paddle
@@ -595,68 +555,153 @@ void Game::bounceOnPaddle(GamePlayer paddle) {
                     // The ball is going toward the paddle, bounce inverting Y-Axis speed
                     _speedY = -(_speedY);
                     _targetBallY = _ballY + _speedY * _deltaTimeS;
+                    _targetBallY = MIN(MAX(_targetBallY, _ySwLimitM), _ySwLimitP);
                 }
             }
         }     
     }
 }
 
+void Game::executePaddleBounce(float ballRelativePos) {
+    // Invert and increment X-Axis speed
+    if (_speedX > 0.0f) {
+        _speedX += _settings.xAxis.ballBounceSpeedIncrement;
+        if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
+            _speedX = _settings.xAxis.ballBounceMaxSpeed;
+        _speedX = -_speedX;
+    } else {
+        _speedX = (-_speedX) + _settings.xAxis.ballBounceSpeedIncrement;
+        if (_speedX > _settings.xAxis.ballBounceMaxSpeed)
+            _speedX = _settings.xAxis.ballBounceMaxSpeed;
+    }
+    _overshootX = getXInversionOvershoot(_speedX);
+
+    _speedY = ballRelativePos * _settings.yAxis.ballBounceSpeedMax;
+    _overshootY = getYInversionOvershoot(_speedY);
+
+    _ioBoard.playSound(IO_BOARD_SOUND_PADDLE);
+
+    // Update the target ball positon
+    _targetBallX = _ballX + _speedX * _deltaTimeS;
+    _targetBallY = _ballY + _speedY * _deltaTimeS;
+    _targetBallY = MIN(MAX(_targetBallY, _ySwLimitM), _ySwLimitP);
+
+    // When the X-Axis speed is at maximum, also increment the L/R-Axes jog speed
+    if (fabs(_speedX) == _settings.xAxis.ballBounceMaxSpeed) {
+        float jogMultiplier = _lEncoderJog.getEncoderMultiplier();
+        if (jogMultiplier > _settings.lrAxis.minJogEncoderMultiplier) {
+            jogMultiplier -= _settings.lrAxis.jogMultiplierDecrement;
+            if (jogMultiplier < _settings.lrAxis.minJogEncoderMultiplier) {
+                jogMultiplier = _settings.lrAxis.minJogEncoderMultiplier;
+            }
+            _lEncoderJog.setEncoderMultiplier(jogMultiplier);
+            _rEncoderJog.setEncoderMultiplier(jogMultiplier);
+        }
+    }
+}
+
 void Game::limitPaddleOrBallToAvoidCollision(GamePlayer paddle) {
     float paddleY = (paddle == GamePlayer::L) ? _paddleL : _paddleR;
     bool ballIsBelowPaddle = _ballY > (paddleY + GAME_PADDLE_H / 2.0f - GAME_BALL_L / 2.0f);
+    bool ballTowardPaddleX = paddle == GamePlayer::R ? (_speedX > 0.0f) : (_speedX < 0.0f);
+    bool canBounce = false;
+    if (ballTowardPaddleX) {
+        // The ball is going toward the paddle, it can bounce if is not over half of the paddle
+        canBounce = (paddle == GamePlayer::L) ? (_ballX >= (_xSwLimitM + GAME_PADDLE_W / 2.0f)) : (_ballX <= (_xSwLimitP - GAME_PADDLE_W / 2.0f));
+    }
     if (ballIsBelowPaddle) {
-        if (_speedY > 0.0f) {
-            // Ball is below the paddle and going down, limit the paddle max position
-            float maxPaddleY = _ballY - GAME_PADDLE_H;
-            float paddleTargetY = getPaddleTargetY(paddle);
-            if (paddleTargetY > maxPaddleY) {
+        // Ball is below the paddle limit the paddle max position
+        float minBallY = MIN(_ballY, _targetBallY);
+        float maxPaddleY = minBallY - GAME_PADDLE_H - _settings.yAxis.paddleCollisionTolerance;
+        if (paddleY >= maxPaddleY) {
+            // Limit the paddle position
+            movePlayerPaddleToY(paddle, maxPaddleY);
+            if (canBounce) {
+                // Ball is going toward the paddle, it should also bounce
+                executePaddleBounce(1.0f);
+                canBounce = false; // Avoid a second bounce
+            }
+        }
+
+        // Test to avoid the ball pushed in the corner by the paddle
+        if (_targetBallY > _ySwLimitP) {
+            _targetBallY = _ySwLimitP;
+            float minBallY = MIN(_ballY, _targetBallY);
+            float maxPaddleY = _targetBallY - GAME_PADDLE_H - _settings.yAxis.paddleCollisionTolerance;
+            if (paddleY >= maxPaddleY) {
                 // Limit the paddle position
                 movePlayerPaddleToY(paddle, maxPaddleY);
+                if (canBounce) {
+                    // Ball is going toward the paddle, it should also bounce
+                    executePaddleBounce(1.0f);
+                    canBounce = false; // Avoid a second bounce
+                }
+            }            
+        }
+
+        // Test to avoid the paddle pushed in the corner by the ball
+        float paddleTargetY = getPaddleTargetY(paddle);
+        if (paddleTargetY < _lSwLimitM) {
+            movePlayerPaddleToY(paddle, _lSwLimitM);
+            if (canBounce) {
+                // Ball is going toward the paddle, it should also bounce
+                executePaddleBounce(1.0f);
+                canBounce = false; // Avoid a second bounce
             }
-        } else {
-            // Ball is below the paddle and going up, limit the ball min position
-            float minBallY = paddleY + GAME_PADDLE_H;
+
+            // Limit the ball position
+            float maxPaddleY = MAX(paddleY, paddleTargetY);
+            float minBallY = maxPaddleY + GAME_PADDLE_H + _settings.yAxis.paddleCollisionTolerance;
             if (_targetBallY < minBallY) {
                 _targetBallY = minBallY;
             }
         }
-
-        // Last test to avoid the ball pushed in the corner by the paddle
-        if (_targetBallY > _ySwLimitP) {
-            _targetBallY = _ySwLimitP;
-            float maxPaddleY = _targetBallY - GAME_PADDLE_H;
-            float paddleTargetY = getPaddleTargetY(paddle);
-            if (paddleTargetY > maxPaddleY) {
-                // Limit the paddle position
-                movePlayerPaddleToY(paddle, maxPaddleY);
-            }            
-        }
     } else {
-        if (_speedY < 0.0f) {
-            // Ball is above the paddle and going up, limit the paddle min position
-            float minPaddleY = _ballY + GAME_BALL_L;
-            float paddleTargetY = getPaddleTargetY(paddle);
-            if (paddleTargetY < minPaddleY) {
+        // Ball is above the paddle, limit the paddle min position
+        float maxBallY = MAX(_ballY, _targetBallY);
+        float minPaddleY = maxBallY + GAME_BALL_L + _settings.yAxis.paddleCollisionTolerance;
+        if (paddleY <= minPaddleY) {
+            // Limit the paddle position
+            movePlayerPaddleToY(paddle, minPaddleY);
+            if (canBounce) {
+                // Ball is going toward the paddle, it should also bounce
+                executePaddleBounce(-1.0f);
+                canBounce = false; // Avoid a second bounce
+            }
+        }
+
+        // Test to avoid the ball pushed in the corner by the paddle
+        if (_targetBallY < _ySwLimitM) {
+            _targetBallY = _ySwLimitM;
+            float maxBallY = MAX(_ballY, _targetBallY);
+            float minPaddleY = maxBallY + GAME_BALL_L + _settings.yAxis.paddleCollisionTolerance;
+            if (paddleY <= minPaddleY) { //if (paddleTargetY < minPaddleY) {
                 // Limit the paddle position
                 movePlayerPaddleToY(paddle, minPaddleY);
+                if (canBounce) {
+                    // Ball is going toward the paddle, it should also bounce
+                    executePaddleBounce(-1.0f);
+                    canBounce = false; // Avoid a second bounce
+                }
+            }            
+        }
+
+        // Test to avoid the paddle pushed in the corner by the ball
+        float paddleTargetY = getPaddleTargetY(paddle);
+        if (paddleTargetY > _lSwLimitP) {
+            movePlayerPaddleToY(paddle, _lSwLimitP);
+            if (canBounce) {
+                // Ball is going toward the paddle, it should also bounce
+                executePaddleBounce(-1.0f);
+                canBounce = false; // Avoid a second bounce
             }
-        } else {
-            // Ball is above the paddle and going down, limit the ball max position
-            float maxBallY = paddleY - GAME_BALL_L;
+
+            // Limit the ball position
+            float minPaddleY = MIN(paddleY, _lSwLimitP);
+            float maxBallY = minPaddleY - GAME_BALL_L - _settings.yAxis.paddleCollisionTolerance;
             if (_targetBallY > maxBallY) {
                 _targetBallY = maxBallY;
             }
-        }
-
-        // Last test to avoid the ball pushed in the corner by the paddle
-        if (_targetBallY < _ySwLimitM) {
-            _targetBallY = _ySwLimitM;
-            float minPaddleY = _targetBallY + GAME_BALL_L;
-            float paddleTargetY = getPaddleTargetY(paddle);
-            if (paddleTargetY < minPaddleY) {
-                // Limit the paddle position
-                movePlayerPaddleToY(paddle, minPaddleY);
-            }            
         }
     }
 }

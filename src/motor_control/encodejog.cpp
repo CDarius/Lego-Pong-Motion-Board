@@ -1,6 +1,7 @@
 
 #include "motor_control/encoderjog.hpp"
 #include "monotonic.h"
+#include "macros.h"
 
 void EncoderJog::start(IMotorHoming& motor) {
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
@@ -75,10 +76,9 @@ void EncoderJog::update() {
 
         // Clamp the new position to the motor's software limits if referenced
         if (motor->referenced()) {
-            if (new_position < motor->getSwLimitMinus())
-                new_position = motor->getSwLimitMinus();
-            else if (new_position > motor->getSwLimitPlus())
-                new_position = motor->getSwLimitPlus();
+            float swLimitM = motor->getSwLimitMinus();
+            float swLimitP = motor->getSwLimitPlus();
+            new_position = MIN(MAX(new_position, swLimitM), swLimitP);
         }
 
         // Move the axis

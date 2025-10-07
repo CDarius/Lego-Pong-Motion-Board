@@ -141,6 +141,8 @@ void motor_loop_task(void *parameter) {
         // Stop game and all motors if the stop button was clicked
         if (stop_button.wasClicked()) {
             CancelToken::cancelAll();
+            l_encoder_jog.stop();
+            r_encoder_jog.stop();
             x_motor.stop();
             y_motor.stop();
             l_motor.stop();

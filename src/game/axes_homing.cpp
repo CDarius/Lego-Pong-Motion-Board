@@ -31,6 +31,9 @@ pbio_error_t homeAllAxes(
             IF_CANCELLED(cancelToken, {
                 // If the homing is canceled, stop the motor
                 Logger::instance().logI("Home all canceled by the user");
+
+                lEncoderJog.stop();
+                rEncoderJog.stop();
                 return PBIO_ERROR_CANCELED;
             });
 

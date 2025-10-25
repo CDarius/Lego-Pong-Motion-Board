@@ -20,15 +20,15 @@ class AIPlayerUpdateTimeSetting : public SettingUInt16 {
         }
 
         const char* getName() const override {
-            return "update_time";
+            return "error_update_time";
         }
 
         const char* getTitle() const override {
-            return "Update time";
+            return "Error update time";
         }
 
         const char* getDescription() const override {
-            return "AI player position update time in milliseconds";
+            return "AI player injected error position update time in milliseconds";
         }
 
         const char* getUnit() const override {

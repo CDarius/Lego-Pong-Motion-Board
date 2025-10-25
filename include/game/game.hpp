@@ -93,6 +93,8 @@ class Game {
         float _rAIPlayerTargetY;
         float _lAIPlayerActualYSetpoint;
         float _rAIPlayerActualYSetpoint;
+        float _lAIPlayerError;
+        float _rAIPlayerError;
         float _AIPlayerMaxMoveStep;
         
         // Move the ball in front of the player paddle

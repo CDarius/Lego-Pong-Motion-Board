@@ -48,6 +48,8 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
         PBIO_RETURN_ON_ERROR(moveBallToPaddle(servingPlayer, cancelToken));
 
         bool servingPlayerIsAI = playerIsAI(servingPlayer, mode);
+        _lAIPlayerError = 0.0f;
+        _rAIPlayerError = 0.0f;
 
         if (!servingPlayerIsAI) {
             // Ensure that serving player is not pushing the encoder
@@ -741,62 +743,74 @@ void Game::movePlayerPaddleToY(GamePlayer player, float y) {
 }
 
 void Game::aiPlayer(GamePlayer player) {
+    // Update AI player only when the ball is moving toward it
+    bool ballTowardPaddle = player == GamePlayer::R ? (_speedX > 0.0f) : (_speedX < 0.0f);
+    if (!ballTowardPaddle)
+        return;
+
     unsigned long now = millis();
     uint16_t deltaTime = now - _lastAIUpdateTime;
-    bool calcNewPosition = deltaTime < _settings.aiPlayer.playerUpdateTimeMs;
-    _lastAIUpdateTime = now;
+    bool calcNewError = deltaTime > _settings.aiPlayer.playerUpdateTimeMs;
 
-    if (calcNewPosition) {
-        // Ideal tracking position
-        float paddleTargetPos = _ballY + GAME_BALL_L / 2.0f - GAME_PADDLE_H / 2.0f;
-        // Add some random error
-        paddleTargetPos += ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
+    if (calcNewError) {
+        _lastAIUpdateTime = now;
+        // Calculate a new tracking error
+        float trackError = ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
 
-        // Limit target pos on software limits
-        if (paddleTargetPos < _rSwLimitM) {
-            paddleTargetPos = _rSwLimitM;
-        } else if (paddleTargetPos > _rSwLimitP) {
-            paddleTargetPos = _rSwLimitP;
-        }
-
-        // Set the new target position
         if (player == GamePlayer::L) {
-            _lAIPlayerTargetY = paddleTargetPos;
+            _lAIPlayerError = trackError;
         } else {
-            _rAIPlayerTargetY = paddleTargetPos;
+            _rAIPlayerError = trackError;
         }
     }
 
-    // Get paddle target position and actual setpoint
-    float targetY, yActualSetpoint;
+    // Ideal tracking position
+    float paddleTargetPos = _ballY + GAME_BALL_L / 2.0f - GAME_PADDLE_H / 2.0f;
+    // Add error to tracking position
+    paddleTargetPos += (player == GamePlayer::L) ? _lAIPlayerError : _rAIPlayerError;
+
+    // Limit target pos on software limits
+    if (paddleTargetPos < _rSwLimitM) {
+        paddleTargetPos = _rSwLimitM;
+    } else if (paddleTargetPos > _rSwLimitP) {
+        paddleTargetPos = _rSwLimitP;
+    }
+
+    // Set the new target position
+    if (player == GamePlayer::L) {
+        _lAIPlayerTargetY = paddleTargetPos;
+    } else {
+        _rAIPlayerTargetY = paddleTargetPos;
+    }
+
+    // Get paddle actual setpoint
+    float yActualSetpoint;
     IMotorHoming* playerMotor;
     if (player == GamePlayer::L) {
-        targetY = _lAIPlayerTargetY;
         yActualSetpoint = _lAIPlayerActualYSetpoint;
         playerMotor = &(_lMotor);
     } else {
-        targetY = _rAIPlayerTargetY;
         yActualSetpoint = _rAIPlayerActualYSetpoint;
         playerMotor = &(_rMotor);
     }
 
-    if (yActualSetpoint == targetY) {
+    if (yActualSetpoint == paddleTargetPos) {
         // Already at target
         return;
     }
 
     // Move the paddle
-    if (targetY > yActualSetpoint) {
+    if (paddleTargetPos > yActualSetpoint) {
         // Need to go down
         yActualSetpoint += _AIPlayerMaxMoveStep;
-        if (yActualSetpoint > targetY) {
-            yActualSetpoint = targetY;
+        if (yActualSetpoint > paddleTargetPos) {
+            yActualSetpoint = paddleTargetPos;
         }
     } else {
         // Need to go up
         yActualSetpoint -= _AIPlayerMaxMoveStep;
-        if (yActualSetpoint < targetY) {
-            yActualSetpoint = targetY;
+        if (yActualSetpoint < paddleTargetPos) {
+            yActualSetpoint = paddleTargetPos;
         }
     }
 

@@ -15,13 +15,14 @@
 #define IO_BOARD_DATA_TYPE_TEXT     "TEXT"
 #define IO_BOARD_DATA_TYPE_SOUND    "SOUND"
 
-#define IO_BOARD_SOUND_PADDLE   0x01
-#define IO_BOARD_SOUND_WALL     0x02
-#define IO_BOARD_SOUND_SCORE    0x03
-#define IO_BOARD_SOUND_BEEP     0x04
-#define IO_BOARD_SOUND_START    0x05
-#define IO_BOARD_SOUND_ALARM    0x06
-#define IO_BOARD_SOUND_BEEP2    0x07
+#define IO_BOARD_SOUND_PADDLE       0x01
+#define IO_BOARD_SOUND_WALL         0x02
+#define IO_BOARD_SOUND_SCORE        0x03
+#define IO_BOARD_SOUND_BEEP         0x04
+#define IO_BOARD_SOUND_START        0x05
+#define IO_BOARD_SOUND_ALARM        0x06
+#define IO_BOARD_SOUND_BEEP2        0x07
+#define IO_BOARD_SOUND_JET_START    0x08
 
 class IOBoard {
 public:

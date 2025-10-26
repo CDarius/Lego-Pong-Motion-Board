@@ -465,6 +465,22 @@ pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken
         delay(PBIO_CONFIG_SERVO_PERIOD_MS);
     }
 
+    // Little 200ms delay before throwing the ball
+    startTime = millis();
+    while ((millis() - startTime) < 200) {
+        IF_CANCELLED(cancelToken, {
+            return PBIO_ERROR_CANCELED;
+        });
+
+        // Both players move the paddles with their encoders if they are not AI
+        if (!_lPlayerIsAI)
+            _lEncoderJog.update();
+        if (!_rPlayerIsAI)
+            _rEncoderJog.update();
+
+        delay(GAME_LOOP_PERIOD_MS);
+    }
+
     if (player == GamePlayer::L) {
         _lAIPlayerActualYSetpoint = paddlePos;
         _lAIPlayerTargetY = paddlePos;
@@ -479,7 +495,6 @@ pbio_error_t Game::aiPlayerServeBall(GamePlayer player, CancelToken& cancelToken
 void Game::throwBall(GamePlayer player) {
     _speedX = _settings.xAxis.startBallGameSpeed * ((player == GamePlayer::L) ? 1.0f : -1.0f);
     _speedY = ((float)random(-10000, 10001) / 10000.0f) * _settings.yAxis.ballServeSpeedMax;
-    Serial.println(String("Throw ball speedX: ") + String(_speedX) + String(" speedY: ") + String(_speedY));
 
     _overshootX = getXInversionOvershoot(_speedX);
     _overshootY = getYInversionOvershoot(_speedY);
@@ -513,16 +528,35 @@ void Game::bounceBallTopBottom() {
 }
 
 bool Game::isBallAtPaddleBounceLimit(GamePlayer paddle) const {
+    bool ballTowardPaddleX = paddle == GamePlayer::R ? (_speedX > 0.0f) : (_speedX < 0.0f);
+
     if (paddle == GamePlayer::R) {
         // Right paddle
-        float border = _xSwLimitP - _settings.xAxis.paddleCollisionTolerance - GAME_PADDLE_W;
-
-        return (_ballX + _overshootX) > border;
+        if (ballTowardPaddleX) {
+            // With ball moving toward the paddle add the paddle collision tolerance
+            float border = _xSwLimitP - _settings.xAxis.paddleCollisionTolerance - GAME_PADDLE_W;
+    
+            return (_ballX + _overshootX) > border;
+        }
+        else {
+            // With ball moving away from the paddle do not apply paddle collision tolerance
+            float border = _xSwLimitP - GAME_PADDLE_W;
+    
+            return _ballX > border;
+        }
     } else {
         // Left paddle
-        float border = _xSwLimitM + _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
+        if (ballTowardPaddleX) {
+            // With ball moving toward the paddle add the paddle collision tolerance
+            float border = _xSwLimitM + _settings.xAxis.paddleCollisionTolerance + GAME_PADDLE_W;
 
-        return (_ballX - _overshootX) < border;
+            return (_ballX - _overshootX) < border;
+        } else {
+            // With ball moving away from the paddle do not apply paddle collision tolerance
+            float border = _xSwLimitM + GAME_PADDLE_W;
+
+            return _ballX < border;
+        }
     }
 }
 
@@ -612,7 +646,7 @@ void Game::limitPaddleOrBallToAvoidCollision(GamePlayer paddle) {
         canBounce = (paddle == GamePlayer::L) ? (_ballX >= (_xSwLimitM + GAME_PADDLE_W / 2.0f)) : (_ballX <= (_xSwLimitP - GAME_PADDLE_W / 2.0f));
     }
     if (ballIsBelowPaddle) {
-        // Ball is below the paddle limit the paddle max position
+        // Ball is below the paddle, limit the paddle max position
         float minBallY = MIN(_ballY, _targetBallY);
         float maxPaddleY = minBallY - GAME_PADDLE_H - _settings.yAxis.paddleCollisionTolerance;
         if (paddleY >= maxPaddleY) {

@@ -353,10 +353,21 @@ void loop() {
             delay(100);
         }
 
+        // Read game mode and AI level from IO board
+        GameMode gameMode;
+        GameAILevel aiLevel;
+        if (!io_board.getGameMode(gameMode, aiLevel)) {
+            Logger::instance().logE("Failed to get game mode from IO board");
+            io_board.playSound(IO_BOARD_SOUND_ALARM);
+            delay(1000);
+            return;
+        }
+
         // Run one match with a random player
         GamePlayer player = (esp_random() & 1) ? GamePlayer::L : GamePlayer::R;
         CancelToken cancelToken;
-        game.run(player, GameMode::PLAYER_VS_PLAYER, cancelToken);
+        game.setAILevel(aiLevel);
+        game.run(player, gameMode, cancelToken);
     }
     else {
         // Service mode, nothing to do here

@@ -208,6 +208,16 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
         _rMotor.hold();
         _lMotor.hold();
 
+        // Move the ball at the edge of the scrore side
+        float scroreBallX = (_xMotor.angle() < (_xSwLimitM + _xSwLimitP) / 2.0f) ? _xSwLimitM : _xSwLimitP;
+        PBIO_RETURN_ON_ERROR(_xMotor.run_target(
+            _xMotor.get_speed_limit(),
+            scroreBallX,
+            PBIO_ACTUATION_HOLD,
+            true,
+            &cancelToken
+        ));
+
         // Test for game end
         if (_scoreL >= GAME_WIN_SCORE || _scoreR >= GAME_WIN_SCORE)
             break;

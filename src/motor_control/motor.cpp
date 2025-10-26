@@ -392,11 +392,9 @@ pbio_error_t Motor::wait_for_completion(CancelToken* cancel_token) {
  */
 bool Motor::is_completion() {
     bool completed = false;
-    pbio_error_t status;
 
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        status = _servo_status;
-        completed = _servo_status == PBIO_SUCCESS && !pbio_control_is_done(&_servo.control);
+        completed = _servo_status == PBIO_SUCCESS && pbio_control_is_done(&_servo.control);
         xSemaphoreGive(_xMutex);
     }
 

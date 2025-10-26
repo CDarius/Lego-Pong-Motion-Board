@@ -2,18 +2,20 @@
 
 #include <Arduino.h>
 #include "utils/logger.hpp"
+#include "game/game_modes.hpp"
 
 #define IO_BOARD_COMMAND_DATA_SEPARATOR "::"
 #define IO_BOARD_DATA_VALUES_SEPARATOR "##"
 
-#define IO_BOARD_DATA_TYPE_INIT     "INIT"
-#define IO_BOARD_DATA_TYPE_LOG      "LOG"
-#define IO_BOARD_DATA_TYPE_AXES_POS "AXES"
-#define IO_BOARD_DATA_TYPE_PING     "PING"
-#define IO_BOARD_DATA_TYPE_PONG     "PONG"
-#define IO_BOARD_DATA_TYPE_SCORE    "SCORE"
-#define IO_BOARD_DATA_TYPE_TEXT     "TEXT"
-#define IO_BOARD_DATA_TYPE_SOUND    "SOUND"
+#define IO_BOARD_DATA_TYPE_INIT         "INIT"
+#define IO_BOARD_DATA_TYPE_LOG          "LOG"
+#define IO_BOARD_DATA_TYPE_AXES_POS     "AXES"
+#define IO_BOARD_DATA_TYPE_PING         "PING"
+#define IO_BOARD_DATA_TYPE_PONG         "PONG"
+#define IO_BOARD_DATA_TYPE_SCORE        "SCORE"
+#define IO_BOARD_DATA_TYPE_TEXT         "TEXT"
+#define IO_BOARD_DATA_TYPE_SOUND        "SOUND"
+#define IO_BOARD_DATA_TYPE_GAME_MODE    "GAME_MODE"
 
 #define IO_BOARD_SOUND_PADDLE       0x01
 #define IO_BOARD_SOUND_WALL         0x02
@@ -33,6 +35,12 @@ public:
     Sends a PING command and waits for a PONG response.
     */
     bool testConnection(unsigned long timeout_ms);
+
+    /*
+    Get the current game mode and AI level from the IO board.
+    Returns true if the data was successfully received, false otherwise.
+    */
+    bool getGameMode(GameMode& mode, GameAILevel& aiLevel);
 
     /*
     Send an INIT command to the IO board.

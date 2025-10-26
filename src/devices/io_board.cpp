@@ -56,6 +56,23 @@ bool IOBoard::testConnection(unsigned long timeout_ms) {
     return false; // Timeout reached without receiving PONG response
 }
 
+bool IOBoard::getGameMode(GameMode& mode, GameAILevel& aiLevel) {
+    String data;
+    sendData(IO_BOARD_DATA_TYPE_GAME_MODE, "");
+    if (receiveData(IO_BOARD_DATA_TYPE_GAME_MODE, data, 500)) {
+        // Parse the received data
+        int sepIndex = data.indexOf(IO_BOARD_DATA_VALUES_SEPARATOR);
+        if (sepIndex > 0) {
+            String modeStr = data.substring(0, sepIndex);
+            String aiLevelStr = data.substring(sepIndex + strlen(IO_BOARD_DATA_VALUES_SEPARATOR));
+            mode = static_cast<GameMode>(modeStr.toInt());
+            aiLevel = static_cast<GameAILevel>(aiLevelStr.toInt());
+            return true;
+        }
+    }
+    return false;
+}
+
 void IOBoard::sendData(const char* data_type, const char* data) {
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         _serial.print(data_type);

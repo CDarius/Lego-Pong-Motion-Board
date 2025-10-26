@@ -65,7 +65,18 @@ WebFunctionExecutionStatus WebFunctionGameLog::start() {
         CancelToken cancel_token;
         self->_cancelToken = &cancel_token;
 
+        // Get AI level from IO board
+        GameMode unusedMode;
+        GameAILevel aiLevel;
+        if (!self->_ioBoard.getGameMode(unusedMode, aiLevel)) {
+            self->_failureDescription = "Failed to get game mode and AI level from IO board";
+            self->_status =  WebFunctionExecutionStatus::Failed;
+            self->_cancelToken = nullptr;
+            return;
+        }
+
         // Start a game with logging enabled
+        self->_game.setAILevel(aiLevel);
         self->_game.run(GamePlayer::L, self->_mode, cancel_token, true);
         self->_game.getLogger()->stop();
 

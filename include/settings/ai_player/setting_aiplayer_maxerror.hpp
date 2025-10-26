@@ -2,13 +2,15 @@
 
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
+#include "game/game.hpp"
 
 class AIPlayerMaxErrorSetting : public SettingFloat {
     private:
         GameAIPlayerSettings& _settings;
+        GameAILevel _aiLevel;
 
     public:
-        AIPlayerMaxErrorSetting(GameAIPlayerSettings& settings) : _settings(settings) {}
+        AIPlayerMaxErrorSetting(GameAIPlayerSettings& settings, GameAILevel aiLevel) : _settings(settings), _aiLevel(aiLevel) {}
 
         float getValue() const override {
             return _settings.paddleMaxError;
@@ -19,15 +21,39 @@ class AIPlayerMaxErrorSetting : public SettingFloat {
         }
 
         const char* getName() const override {
-            return "max_error";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "max_error_e";
+                case GameAILevel::MEDIUM:
+                    return "max_error_m";
+                case GameAILevel::HARD:
+                    return "max_error_h";
+            }
+            return "???";
         }
 
         const char* getTitle() const override {
-            return "Maximum position error";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "Max Injected Error (Easy)";
+                case GameAILevel::MEDIUM:
+                    return "Max Injected Error (Medium)";
+                case GameAILevel::HARD:
+                    return "Max Injected Error (Hard)";
+            }
+            return "???";
         }
 
         const char* getDescription() const override {
-            return "Axis maximum AI player position error when tracking the ball";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "Axis maximum AI player injected position error when tracking the ball for Easy level";
+                case GameAILevel::MEDIUM:
+                    return "Axis maximum AI player injected position error when tracking the ball for Medium level";
+                case GameAILevel::HARD:
+                    return "Axis maximum AI player injected position error when tracking the ball for Hard level";
+            }
+            return "???";
         }
 
         const char* getUnit() const override {

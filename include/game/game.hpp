@@ -46,6 +46,12 @@ enum class GameMode {
     AI_VS_AI
 };
 
+enum class GameAILevel {
+    EASY,
+    MEDIUM,
+    HARD
+};
+
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)
 
 
@@ -64,6 +70,10 @@ class Game {
 
         uint8_t _scoreL = 0;
         uint8_t _scoreR = 0;
+
+        // AI level
+        GameAILevel _aiLevel = GameAILevel::EASY;
+        GameAIPlayerSettings _aiPlayerSettings;
 
         // Game motion state
         float _deltaTimeS = 0.0;
@@ -156,5 +166,26 @@ class Game {
         // Get the game logger
         GameLogger* getLogger() {
             return &_logger;
+        }
+
+        // Get current AI level
+        GameAILevel getAILevel() const {
+            return _aiLevel;
+        }
+
+        // Set current AI level
+        void setAILevel(GameAILevel level) {
+            _aiLevel = level;
+            switch (level) {
+                case GameAILevel::EASY:
+                    _aiPlayerSettings = _settings.aiPlayerEasy;
+                    break;
+                case GameAILevel::MEDIUM:
+                    _aiPlayerSettings = _settings.aiPlayerMedium;
+                    break;
+                case GameAILevel::HARD:
+                    _aiPlayerSettings = _settings.aiPlayerHard;
+                    break;
+            }
         }
 };

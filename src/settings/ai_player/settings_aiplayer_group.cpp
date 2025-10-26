@@ -1,6 +1,6 @@
 #include "settings/ai_player/settings_aiplayer_group.hpp"
 
-SettingsAIPlayerGroup::SettingsAIPlayerGroup(const char* name, const char* description, GameAIPlayerSettings& aiSettings) : _aiSettings(aiSettings) 
+SettingsAIPlayerGroup::SettingsAIPlayerGroup(const char* name, const char* description, GameSettings& gameSettings) : _gameSettings(gameSettings) 
 { 
     _name = name;
     _title = description;

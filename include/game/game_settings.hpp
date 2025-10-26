@@ -33,14 +33,16 @@ struct GameLRAxisSettings {
 };
 
 struct GameAIPlayerSettings {
-    float paddleMaxSpeed = 32.0f;               // Maximum paddle speed for AI player (stud/second)
+    float paddleMaxSpeed = 12.0f;               // Maximum paddle speed for AI player (stud/second)
     float paddleMaxError = 5.0f;                // Maximum paddle position error for AI player (stud)
-    uint16_t playerUpdateTimeMs = 300;          // AI player update time (ms)
+    uint16_t errorUpdateTimeMs = 250;           // Injected error update time (ms)
 };
 
 struct GameSettings {
     GameXAxisSettings xAxis;
     GameYAxisSettings yAxis;
     GameLRAxisSettings lrAxis;
-    GameAIPlayerSettings aiPlayer;
+    GameAIPlayerSettings aiPlayerEasy;
+    GameAIPlayerSettings aiPlayerMedium;
+    GameAIPlayerSettings aiPlayerHard;
 };

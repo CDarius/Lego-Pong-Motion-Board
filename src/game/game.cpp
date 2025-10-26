@@ -26,7 +26,7 @@ pbio_error_t Game::run(GamePlayer startPlayer, GameMode mode, CancelToken& cance
 
     _lPlayerIsAI = playerIsAI(GamePlayer::L, mode);
     _rPlayerIsAI = playerIsAI(GamePlayer::R, mode);
-    _AIPlayerMaxMoveStep = _settings.aiPlayer.paddleMaxSpeed * ((float)GAME_LOOP_PERIOD_MS / 1000.0f);
+    _AIPlayerMaxMoveStep = _aiPlayerSettings.paddleMaxSpeed * ((float)GAME_LOOP_PERIOD_MS / 1000.0f);
 
     // Get axes software limits
     _xSwLimitM = _xMotor.getSwLimitMinus();
@@ -750,12 +750,12 @@ void Game::aiPlayer(GamePlayer player) {
 
     unsigned long now = millis();
     uint16_t deltaTime = now - _lastAIUpdateTime;
-    bool calcNewError = deltaTime > _settings.aiPlayer.playerUpdateTimeMs;
+    bool calcNewError = deltaTime > _aiPlayerSettings.errorUpdateTimeMs;
 
     if (calcNewError) {
         _lastAIUpdateTime = now;
         // Calculate a new tracking error
-        float trackError = ((float)random(-10000, 10001) / 10000.0f) * _settings.aiPlayer.paddleMaxError;
+        float trackError = ((float)random(-10000, 10001) / 10000.0f) * _aiPlayerSettings.paddleMaxError;
 
         if (player == GamePlayer::L) {
             _lAIPlayerError = trackError;

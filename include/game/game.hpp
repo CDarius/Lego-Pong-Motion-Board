@@ -4,6 +4,7 @@
 #include "macros.h"
 #include "axes.hpp"
 #include "game_settings.hpp"
+#include "game_modes.hpp"
 #include "game_logger.hpp"
 #include "motor_control/motorhoming.hpp"
 #include "motor_control/error.hpp"
@@ -38,18 +39,6 @@
 enum class GamePlayer {
     L,
     R
-};
-
-enum class GameMode {
-    PLAYER_VS_PLAYER,
-    PLAYER_VS_AI,
-    AI_VS_AI
-};
-
-enum class GameAILevel {
-    EASY,
-    MEDIUM,
-    HARD
 };
 
 #define OTHER_GAME_PLAYER(player) ((player) == GamePlayer::L ? GamePlayer::R : GamePlayer::L)

@@ -6,6 +6,7 @@
 #include "utils/task_runner.hpp"
 #include "utils/cancel_token.hpp"
 #include "utils/logger.hpp"
+#include "game/game_modes.hpp"
 #include "game/game.hpp"
 #include "motor_control/motorhoming.hpp"
 

@@ -5,6 +5,7 @@
 #include "utils/task_runner.hpp"
 #include "devices/io_board.hpp"
 #include "devices/unit_encoder.hpp"
+#include "game/game_modes.hpp"
 #include "game/game.hpp"
 #include "motor_control/motorhoming.hpp"
 

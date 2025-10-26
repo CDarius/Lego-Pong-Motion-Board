@@ -2,7 +2,7 @@
 
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
-#include "game/game.hpp"
+#include "game/game_modes.hpp"
 
 class AIPlayerMaxErrorSetting : public SettingFloat {
     private:

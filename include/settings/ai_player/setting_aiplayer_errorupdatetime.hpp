@@ -2,7 +2,7 @@
 
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
-#include "game/game.hpp"
+#include "game/game_modes.hpp"
 #include "config.h"
 
 class AIPlayerErrorUpdateTimeSetting : public SettingUInt16 {

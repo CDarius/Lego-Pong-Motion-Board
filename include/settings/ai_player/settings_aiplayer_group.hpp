@@ -4,7 +4,7 @@
 #include "setting_aiplayer_maxerror.hpp"
 #include "setting_aiplayer_errorupdatetime.hpp"
 #include "game/game_settings.hpp"
-#include "game/game.hpp"
+#include "game/game_modes.hpp"
 
 class SettingsAIPlayerGroup : public SettingsGroup {
     private:

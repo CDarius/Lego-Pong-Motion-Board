@@ -46,7 +46,14 @@ WebFunctionExecutionStatus WebFunctionGameMinCloseLoopSpeed::start() {
         float direction = -1.0f;
         float speed = self->_closeLoopMinSpeed;
         self->_encoder.clearValue();
-        int16_t encoderValue = self->_encoder.getValue();
+        int16_t encoderValue;
+        bool readSuccess = self->_encoder.getValue(encoderValue);
+        if (!readSuccess) {
+            self->_failureDescription = "Failed to read the encoder";
+            self->_status = WebFunctionExecutionStatus::Failed;
+            self->_cancelToken = nullptr;
+            return;
+        }
 
         while (!cancel_token.isCancelled()) {            
             // Invert the axis when the limit is reached
@@ -65,7 +72,15 @@ WebFunctionExecutionStatus WebFunctionGameMinCloseLoopSpeed::start() {
             }
             
             // Read the encoder to get user speed changes requests
-            int16_t newEncoderValue = self->_encoder.getValue();
+            int16_t newEncoderValue;
+            readSuccess = self->_encoder.getValue(newEncoderValue);
+            if (!readSuccess) {
+                self->_failureDescription = "Failed to read the encoder";
+                self->_status = WebFunctionExecutionStatus::Failed;
+                self->_cancelToken = nullptr;
+                return;
+            }
+
             if (newEncoderValue != encoderValue) {
                 int16_t delta = newEncoderValue - encoderValue;
                 encoderValue = newEncoderValue;
@@ -92,7 +107,9 @@ WebFunctionExecutionStatus WebFunctionGameMinCloseLoopSpeed::start() {
             }
 
             // Apply the new min speed if the user click the encoder
-            if (self->_encoder.isButtonPressed()) {
+            bool buttonPressed = false;
+            readSuccess = self->_encoder.isButtonPressed(buttonPressed);
+            if (buttonPressed && readSuccess) {
                 self->_closeLoopMinSpeed = speed;
                 break;
             }

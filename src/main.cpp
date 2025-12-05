@@ -118,7 +118,7 @@ EncoderMultiJog r_encoder_jog(r_encoder, encoder_jog_config, x_motor, y_motor, l
 Game game(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
 
 Settings game_settings(game, encoder_jog_config, x_motor, y_motor, l_motor, r_motor);
-WebFunctions web_functions(io_board, l_encoder_jog, *game.getSettings(),  x_motor, y_motor, l_motor, r_motor);
+WebFunctions web_functions(io_board, l_encoder_jog, r_encoder_jog, game,  x_motor, y_motor, l_motor, r_motor);
 
 bool service_mode;
 
@@ -141,6 +141,8 @@ void motor_loop_task(void *parameter) {
         // Stop game and all motors if the stop button was clicked
         if (stop_button.wasClicked()) {
             CancelToken::cancelAll();
+            l_encoder_jog.stop();
+            r_encoder_jog.stop();
             x_motor.stop();
             y_motor.stop();
             l_motor.stop();
@@ -304,7 +306,10 @@ void setup() {
             Logger::instance().logI("Connected to WiFi!");
             Logger::instance().logI("IP Address: " + WiFi.localIP().toString());
             
-            server.begin(&game_settings, &web_functions, &x_motor, &y_motor, &l_motor, &r_motor);
+            server.begin(
+                &game_settings, &web_functions, 
+                &x_motor, &y_motor, &l_motor, &r_motor,
+                game.getLogger());
         } 
         else {
             Logger::instance().logE("WiFi configuration failed. Please check the static IP settings.");
@@ -317,7 +322,8 @@ void setup() {
 
     if (!service_mode) {
         // Home all axes
-        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog);
+        CancelToken cancelToken;
+        pbio_error_t err = homeAllAxes(x_motor, y_motor, l_motor, r_motor, io_board, l_encoder_jog, r_encoder_jog, cancelToken);
         if (err != PBIO_SUCCESS) {
             Logger::instance().logE("Failed to home all axes.");
             rgb_led.unrecoverableError();
@@ -347,9 +353,21 @@ void loop() {
             delay(100);
         }
 
+        // Read game mode and AI level from IO board
+        GameMode gameMode;
+        GameAILevel aiLevel;
+        if (!io_board.getGameMode(gameMode, aiLevel)) {
+            Logger::instance().logE("Failed to get game mode from IO board");
+            io_board.playSound(IO_BOARD_SOUND_ALARM);
+            delay(1000);
+            return;
+        }
+
         // Run one match with a random player
         GamePlayer player = (esp_random() & 1) ? GamePlayer::L : GamePlayer::R;
-        game.run(player, GameMode::PLAYER_VS_PLAYER);
+        CancelToken cancelToken;
+        game.setAILevel(aiLevel);
+        game.run(player, gameMode, cancelToken);
     }
     else {
         // Service mode, nothing to do here

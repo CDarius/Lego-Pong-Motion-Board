@@ -78,7 +78,7 @@ void IRAM_ATTR Tacho::ISR_read_encoder() {
         uint8_t new_head = (_ring_head + 1) & TACHO_RING_BUF_MASK;
 
         _ring_counts[new_head] = _last_count;
-        _ring_timestamps[new_head] = monotonic_us_2();
+        _ring_timestamps[new_head] = monotonic_us();
         _ring_head = new_head;
     }
     else
@@ -172,7 +172,10 @@ void Tacho::resetAngle(float angle) {
         angle =-angle;
 
     int32_t counts = (int32_t)(_gear_ratio * angle);
+
+    portENTER_CRITICAL( &mux );
     _offset = counts - _last_count;
+    portEXIT_CRITICAL( &mux );
 }
 
 bool Tacho::isSequenceError() {

@@ -8,6 +8,7 @@
 #include "settings/setting.hpp"
 #include "web_functions/web_functions.hpp"
 #include "motor_control/motor.hpp"
+#include "game/game_logger.hpp"
 
 class ApiRestServer {
     private:
@@ -18,6 +19,7 @@ class ApiRestServer {
         Motor* _YMotor;
         Motor* _LMotor;
         Motor* _RMotor;
+        GameLogger* _gameLogger;
 
 
         String uriParam(const String& uri, uint8_t position);
@@ -25,9 +27,10 @@ class ApiRestServer {
         void setupWebFunctionController();
         void setupAxisLogController();
         void setupAxisInfoController();
+        void setupGameLogController();
 
         Motor* getMotorByName(const char* name);
 
     public:
-        void begin(Settings* settings, WebFunctions* webFunctions, Motor* xMotor, Motor* yMotor, Motor* lMotor, Motor* rMotor);
+        void begin(Settings* settings, WebFunctions* webFunctions, Motor* xMotor, Motor* yMotor, Motor* lMotor, Motor* rMotor, GameLogger* gameLogger);
 };

@@ -16,6 +16,7 @@ class SettingJogXMultiplier : public SettingFloat {
 
         void setValue(float value) override {
             _config.x_encoder_multiplier = value;
+            _config.update_counter++;
         }
 
         const char* getName() const override {

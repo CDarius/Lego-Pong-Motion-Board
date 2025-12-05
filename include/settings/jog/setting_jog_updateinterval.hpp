@@ -16,6 +16,7 @@ class SettingJogUpdateInterval : public SettingUInt16 {
 
         void setValue(uint16_t value) override {
             _config.update_interval_ms = value;
+            _config.update_counter++;
         }
 
         const char* getName() const override {

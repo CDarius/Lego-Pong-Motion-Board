@@ -16,6 +16,7 @@ class SettingJogRInvertEncoder : public SettingBool {
 
         void setValue(bool value) override {
             _config.r_encoder_invert = value;
+            _config.update_counter++;
         }
 
         const char* getName() const override {

@@ -2,13 +2,15 @@
 
 #include "settings/setting.hpp"
 #include "game/game_settings.hpp"
+#include "game/game_modes.hpp"
 
 class AIPlayerMaxSpeedSetting : public SettingFloat {
     private:
         GameAIPlayerSettings& _settings;
+        GameAILevel _aiLevel;
 
     public:
-        AIPlayerMaxSpeedSetting(GameAIPlayerSettings& settings) : _settings(settings) {}
+        AIPlayerMaxSpeedSetting(GameAIPlayerSettings& settings, GameAILevel aiLevel) : _settings(settings), _aiLevel(aiLevel) {}
 
         float getValue() const override {
             return _settings.paddleMaxSpeed;
@@ -19,15 +21,39 @@ class AIPlayerMaxSpeedSetting : public SettingFloat {
         }
 
         const char* getName() const override {
-            return "max_speed";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "max_speed_e";
+                case GameAILevel::MEDIUM:
+                    return "max_speed_m";
+                case GameAILevel::HARD:
+                    return "max_speed_h";
+            }
+            return "???";
         }
 
         const char* getTitle() const override {
-            return "Maximum speed";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "Maximum Speed (Easy)";
+                case GameAILevel::MEDIUM:
+                    return "Maximum Speed (Medium)";
+                case GameAILevel::HARD:
+                    return "Maximum Speed (Hard)";
+            }
+            return "???";
         }
 
         const char* getDescription() const override {
-            return "Axis maximum close speed for AI player";
+            switch (_aiLevel) {
+                case GameAILevel::EASY:
+                    return "Axis maximum close speed for AI player (Easy)";
+                case GameAILevel::MEDIUM:
+                    return "Axis maximum close speed for AI player (Medium)";
+                case GameAILevel::HARD:
+                    return "Axis maximum close speed for AI player (Hard)";
+            }
+            return "???";
         }
 
         const char* getUnit() const override {

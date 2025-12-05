@@ -1,8 +1,9 @@
 #include "motor_control/servo.hpp"
 
-void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float counts_per_unit, pbio_control_settings_t *settings) {
+void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, PBIOLogger *logger, float counts_per_unit, pbio_control_settings_t *settings) {
     srv->tacho = tacho;
     srv->dcmotor = dcmotor;
+    srv->log = logger;
 
     // Reset state
     pbio_control_stop(&srv->control);
@@ -12,33 +13,6 @@ void pbio_servo_setup(pbio_servo_t *srv, DCMotor *dcmotor, Tacho *tacho, float c
 
     // For a servo, counts per output unit is counts per degree at the gear train output
     srv->control.settings.counts_per_unit = counts_per_unit;
-
-    // Configure the logs for a servo
-    srv->log.num_values = SERVO_LOG_NUM_VALUES;
-    static char *servo_col_names[] {
-        (char *)"Time since start of maneuver",
-        (char *)"Current position",
-        (char *)"Current speed",
-        (char *)"Current actuation type",
-        (char *)"Current actuation value",
-        (char *)"Position setpoint",
-        (char *)"Speed setpoint",
-        (char *)"Error: position for angle maneuver or else speed",
-        (char *)"Accumulated position error"
-    };
-    srv->log.col_names = servo_col_names;
-    static char *servo_col_units[] {
-        (char *)"ms",
-        (char *)"count",
-        (char *)"count/s",
-        (char *)"pbio_actuation_t",
-        (char *)"duty steps",
-        (char *)"count",
-        (char *)"count/s",
-        (char *)"count or count/s",
-        (char *)"count"
-    };
-    srv->log.col_units = servo_col_units;
 }
 
 /** 
@@ -167,7 +141,7 @@ static pbio_error_t pbio_servo_log_update(pbio_servo_t *srv, int32_t time_now, i
         buf[8] = err_integral; // Accumulated error (count)
     }
 
-    return pbio_logger_update(&srv->log, buf);
+    return srv->log->update(buf);
 }
 
 /**

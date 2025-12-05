@@ -113,9 +113,9 @@ void WebFunctionGameBounce::stop() {
     }
 }
 
-pbio_error_t WebFunctionGameBounce::_runBounceTest(float speedCmdPercentage, float& overshoot, CancelToken& cancel_token) {
-    float startPosition = speedCmdPercentage > 0 ? _axis.getSwLimitMinus() : _axis.getSwLimitPlus();
-    float inversionPosition = speedCmdPercentage > 0 ? _axis.getSwLimitPlus() - BOUNCE_SAFE_OVERSHOOT_DISTANCE : _axis.getSwLimitMinus() + BOUNCE_SAFE_OVERSHOOT_DISTANCE;
+pbio_error_t WebFunctionGameBounce::_runBounceTest(float speedCmd, float& overshoot, CancelToken& cancel_token) {
+    float startPosition = speedCmd > 0 ? _axis.getSwLimitMinus() : _axis.getSwLimitPlus();
+    float inversionPosition = speedCmd > 0 ? _axis.getSwLimitPlus() - BOUNCE_SAFE_OVERSHOOT_DISTANCE : _axis.getSwLimitMinus() + BOUNCE_SAFE_OVERSHOOT_DISTANCE;
     
     // Move to start position    
     pbio_error_t err = _axis.run_target(
@@ -129,52 +129,62 @@ pbio_error_t WebFunctionGameBounce::_runBounceTest(float speedCmdPercentage, flo
         return err;
     }
 
-    // Begin to move open loop at the given speed
-    _axis.dc(speedCmdPercentage);
+    // Start moving in open loop at the commanded speed towards the inversion position
+    float trackPosition = _axis.angle();
+    float positionStep = speedCmd * PBIO_CONFIG_SERVO_PERIOD_MS / 1000.0f;
+    while (true) {
+        IF_CANCELLED(cancel_token, {
+            return PBIO_ERROR_CANCELED;
+        });
 
-    // Wait for the axis to reach the inversion position
-    if (speedCmdPercentage > 0) {
-        while (_axis.angle() < inversionPosition) {
-            IF_CANCELLED(cancel_token, {
-                return PBIO_ERROR_CANCELED;
-            });
-
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS + 1);
+        // Check if we are close enough to the inversion position and exit the loop
+        if (speedCmd > 0) {
+            if (_axis.angle() > inversionPosition) {
+                break;
+            }
+        } else {
+            if (_axis.angle() < inversionPosition) {
+                break;
+            }
         }
-    } else {
-        while (_axis.angle() > inversionPosition) {
-            IF_CANCELLED(cancel_token, {
-                return PBIO_ERROR_CANCELED;
-            });
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS + 1);
-        }
+        // Move the axis in close loop until we are close to the inversion position
+        trackPosition += positionStep;
+        _axis.track_target(trackPosition);
+
+        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
     }
 
-    // Invert the motion direction
-    _axis.dc(-speedCmdPercentage);
 
-    // Keep track of the axis position until the axis invert the speed
-    if (speedCmdPercentage > 0) {
-        while (_axis.speed() > 0) {
-            IF_CANCELLED(cancel_token, {
-                return PBIO_ERROR_CANCELED;
-            });
+    // Invert the motion direction and wait until the axis invert the speed
+    float axisPosAtInversion = _axis.angle();
+    speedCmd = -speedCmd;
+    positionStep = -positionStep;
+    while (true) {
+        IF_CANCELLED(cancel_token, {
+            return PBIO_ERROR_CANCELED;
+        });
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
+        // Check if the axis has inverted the speed and exit the loop
+        if (speedCmd > 0) {
+            if (_axis.speed() > 0) {
+                break;
+            }
+        } else {
+            if (_axis.speed() < 0) {
+                break;
+            }
         }
-    } else {
-        while (_axis.speed() < 0) {
-            IF_CANCELLED(cancel_token, {
-                return PBIO_ERROR_CANCELED;
-            });
 
-            delay(PBIO_CONFIG_SERVO_PERIOD_MS);
-        }
+        // Move the axis in close loop until we are close to the inversion position
+        trackPosition += positionStep;
+        _axis.track_target(trackPosition);
+
+        delay(PBIO_CONFIG_SERVO_PERIOD_MS);
     }
 
     float overshootPosition = _axis.angle();
-    overshoot = fabs(overshootPosition - inversionPosition);
+    overshoot = fabs(overshootPosition - axisPosAtInversion);
     
     _axis.brake();
 

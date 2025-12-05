@@ -22,6 +22,7 @@ typedef struct _pbio_control_settings_t {
     int32_t actuation_scale;        /**< Number of "duty steps" per "%" user-specified raw actuation value */
     int32_t integral_range;         /**< Region around the target count in which integral errors are accumulated */
     int32_t integral_rate;          /**< Maximum rate at which the integrator is allowed to increase */
+    float max_windup_factor;        /**< Factor to limit/increase the integrator max windup. 1 means default windup. A value < 1 reduces windup, while a value > 1 increases it. */
 } pbio_control_settings_t;
 
 static pbio_control_settings_t settings_servo_ev3_medium = {
@@ -39,6 +40,7 @@ static pbio_control_settings_t settings_servo_ev3_medium = {
     .actuation_scale = 100,
     .integral_range = 45,
     .integral_rate = 10,
+    .max_windup_factor = 1.0,
 };
 
 static pbio_control_settings_t settings_servo_ev3_large = {
@@ -56,4 +58,5 @@ static pbio_control_settings_t settings_servo_ev3_large = {
     .actuation_scale = 100,
     .integral_range = 45,
     .integral_rate = 10,
+    .max_windup_factor = 1.0,
 };

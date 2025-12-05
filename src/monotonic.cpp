@@ -1,12 +1,16 @@
 #include "monotonic.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
-unsigned long __last_micros_value = 0;
-uint64_t __accumulated_micros_value = 0;
+static unsigned long __last_micros_value = 0;
+static uint64_t __accumulated_micros_value = 0;
+static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
-unsigned long __last_micros_value_2 = 0;
-uint64_t __accumulated_micros_value_2 = 0;
+static unsigned long __last_micros_value_2 = 0;
+static uint64_t __accumulated_micros_value_2 = 0;
 
 uint64_t monotonic_us() {
+    taskENTER_CRITICAL(&mux);
     unsigned long new_value = micros();
     uint32_t delta;
     if (new_value > __last_micros_value)
@@ -17,7 +21,10 @@ uint64_t monotonic_us() {
     __accumulated_micros_value += delta;
     __last_micros_value = new_value;
 
-    return __accumulated_micros_value;
+    uint64_t result = __accumulated_micros_value;
+    taskEXIT_CRITICAL(&mux);
+
+    return result;
 }
 
 uint64_t monotonic_us_2() {

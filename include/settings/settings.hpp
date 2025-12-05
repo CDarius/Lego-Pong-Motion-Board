@@ -30,7 +30,7 @@ class Settings {
         SettingsGameAxisXGroup _gameXAxis = SettingsGameAxisXGroup(_gameSettings.xAxis);
         SettingsGameAxisYGroup _gameYAxis = SettingsGameAxisYGroup(_gameSettings.yAxis);
         SettingsGameAxisLRGroup _gameLRAxis = SettingsGameAxisLRGroup(_gameSettings.lrAxis);
-        SettingsAIPlayerGroup _aiPlayerSettings = SettingsAIPlayerGroup("ai_player", "AI Player", _gameSettings.aiPlayer);
+        SettingsAIPlayerGroup _aiPlayerSettings = SettingsAIPlayerGroup("ai_player", "AI Player", _gameSettings);
         SettingsJogGroup _jogSettings = SettingsJogGroup(_config);
         SettingsAxisGroup _xSettings = SettingsAxisGroup("x_axis", "X Axis", _XMotor);
         SettingsAxisGroup _ySettings = SettingsAxisGroup("y_axis", "Y Axis", _YMotor);

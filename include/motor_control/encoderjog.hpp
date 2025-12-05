@@ -3,47 +3,69 @@
 #include "motorhoming.hpp"
 #include "devices/unit_encoder.hpp"
 
+struct encoder_jog_config_t  {    
+    uint16_t update_interval_ms; // Axis position update interval in milliseconds
+    float encoder_multiplier; // Axis multiplier for encoder value to convert from encoder units to motor position units (stud/count)
+    bool use_track; // Use track (true) or run_target (false) to move the axis
+    bool encoder_invert; // Encoder direction invert
+    uint8_t medium_enc_speed_count; // Number of encoder counts to consider it medium speed
+    uint8_t high_enc_speed_count; // Number of encoder counts to consider it high speed
+    float medium_speed_multiplier_factor; // Multiplier to apply to encoder_multiplier when reach medium speed
+    float high_speed_multiplier_factor; // Multiplier to apply to encoder_multiplier when reach high speed
+};
+
 // EncoderJog provides jog control for a motor using an external encoder as input.
 class EncoderJog {
 private:
-    // Axis position update interval in microseconds
-    int update_interval_us;
-    // Multiplier for encoder value to convert from encoder units to motor position units
-    float encoder_multiplier;
+    // Configuration for the jog control
+    encoder_jog_config_t _config;
+
     // Position setpoint for the axis
     float pos_setpoint = 0.0f;
-    // Direction
-    bool invert_encoder;
     // Last jog wheel value
     int16_t last_encoder_value = 0;
+    // Last position update time in milliseconds
+    uint32_t last_update_ms = 0;
+
+    SemaphoreHandle_t _xMutex = xSemaphoreCreateMutex();
+    
     IMotorHoming* motor = nullptr;
     UnitEncoder& encoder;
-    uint64_t last_update_us = 0;
 
 public:
-    EncoderJog(UnitEncoder& encoder, int interval_ms = 200, float multiplier = 1.0f)
-        : encoder(encoder), update_interval_us(interval_ms * 1000), encoder_multiplier(multiplier) {}
+    EncoderJog(UnitEncoder& encoder, int interval_ms = 200, float multiplier = 1.0f) : encoder(encoder) {
+        _config.update_interval_ms = interval_ms;
+        _config.encoder_multiplier = multiplier;
 
-    // Get the axis position update interval in milliseconds
-    int getUpdateIntervalMs() const;
-    // Set the axis position update interval in milliseconds
-    void setUpdateIntervalMs(int interval_ms);
+        _config.use_track = true;
+        _config.medium_enc_speed_count = 1;
+        _config.high_enc_speed_count = 1;
+        _config.medium_speed_multiplier_factor = 1.0f;
+        _config.high_speed_multiplier_factor = 1.0f;
+    }
 
-    // Get the encoder multiplier to convert encoder units to motor position units
-    float getEncoderMultiplier() const;
-    // Set the encoder multiplier to convert encoder units to motor position units
-    void setEncoderMultiplier(float multiplier);
-
-    // Get the encoder invert status
-    bool getEncoderInvert() const;
-    // Set the axis position update interval in milliseconds
-    void setEncoderInvert(bool invert);
+    // Configuration access
+    encoder_jog_config_t* getConfig() {
+        return &_config;
+    }
 
     // Get the encoder reference for jog control
-    UnitEncoder* getEncoder() const;
+    UnitEncoder* getEncoder() const {
+        return &encoder;
+    }
 
     // Get the current jogged motor
-    IMotorHoming* getMotor() const;
+    IMotorHoming* getMotor() const {
+        return motor;
+    }
+
+    // Get the current axis position setpoint
+    float getPosSetpoint() const {
+        return pos_setpoint;
+    }
+
+    // Override current axis jog position setpoint
+    void overridePosSetpoint(float pos);
 
     // Start jog control with the given motor
     void start(IMotorHoming& motor);

@@ -16,7 +16,9 @@ void Motor::begin(
         _dcmotor.begin(pwmPi1, pwmPi2, direction, MOTOR_MAX_CONTROL);
         _current_error_output_func = error_output_func;
 
-        pbio_servo_setup(&_servo, &_dcmotor, &_tacho, counts_per_unit, settings);
+
+        
+        pbio_servo_setup(&_servo, &_dcmotor, &_tacho, &_logger, counts_per_unit, settings);
 
         update();
 }
@@ -58,7 +60,10 @@ float Motor::motor_speed() const {
 }
 
 void Motor::getState(pbio_passivity_t *state, int32_t *duty_now) const {
-    _dcmotor.getState(state, duty_now);
+    if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
+        _dcmotor.getState(state, duty_now);
+        xSemaphoreGive(_xMutex);
+    }
 }
 
 /**
@@ -387,11 +392,9 @@ pbio_error_t Motor::wait_for_completion(CancelToken* cancel_token) {
  */
 bool Motor::is_completion() {
     bool completed = false;
-    pbio_error_t status;
 
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
-        status = _servo_status;
-        completed = _servo_status == PBIO_SUCCESS && !pbio_control_is_done(&_servo.control);
+        completed = _servo_status == PBIO_SUCCESS && pbio_control_is_done(&_servo.control);
         xSemaphoreGive(_xMutex);
     }
 
@@ -525,11 +528,12 @@ Return pid settings
 :param integral_range: Return integral range: Region around the target count in which integral errors are accumulated (user units)
 :param integral_rate: Return integral rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
  */
-void Motor::get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate) const {
+void Motor::get_pid(uint16_t *kp, uint16_t *ki, uint16_t *kd, float *integral_deadzone, float *integral_rate, float *max_windup_factor) const {
     int16_t _kp, _ki, _kd;
     int32_t _control_offset;
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         pbio_control_settings_get_pid(&_servo.control.settings, &_kp, &_ki, &_kd, integral_deadzone, integral_rate, &_control_offset);
+        *max_windup_factor = _servo.control.settings.max_windup_factor;
         xSemaphoreGive(_xMutex);
     }
     *kp = (uint16_t)_kp;
@@ -546,18 +550,30 @@ Set PID settings
 :param integral_range: Region around the target count in which integral errors are accumulated (user units)
 :param integral_rate: Maximum rate at which the integrator is allowed to increase  (user units/s)
 */
-pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integral_deadzone, float integral_rate) {
+pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integral_deadzone, float integral_rate, float max_windup_factor) {
     pbio_error_t err;
 
     if (integral_deadzone <= 0) {
         err = PBIO_ERROR_INVALID_ARG;
-        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f) integral_deadzone out of range", kp, ki, kd, integral_deadzone, integral_rate);
+        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f, %f) integral_deadzone out of range", kp, ki, kd, integral_deadzone, integral_rate, max_windup_factor);
         return err;
     }
 
     if (integral_rate <= 0) {
         err = PBIO_ERROR_INVALID_ARG;
-        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f) integral_rate out of range", kp, ki, kd, integral_deadzone, integral_rate);
+        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f, %f) integral_rate out of range", kp, ki, kd, integral_deadzone, integral_rate, max_windup_factor);
+        return err;
+    }
+
+    if (max_windup_factor <= 0) {
+        err = PBIO_ERROR_INVALID_ARG;
+        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f, %f, %f) max_windup_factor less or equal zero", kp, ki, kd, integral_deadzone, integral_rate, max_windup_factor, max_windup_factor);
+        return err;
+    }
+
+    if (max_windup_factor > 10.0) {
+        err = PBIO_ERROR_INVALID_ARG;
+        output_motor_error(err, "Motor::set_pid(%u, %u, %u, %f, %f, %f, %f) max_windup_factor greater than 10.0", kp, ki, kd, integral_deadzone, integral_rate, max_windup_factor, max_windup_factor);
         return err;
     }
 
@@ -567,10 +583,8 @@ pbio_error_t Motor::set_pid(uint16_t kp, uint16_t ki, uint16_t kd, float integra
 
     if (xSemaphoreTake(_xMutex, portMAX_DELAY)) {
         pbio_control_settings_get_pid(&_servo.control.settings, &_kp, &_ki, &_kd, &_integral_deadzone, &_integral_rate, &_control_offset);
-        _kp = (int16_t)kp;
-        _ki = (int16_t)ki;
-        _kd = (int16_t)kd;
-        err = pbio_control_settings_set_pid(&_servo.control.settings, _kp, _ki, kd, integral_deadzone, integral_rate, _control_offset);
+        err = pbio_control_settings_set_pid(&_servo.control.settings, kp, ki, kd, integral_deadzone, integral_rate, _control_offset);
+        _servo.control.settings.max_windup_factor = max_windup_factor;
         xSemaphoreGive(_xMutex);
     }
     if (err != PBIO_SUCCESS) {
@@ -610,7 +624,7 @@ pbio_error_t Motor::set_target_tolerances(float speed, float position) {
         return err;
     }
 
-    if (position <= 1) {
+    if (position <= 0.1) {
         err = PBIO_ERROR_INVALID_ARG;
         output_motor_error(err, "Motor::set_target_tolerances(%f, %f) position out of range", speed, position);            
         return err;

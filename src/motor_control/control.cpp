@@ -61,7 +61,8 @@ void control_update(pbio_control_t *ctl, int32_t time_now, int32_t count_now, in
     // if we get at this limit. We wait a little longer though, to make sure it does not fall back to below the limit
     // within one sample, which we can predict using the current rate times the loop time, with a factor two tolerance.
     int32_t max_windup_duty = (ctl->settings.max_control - ctl->settings.control_offset) + (ctl->settings.pid_kp * abs(rate_now) * PBIO_CONFIG_SERVO_PERIOD_MS * 2) / MS_PER_SECOND;
-
+    max_windup_duty = (int32_t)(max_windup_duty * ctl->settings.max_windup_factor);
+    
     // Position anti-windup: pause trajectory or integration if falling behind despite using maximum duty
 
     // Position anti-windup in case of angle control (position error may not get too high)

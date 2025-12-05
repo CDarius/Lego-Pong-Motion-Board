@@ -54,14 +54,22 @@ WebFunctionExecutionStatus WebFunctionAxesJog::start() {
 
             // Switch axis on paddle press
             uint32_t time = (uint32_t)(millis());
-            encoderButton.setRawState(time, encoder->isButtonPressed());
+            bool encButtonPressed;
+            bool readSuccess = encoder->isButtonPressed(encButtonPressed);
+            if (!readSuccess) {
+                self->_failureDescription = "Failed to read the encoder button";
+                self->_status = WebFunctionExecutionStatus::Failed;
+                break;
+            }
+
+            encoderButton.setRawState(time, encButtonPressed);
             if (encoderButton.wasPressed()) {
                 self->_axisIndex = (self->_axisIndex + 1) % NUM_AXES;
                 self->startJog(self->_axisIndex);
                 self->_ioBoard.playSound(IO_BOARD_SOUND_BEEP);
             }
 
-            delay(1); // Sleep the task
+            delay(PBIO_CONFIG_SERVO_PERIOD_MS * 2); // Sleep the task
         }
         self->_encoderJog.stop();
         self->_status = WebFunctionExecutionStatus::Done;

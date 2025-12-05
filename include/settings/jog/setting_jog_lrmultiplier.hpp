@@ -16,6 +16,7 @@ class SettingJogLRMultiplier : public SettingFloat {
 
         void setValue(float value) override {
             _config.l_r_encoder_multiplier = value;
+            _config.update_counter++;
         }
 
         const char* getName() const override {

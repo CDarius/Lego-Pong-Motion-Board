@@ -27,6 +27,8 @@ void ApiRestServer::setupAxisInfoController() {
                 jAxis["speed_limit"] = motor->get_speed_limit();
                 jAxis["acceleration_limit"] = motor->get_acceleration_limit();
                 jAxis["actuation_limit"] = motor->get_actuation_limit();
+                jAxis["sw_limit_m"] = motor->getSwLimitMinus();
+                jAxis["sw_limit_p"] = motor->getSwLimitPlus();
             }
         }
 
